@@ -275,6 +275,12 @@ func (c *Client) City(ctx context.Context, name string, opts *CityOptions) (*Cit
 	return out, c.get(ctx, "/city/"+seg(name), values("country", country, "state", state), nil, out)
 }
 
+// CityID fetches a city by its minted parse id (city_…).
+func (c *Client) CityID(ctx context.Context, id string) (*City, error) {
+	out := &City{}
+	return out, c.get(ctx, "/city/id/"+seg(id), nil, nil, out)
+}
+
 // CitySearchOptions narrows a city search.
 type CitySearchOptions struct {
 	Country string
@@ -380,6 +386,12 @@ func (c *Client) Useragent(ctx context.Context, ua string, opts *DeepOptions) (*
 func (c *Client) Currency(ctx context.Context, code string) (*Currency, error) {
 	out := &Currency{}
 	return out, c.get(ctx, "/currency/"+seg(code), nil, nil, out)
+}
+
+// Language looks up a language by BCP 47 shortest code or ISO 639-3.
+func (c *Client) Language(ctx context.Context, code string) (*Language, error) {
+	out := &Language{}
+	return out, c.get(ctx, "/language/"+seg(code), nil, nil, out)
 }
 
 // CurrencyRate returns the daily official reference rate for a currency pair.

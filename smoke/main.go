@@ -158,8 +158,21 @@ func main() {
 		if r.Name != "Charlotte" {
 			return "wrong city"
 		}
+		if r.ID == "" || len(r.ID) < 5 || r.ID[:5] != "city_" {
+			return "missing id"
+		}
 		return ""
 	})
+
+	if city != nil && city.ID != "" {
+		byID, err := parse.CityID(ctx, city.ID)
+		expectOk("city id", byID, err, func(r *parseapi.City) string {
+			if r.ID != city.ID || r.Name != "Charlotte" {
+				return "id mismatch"
+			}
+			return ""
+		})
+	}
 
 	citySearch, err := parse.CitySearch(ctx, "char", &parseapi.CitySearchOptions{Country: "US", Limit: 5})
 	expectOk("city search", citySearch, err, func(r *parseapi.CitySearch) string {
@@ -253,6 +266,14 @@ func main() {
 	expectOk("currency rate", rate, err, func(r *parseapi.CurrencyRate) string {
 		if r.Rate <= 0 || r.Rate >= 10 {
 			return fmt.Sprintf("rate %f", r.Rate)
+		}
+		return ""
+	})
+
+	language, err := parse.Language(ctx, "en")
+	expectOk("language", language, err, func(r *parseapi.Language) string {
+		if r.Language != "en" || r.Name != "English" {
+			return "wrong language"
 		}
 		return ""
 	})

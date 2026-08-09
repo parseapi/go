@@ -119,6 +119,7 @@ type District struct {
 }
 
 type City struct {
+	ID         string   `json:"id"`
 	Country    string   `json:"country"`
 	State      *string  `json:"state"`
 	StateName  *string  `json:"state_name"`
@@ -319,6 +320,17 @@ type Currency struct {
 	SymbolNative *string  `json:"symbol_native"`
 	Digits       *int     `json:"digits"`
 	Countries    []string `json:"countries"`
+}
+
+// Language is one language by BCP 47 shortest code or ISO 639-3. Codes are lowercase.
+type Language struct {
+	Language  string   `json:"language"`
+	Iso3      *string  `json:"iso3"`
+	Name      string   `json:"name"`
+	LocalName *string  `json:"local_name"`
+	Script    *string  `json:"script"`
+	Direction string   `json:"direction"`
+	Countries []string `json:"countries"`
 }
 
 type CurrencyRate struct {

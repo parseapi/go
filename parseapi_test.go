@@ -59,6 +59,7 @@ func TestURLMapping(t *testing.T) {
 		{"state districts", func(c *Client) error { _, err := c.StateDistricts(ctx, "NC", "US"); return err }, "/state/NC/districts", "country=US"},
 		{"district", func(c *Client) error { _, err := c.District(ctx, "37081", nil); return err }, "/district/37081", ""},
 		{"city", func(c *Client) error { _, err := c.City(ctx, "charlotte", &CityOptions{State: "NC"}); return err }, "/city/charlotte", "state=NC"},
+		{"city id", func(c *Client) error { _, err := c.CityID(ctx, "city_mb8mbqrkz8zb"); return err }, "/city/id/city_mb8mbqrkz8zb", ""},
 		{"city search", func(c *Client) error {
 			_, err := c.CitySearch(ctx, "char", &CitySearchOptions{Country: "US", Limit: 10})
 			return err
@@ -77,6 +78,7 @@ func TestURLMapping(t *testing.T) {
 		{"useragent", func(c *Client) error { _, err := c.Useragent(ctx, "TestUA/1.0", nil); return err }, "/useragent", ""},
 		{"currency", func(c *Client) error { _, err := c.Currency(ctx, "USD"); return err }, "/currency/USD", ""},
 		{"currency rate", func(c *Client) error { _, err := c.CurrencyRate(ctx, "USD", "EUR"); return err }, "/currency/USD/EUR", ""},
+		{"language", func(c *Client) error { _, err := c.Language(ctx, "en"); return err }, "/language/en", ""},
 		{"timezone encodes slash", func(c *Client) error { _, err := c.Timezone(ctx, "America/New_York", nil); return err }, "/timezone/America%2FNew_York", ""},
 		{"holiday", func(c *Client) error { _, err := c.Holiday(ctx, "US", &HolidayOptions{Year: 1955}); return err }, "/holiday/US", "year=1955"},
 		{"holiday date", func(c *Client) error { _, err := c.HolidayDate(ctx, "US", "2026-12-25"); return err }, "/holiday/US/2026-12-25", ""},
