@@ -1,0 +1,21 @@
+# Binaries / test output
+*.exe
+*.test
+*.out
+bin/
+
+# Coverage
+*.cover
+coverage.out
+coverage.html
+profile.cov
+
+# Local workspace
+go.work
+go.work.sum
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
