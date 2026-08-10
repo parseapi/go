@@ -6,13 +6,13 @@ package parseapi
 // requested but locked, populated when unlocked.
 
 type IPDeep struct {
-	State        *string `json:"state"`
-	City         *string `json:"city"`
-	Registry     *string `json:"registry"`
-	IsDatacenter *bool   `json:"is_datacenter"`
-	IsRelay      *bool   `json:"is_relay"`
-	IsTor        *bool   `json:"is_tor"`
-	Provider     *string `json:"provider"`
+	State      *string `json:"state"`
+	City       *string `json:"city"`
+	Registry   *string `json:"registry"`
+	Datacenter *bool   `json:"datacenter"`
+	Relay      *bool   `json:"relay"`
+	Tor        *bool   `json:"tor"`
+	Provider   *string `json:"provider"`
 }
 
 type IP struct {
@@ -262,11 +262,11 @@ type MX struct {
 }
 
 type UseragentDeviceDeep struct {
-	Type          *string `json:"type"`
-	Brand         *string `json:"brand"`
-	Model         *string `json:"model"`
-	CPU           *string `json:"cpu"`
-	IsTouchscreen *bool   `json:"is_touchscreen"`
+	Type        *string `json:"type"`
+	Brand       *string `json:"brand"`
+	Model       *string `json:"model"`
+	CPU         *string `json:"cpu"`
+	Touchscreen *bool   `json:"touchscreen"`
 }
 
 type UseragentOSDeep struct {
@@ -293,12 +293,12 @@ type UseragentEngineDeep struct {
 }
 
 type UseragentDeep struct {
-	Device     *UseragentDeviceDeep  `json:"device"`
-	OS         *UseragentOSDeep      `json:"os"`
-	Browser    *UseragentBrowserDeep `json:"browser"`
-	Engine     *UseragentEngineDeep  `json:"engine"`
-	IsHeadless *bool                 `json:"is_headless"`
-	IsAI       *bool                 `json:"is_ai,omitempty"`
+	Device   *UseragentDeviceDeep  `json:"device"`
+	OS       *UseragentOSDeep      `json:"os"`
+	Browser  *UseragentBrowserDeep `json:"browser"`
+	Engine   *UseragentEngineDeep  `json:"engine"`
+	Headless *bool                 `json:"headless"`
+	AI       *bool                 `json:"ai,omitempty"`
 }
 
 type Useragent struct {
@@ -306,8 +306,8 @@ type Useragent struct {
 	Device    *string        `json:"device"`
 	OS        *string        `json:"os"`
 	Browser   *string        `json:"browser"`
-	IsBot     bool           `json:"is_bot"`
-	IsMobile  bool           `json:"is_mobile"`
+	Bot       bool           `json:"bot"`
+	Mobile    bool           `json:"mobile"`
 	Deep      *UseragentDeep `json:"deep,omitempty"`
 }
 
@@ -410,7 +410,7 @@ type WeatherForecastPeriod struct {
 	Name       string   `json:"name"`
 	Start      string   `json:"start"`
 	End        string   `json:"end"`
-	Day        bool     `json:"day"`
+	Daytime        bool     `json:"daytime"`
 	Temp       *float64 `json:"temp"`
 	TempF      *float64 `json:"temp_f"`
 	Precip     *float64 `json:"precip"`

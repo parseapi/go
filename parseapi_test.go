@@ -260,8 +260,8 @@ func TestDeepTriadDecoding(t *testing.T) {
 	if result2.Deep == nil {
 		t.Error("expected non-nil Deep for {}")
 	}
-	if result2.Deep != nil && result2.Deep.IsDatacenter != nil {
-		t.Error("expected nil IsDatacenter in empty deep")
+	if result2.Deep != nil && result2.Deep.Datacenter != nil {
+		t.Error("expected nil Datacenter in empty deep")
 	}
 }
 

@@ -62,7 +62,7 @@ Pass deep options to include the nested deep object with richer fields.
 
 ```go
 ip, err := parse.IP(ctx, "52.94.76.10", &parseapi.DeepOptions{Deep: true})
-if ip.Deep != nil && ip.Deep.IsDatacenter != nil && *ip.Deep.IsDatacenter {
+if ip.Deep != nil && ip.Deep.Datacenter != nil && *ip.Deep.Datacenter {
 	// datacenter IP
 }
 ```
