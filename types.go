@@ -349,7 +349,7 @@ type TimezoneNextDST struct {
 }
 
 type Timezone struct {
-	ID            string           `json:"id"`
+	Timezone      string           `json:"timezone"`
 	Abbreviation  string           `json:"abbreviation"`
 	Offset        string           `json:"offset"`
 	OffsetMinutes int              `json:"offset_minutes"`
