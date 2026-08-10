@@ -85,9 +85,9 @@ func TestURLMapping(t *testing.T) {
 		{"elevation", func(c *Client) error { _, err := c.Elevation(ctx, 35.2, -80.8); return err }, "/elevation", "lat=35.2&lon=-80.8"},
 		{"point deep", func(c *Client) error { _, err := c.Point(ctx, 36.0726, -79.792, &DeepOptions{Deep: true}); return err }, "/point", "deep=true&lat=36.0726&lon=-79.792"},
 		{"weather", func(c *Client) error {
-			_, err := c.Weather(ctx, 40.7128, -74.006, &WeatherOptions{Unit: "imperial"})
+			_, err := c.Weather(ctx, 40.7128, -74.006, &DeepOptions{Deep: true})
 			return err
-		}, "/weather", "lat=40.7128&lon=-74.006&unit=imperial"},
+		}, "/weather", "deep=true&lat=40.7128&lon=-74.006"},
 		{"emoji", func(c *Client) error { _, err := c.Emoji(ctx, "rocket"); return err }, "/emoji/rocket", ""},
 		{"emoji search", func(c *Client) error { _, err := c.EmojiSearch(ctx, "fire", &EmojiSearchOptions{Limit: 20}); return err }, "/emoji", "limit=20&q=fire"},
 	}

@@ -449,24 +449,11 @@ func (c *Client) Point(ctx context.Context, lat, lon float64, opts *DeepOptions)
 	return out, c.get(ctx, "/point", values("lat", f(lat), "lon", f(lon), "deep", deepValue(opts)), nil, out)
 }
 
-// WeatherOptions tunes a weather lookup. Unit "imperial" flips wind, pressure,
-// and distance.
-type WeatherOptions struct {
-	Unit string
-	Deep bool
-}
-
-// Weather returns current conditions at a point from the nearest official station.
-func (c *Client) Weather(ctx context.Context, lat, lon float64, opts *WeatherOptions) (*Weather, error) {
-	unit, deep := "", ""
-	if opts != nil {
-		unit = opts.Unit
-		if opts.Deep {
-			deep = "true"
-		}
-	}
+// Weather returns current conditions at a point from the nearest official
+// station. Every measurement ships metric and imperial side by side.
+func (c *Client) Weather(ctx context.Context, lat, lon float64, opts *DeepOptions) (*Weather, error) {
 	out := &Weather{}
-	return out, c.get(ctx, "/weather", values("lat", f(lat), "lon", f(lon), "unit", unit, "deep", deep), nil, out)
+	return out, c.get(ctx, "/weather", values("lat", f(lat), "lon", f(lon), "deep", deepValue(opts)), nil, out)
 }
 
 // Emoji resolves an emoji by character, shortcode, or name.

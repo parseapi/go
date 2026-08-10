@@ -410,7 +410,7 @@ type WeatherForecastPeriod struct {
 	Name       string   `json:"name"`
 	Start      string   `json:"start"`
 	End        string   `json:"end"`
-	Daytime        bool     `json:"daytime"`
+	Daytime    bool     `json:"daytime"`
 	Temp       *float64 `json:"temp"`
 	TempF      *float64 `json:"temp_f"`
 	Precip     *float64 `json:"precip"`
@@ -434,22 +434,27 @@ type WeatherDeep struct {
 }
 
 type Weather struct {
-	Latitude        float64      `json:"latitude"`
-	Longitude       float64      `json:"longitude"`
-	Temp            *float64     `json:"temp"`
-	TempF           *float64     `json:"temp_f"`
-	FeelsLike       *float64     `json:"feels_like"`
-	Humidity        *float64     `json:"humidity"`
-	WindSpeed       *float64     `json:"wind_speed"`
-	WindDir         any          `json:"wind_dir"`
-	Pressure        *float64     `json:"pressure"`
-	Conditions      *string      `json:"conditions"`
-	ConditionsName  *string      `json:"conditions_name"`
-	ObservedAt      *string      `json:"observed_at"`
-	Station         string       `json:"station"`
-	StationDistance float64      `json:"station_distance"`
-	Source          string       `json:"source"`
-	Deep            *WeatherDeep `json:"deep,omitempty"`
+	Latitude          float64      `json:"latitude"`
+	Longitude         float64      `json:"longitude"`
+	Temp              *float64     `json:"temp"`
+	TempF             *float64     `json:"temp_f"`
+	FeelsLike         *float64     `json:"feels_like"`
+	FeelsLikeF        *float64     `json:"feels_like_f"`
+	Humidity          *float64     `json:"humidity"`
+	WindSpeed         *float64     `json:"wind_speed"`
+	WindSpeedMph      *float64     `json:"wind_speed_mph"`
+	WindDir           any          `json:"wind_dir"`
+	Pressure          *float64     `json:"pressure"`
+	PressureInhg      *float64     `json:"pressure_inhg"`
+	Conditions        *string      `json:"conditions"`
+	ConditionsName    *string      `json:"conditions_name"`
+	ObservedAt        *string      `json:"observed_at"`
+	Station           string       `json:"station"`
+	StationName       *string      `json:"station_name"`
+	StationDistance   float64      `json:"station_distance"`
+	StationDistanceMi float64      `json:"station_distance_mi"`
+	Source            string       `json:"source"`
+	Deep              *WeatherDeep `json:"deep,omitempty"`
 }
 
 type EmojiSkin struct {
