@@ -457,9 +457,9 @@ func (c *Client) Weather(ctx context.Context, lat, lon float64, opts *DeepOption
 }
 
 // Emoji resolves an emoji by character, shortcode, or name.
-func (c *Client) Emoji(ctx context.Context, query string) (*Emoji, error) {
+func (c *Client) Emoji(ctx context.Context, emoji string) (*Emoji, error) {
 	out := &Emoji{}
-	return out, c.get(ctx, "/emoji/"+seg(query), nil, nil, out)
+	return out, c.get(ctx, "/emoji/"+seg(emoji), nil, nil, out)
 }
 
 // EmojiSearchOptions caps the result count.
