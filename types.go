@@ -362,6 +362,7 @@ type Holiday struct {
 	Date       string   `json:"date"`
 	Name       string   `json:"name"`
 	LocalName  *string  `json:"local_name"`
+	Type       string   `json:"type"`
 	Regions    []string `json:"regions"`
 	Substitute bool     `json:"substitute"`
 }
