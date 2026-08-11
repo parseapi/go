@@ -49,7 +49,7 @@ func TestURLMapping(t *testing.T) {
 		wantQuery string
 	}{
 		{"ip", func(c *Client) error { _, err := c.IP(ctx, "8.8.8.8", nil); return err }, "/ip/8.8.8.8", ""},
-		{"ip me", func(c *Client) error { _, err := c.IPMe(ctx, nil); return err }, "/ip/me", ""},
+		{"ip self", func(c *Client) error { _, err := c.IPSelf(ctx, nil); return err }, "/ip", ""},
 		{"ip deep", func(c *Client) error { _, err := c.IP(ctx, "8.8.8.8", &DeepOptions{Deep: true}); return err }, "/ip/8.8.8.8", "deep=true"},
 		{"continent", func(c *Client) error { _, err := c.Continent(ctx, "NA"); return err }, "/continent/NA", ""},
 		{"continent countries", func(c *Client) error { _, err := c.ContinentCountries(ctx, "NA"); return err }, "/continent/NA/countries", ""},

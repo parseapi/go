@@ -89,8 +89,8 @@ func main() {
 		return ""
 	})
 
-	me, err := parse.IPMe(ctx, nil)
-	expectOk("ip me", me, err, func(r *parseapi.IP) string {
+	me, err := parse.IPSelf(ctx, nil)
+	expectOk("ip self", me, err, func(r *parseapi.IP) string {
 		if r.IP == "" {
 			return "no ip"
 		}

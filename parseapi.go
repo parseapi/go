@@ -201,10 +201,10 @@ func (c *Client) IP(ctx context.Context, ip string, opts *DeepOptions) (*IP, err
 	return out, c.get(ctx, "/ip/"+seg(ip), values("deep", deepValue(opts)), nil, out)
 }
 
-// IPMe looks up the caller's IP.
-func (c *Client) IPMe(ctx context.Context, opts *DeepOptions) (*IP, error) {
+// IPSelf looks up the caller's IP.
+func (c *Client) IPSelf(ctx context.Context, opts *DeepOptions) (*IP, error) {
 	out := &IP{}
-	return out, c.get(ctx, "/ip/me", values("deep", deepValue(opts)), nil, out)
+	return out, c.get(ctx, "/ip", values("deep", deepValue(opts)), nil, out)
 }
 
 // Continent looks up a continent by code (NA, EU, ...).

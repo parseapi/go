@@ -21,7 +21,7 @@ One method per endpoint, named after the route. Every method takes a context fir
 
 ```go
 parse.IP(ctx, "8.8.8.8", nil)
-parse.IPMe(ctx, nil)
+parse.IPSelf(ctx, nil)
 parse.Email(ctx, "hello@gmail.com", nil)
 parse.Phone(ctx, "+14155552671", nil)
 parse.Postal(ctx, "28202", "US")
