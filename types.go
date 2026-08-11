@@ -27,7 +27,6 @@ type IP struct {
 
 type Continent struct {
 	Continent  string   `json:"continent"`
-	Numeric    int      `json:"numeric"`
 	Name       string   `json:"name"`
 	Region     string   `json:"region"`
 	Subregion  string   `json:"subregion"`
@@ -53,6 +52,7 @@ type Country struct {
 	Name           string   `json:"name"`
 	FullName       *string  `json:"full_name"`
 	LocalName      *string  `json:"local_name"`
+	Demonym        *string  `json:"demonym"`
 	Capital        *string  `json:"capital"`
 	Continent      string   `json:"continent"`
 	Region         *string  `json:"region"`
@@ -63,10 +63,9 @@ type Country struct {
 	CurrencyName   *string  `json:"currency_name"`
 	CurrencySymbol *string  `json:"currency_symbol"`
 	TLD            *string  `json:"tld"`
-	FlagEmoji      *string  `json:"flag_emoji"`
+	Emoji          *string  `json:"emoji"`
 	Languages      []string `json:"languages"`
 	Borders        []string `json:"borders"`
-	Demonym        *string  `json:"demonym"`
 }
 
 type CountryStateItem struct {
@@ -81,16 +80,17 @@ type CountryStates struct {
 }
 
 type State struct {
-	Country    string   `json:"country"`
-	State      string   `json:"state"`
-	Name       string   `json:"name"`
-	LocalName  *string  `json:"local_name"`
-	Type       *string  `json:"type"`
-	Latitude   *float64 `json:"latitude"`
-	Longitude  *float64 `json:"longitude"`
-	Population *int64   `json:"population"`
-	Area       *float64 `json:"area"`
-	Timezone   *string  `json:"timezone"`
+	State       string   `json:"state"`
+	Name        string   `json:"name"`
+	LocalName   *string  `json:"local_name"`
+	Type        *string  `json:"type"`
+	Country     string   `json:"country"`
+	CountryName *string  `json:"country_name"`
+	Latitude    *float64 `json:"latitude"`
+	Longitude   *float64 `json:"longitude"`
+	Population  *int64   `json:"population"`
+	Area        *float64 `json:"area"`
+	Timezone    *string  `json:"timezone"`
 }
 
 type StateDistrictItem struct {
@@ -100,35 +100,40 @@ type StateDistrictItem struct {
 }
 
 type StateDistricts struct {
-	Country   string              `json:"country"`
-	State     string              `json:"state"`
-	Districts []StateDistrictItem `json:"districts"`
+	State       string              `json:"state"`
+	StateName   *string             `json:"state_name"`
+	Country     string              `json:"country"`
+	CountryName *string             `json:"country_name"`
+	Districts   []StateDistrictItem `json:"districts"`
 }
 
 type District struct {
-	Country    string   `json:"country"`
-	State      *string  `json:"state"`
-	District   string   `json:"district"`
-	Name       string   `json:"name"`
-	Type       *string  `json:"type"`
-	Population *int64   `json:"population"`
-	Latitude   *float64 `json:"latitude"`
-	Longitude  *float64 `json:"longitude"`
-	AreaLand   *float64 `json:"area_land"`
-	AreaWater  *float64 `json:"area_water"`
+	District    string   `json:"district"`
+	Name        string   `json:"name"`
+	Type        *string  `json:"type"`
+	State       *string  `json:"state"`
+	StateName   *string  `json:"state_name"`
+	Country     string   `json:"country"`
+	CountryName *string  `json:"country_name"`
+	Latitude    *float64 `json:"latitude"`
+	Longitude   *float64 `json:"longitude"`
+	Population  *int64   `json:"population"`
+	LandArea    *float64 `json:"land_area"`
+	WaterArea   *float64 `json:"water_area"`
 }
 
 type City struct {
-	ID         string   `json:"id"`
-	Country    string   `json:"country"`
-	State      *string  `json:"state"`
-	StateName  *string  `json:"state_name"`
 	Name       string   `json:"name"`
 	LocalName  *string  `json:"local_name"`
+	State      *string  `json:"state"`
+	StateName  *string  `json:"state_name"`
+	Country    string   `json:"country"`
 	Latitude   *float64 `json:"latitude"`
 	Longitude  *float64 `json:"longitude"`
 	Population *int64   `json:"population"`
 	Timezone   *string  `json:"timezone"`
+	// ID is the minted parse id (city_ + 12 chars). Stable pin via /city/id/{id}.
+	ID string `json:"id"`
 }
 
 // CityNearest is a City plus the distance from the query point.
@@ -149,20 +154,20 @@ type Postal struct {
 	Postal            string   `json:"postal"`
 	City              *string  `json:"city"`
 	CityLocal         *string  `json:"city_local"`
-	State             *string  `json:"state"`
-	StateName         *string  `json:"state_name"`
-	StateNameLocal    *string  `json:"state_name_local"`
 	District          *string  `json:"district"`
 	DistrictName      *string  `json:"district_name"`
 	DistrictNameLocal *string  `json:"district_name_local"`
+	State             *string  `json:"state"`
+	StateName         *string  `json:"state_name"`
+	StateNameLocal    *string  `json:"state_name_local"`
 	Country           string   `json:"country"`
 	Latitude          *float64 `json:"latitude"`
 	Longitude         *float64 `json:"longitude"`
-	Timezone          *string  `json:"timezone"`
-	Currency          *string  `json:"currency"`
 	Elevation         *float64 `json:"elevation"`
 	ElevationFt       *float64 `json:"elevation_ft"`
 	Population        *int64   `json:"population"`
+	Timezone          *string  `json:"timezone"`
+	Currency          *string  `json:"currency"`
 	Neighbors         []string `json:"neighbors"`
 }
 
@@ -176,8 +181,8 @@ type PostalNearbyItem struct {
 }
 
 type PostalNearby struct {
-	Country string             `json:"country"`
 	Postal  string             `json:"postal"`
+	Country string             `json:"country"`
 	Radius  float64            `json:"radius"`
 	Unit    string             `json:"unit"`
 	Nearby  []PostalNearbyItem `json:"nearby"`
@@ -350,11 +355,11 @@ type TimezoneNextDST struct {
 
 type Timezone struct {
 	Timezone      string           `json:"timezone"`
+	Name          *string          `json:"name"`
 	Abbreviation  string           `json:"abbreviation"`
 	Offset        string           `json:"offset"`
 	OffsetMinutes int              `json:"offset_minutes"`
 	DST           bool             `json:"dst"`
-	Name          *string          `json:"name"`
 	NextDST       *TimezoneNextDST `json:"next_dst"`
 }
 
@@ -395,29 +400,32 @@ type PointDeep struct {
 type Point struct {
 	Latitude     float64    `json:"latitude"`
 	Longitude    float64    `json:"longitude"`
-	Elevation    *float64   `json:"elevation"`
-	ElevationFt  *float64   `json:"elevation_ft"`
-	Resolution   *float64   `json:"resolution"`
 	Country      *string    `json:"country"`
 	CountryName  *string    `json:"country_name"`
 	State        *string    `json:"state"`
 	StateName    *string    `json:"state_name"`
 	District     *string    `json:"district"`
 	DistrictName *string    `json:"district_name"`
+	Elevation    *float64   `json:"elevation"`
+	ElevationFt  *float64   `json:"elevation_ft"`
+	Resolution   *float64   `json:"resolution"`
 	Deep         *PointDeep `json:"deep,omitempty"`
 }
 
 type WeatherForecastPeriod struct {
-	Name       string   `json:"name"`
-	Start      string   `json:"start"`
-	End        string   `json:"end"`
-	Daytime    bool     `json:"daytime"`
-	Temp       *float64 `json:"temp"`
-	TempF      *float64 `json:"temp_f"`
-	Precip     *float64 `json:"precip"`
-	Wind       *string  `json:"wind"`
-	WindDir    *string  `json:"wind_dir"`
-	Conditions *string  `json:"conditions"`
+	Name                string   `json:"name"`
+	Start               *string  `json:"start"`
+	End                 *string  `json:"end"`
+	Daytime             *bool    `json:"daytime"`
+	Temperature         *float64 `json:"temperature"`
+	TemperatureF        *float64 `json:"temperature_f"`
+	PrecipitationChance *float64 `json:"precipitation_chance"`
+	WindSpeed           *float64 `json:"wind_speed"`
+	WindSpeedMph        *float64 `json:"wind_speed_mph"`
+	WindDirection       *float64 `json:"wind_direction"`
+	Condition           *string  `json:"condition"`
+	ConditionName       *string  `json:"condition_name"`
+	ConditionEmoji      *string  `json:"condition_emoji"`
 }
 
 type WeatherAlert struct {
@@ -437,24 +445,32 @@ type WeatherDeep struct {
 type Weather struct {
 	Latitude          float64      `json:"latitude"`
 	Longitude         float64      `json:"longitude"`
-	Temp              *float64     `json:"temp"`
-	TempF             *float64     `json:"temp_f"`
+	Temperature       *float64     `json:"temperature"`
+	TemperatureF      *float64     `json:"temperature_f"`
 	FeelsLike         *float64     `json:"feels_like"`
 	FeelsLikeF        *float64     `json:"feels_like_f"`
+	Dewpoint          *float64     `json:"dewpoint"`
+	DewpointF         *float64     `json:"dewpoint_f"`
 	Humidity          *float64     `json:"humidity"`
 	WindSpeed         *float64     `json:"wind_speed"`
 	WindSpeedMph      *float64     `json:"wind_speed_mph"`
-	WindDir           any          `json:"wind_dir"`
+	WindGust          *float64     `json:"wind_gust"`
+	WindGustMph       *float64     `json:"wind_gust_mph"`
+	WindDirection     *float64     `json:"wind_direction"`
 	Pressure          *float64     `json:"pressure"`
 	PressureInhg      *float64     `json:"pressure_inhg"`
-	Conditions        *string      `json:"conditions"`
-	ConditionsName    *string      `json:"conditions_name"`
+	Visibility        *float64     `json:"visibility"`
+	VisibilityMi      *float64     `json:"visibility_mi"`
+	Condition         *string      `json:"condition"`
+	ConditionName     *string      `json:"condition_name"`
+	ConditionEmoji    *string      `json:"condition_emoji"`
 	ObservedAt        *string      `json:"observed_at"`
 	Station           string       `json:"station"`
 	StationName       *string      `json:"station_name"`
 	StationDistance   float64      `json:"station_distance"`
 	StationDistanceMi float64      `json:"station_distance_mi"`
 	Source            string       `json:"source"`
+	SourceName        *string      `json:"source_name"`
 	Deep              *WeatherDeep `json:"deep,omitempty"`
 }
 
@@ -466,15 +482,15 @@ type EmojiSkin struct {
 }
 
 type Emoji struct {
-	Emoji      string   `json:"emoji"`
-	Name       string   `json:"name"`
-	Shortcodes []string `json:"shortcodes"`
-	Codepoints []string `json:"codepoints"`
-	Hex        string   `json:"hex"`
-	Category   *string  `json:"category"`
-	Status     *string  `json:"status"`
-	Version    *string  `json:"version"`
-	Keywords   []string `json:"keywords"`
+	Emoji      string      `json:"emoji"`
+	Name       string      `json:"name"`
+	Shortcodes []string    `json:"shortcodes"`
+	Codepoints []string    `json:"codepoints"`
+	Hex        string      `json:"hex"`
+	Category   *string     `json:"category"`
+	Status     *string     `json:"status"`
+	Version    *string     `json:"version"`
+	Keywords   []string    `json:"keywords"`
 	Skins      []EmojiSkin `json:"skins"`
 }
 

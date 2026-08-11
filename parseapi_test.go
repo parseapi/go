@@ -89,7 +89,10 @@ func TestURLMapping(t *testing.T) {
 			return err
 		}, "/weather", "deep=true&lat=40.7128&lon=-74.006"},
 		{"emoji", func(c *Client) error { _, err := c.Emoji(ctx, "rocket"); return err }, "/emoji/rocket", ""},
-		{"emoji search", func(c *Client) error { _, err := c.EmojiSearch(ctx, "fire", &EmojiSearchOptions{Limit: 20}); return err }, "/emoji", "limit=20&q=fire"},
+		{"emoji search", func(c *Client) error {
+			_, err := c.EmojiSearch(ctx, "fire", &EmojiSearchOptions{Limit: 20})
+			return err
+		}, "/emoji", "limit=20&q=fire"},
 	}
 
 	for _, tc := range cases {
