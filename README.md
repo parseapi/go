@@ -1,13 +1,13 @@
-# parseapi-go
+# parseapi Go
 
 Official parseAPI client for Go.
 
 ```bash
-go get github.com/parseapi/parseapi-go
+go get github.com/parseapi/go
 ```
 
 ```go
-import parseapi "github.com/parseapi/parseapi-go"
+import parseapi "github.com/parseapi/go"
 
 parse, err := parseapi.New("your-api-key")
 country, err := parse.Country(ctx, "US")

@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"os"
 
-	parseapi "github.com/parseapi/parseapi-go"
+	parseapi "github.com/parseapi/go"
 )
 
 var (
