@@ -36,8 +36,10 @@ type Continent struct {
 }
 
 type ContinentCountryItem struct {
-	Country string `json:"country"`
-	Name    string `json:"name"`
+	Country      string  `json:"country"`
+	Name         string  `json:"name"`
+	Emoji        *string `json:"emoji"`
+	CallingCode  *string `json:"calling_code"`
 }
 
 type ContinentCountries struct {
@@ -63,6 +65,7 @@ type Country struct {
 	CurrencyName   *string  `json:"currency_name"`
 	CurrencySymbol *string  `json:"currency_symbol"`
 	TLD            *string  `json:"tld"`
+	CallingCode    *string  `json:"calling_code"`
 	Emoji          *string  `json:"emoji"`
 	Languages      []string `json:"languages"`
 	Borders        []string `json:"borders"`
