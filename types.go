@@ -56,6 +56,8 @@ type Country struct {
 	LocalName      *string  `json:"local_name"`
 	Demonym        *string  `json:"demonym"`
 	Capital        *string  `json:"capital"`
+	CapitalLat     *float64 `json:"capital_lat"`
+	CapitalLon     *float64 `json:"capital_lon"`
 	Continent      string   `json:"continent"`
 	Region         *string  `json:"region"`
 	Subregion      *string  `json:"subregion"`
