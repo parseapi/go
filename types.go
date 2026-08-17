@@ -222,13 +222,16 @@ type Email struct {
 }
 
 type PhoneDeep struct {
-	Type   *string `json:"type"`
-	Region *string `json:"region"`
+	Type      *string `json:"type"`
+	Carrier   *string `json:"carrier"`
+	City      *string `json:"city"`
+	State     *string `json:"state"`
+	StateName *string `json:"state_name"`
 }
 
 type Phone struct {
+	Phone         *string    `json:"phone"`
 	Valid         bool       `json:"valid"`
-	E164          *string    `json:"e164"`
 	Country       *string    `json:"country"`
 	National      *string    `json:"national"`
 	International *string    `json:"international"`

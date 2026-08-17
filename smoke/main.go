@@ -224,8 +224,8 @@ func main() {
 
 	phone, err := parse.Phone(ctx, "+14155552671", nil)
 	expectOk("phone", phone, err, func(r *parseapi.Phone) string {
-		if str(r.E164) != "+14155552671" {
-			return "e164 " + str(r.E164)
+		if str(r.Phone) != "+14155552671" {
+			return "phone " + str(r.Phone)
 		}
 		return ""
 	})
