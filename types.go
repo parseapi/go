@@ -36,10 +36,10 @@ type Continent struct {
 }
 
 type ContinentCountryItem struct {
-	Country      string  `json:"country"`
-	Name         string  `json:"name"`
-	Emoji        *string `json:"emoji"`
-	CallingCode  *string `json:"calling_code"`
+	Country     string  `json:"country"`
+	Name        string  `json:"name"`
+	Emoji       *string `json:"emoji"`
+	CallingCode *string `json:"calling_code"`
 }
 
 type ContinentCountries struct {
@@ -222,8 +222,10 @@ type Email struct {
 }
 
 type PhoneDeep struct {
-	Type      *string `json:"type"`
-	Carrier   *string `json:"carrier"`
+	Type    *string `json:"type"`
+	Carrier *string `json:"carrier"`
+	// Burner reports whether the carrier is a known burner number app. Nil when carrier is unknown.
+	Burner    *bool   `json:"burner"`
 	City      *string `json:"city"`
 	State     *string `json:"state"`
 	StateName *string `json:"state_name"`
