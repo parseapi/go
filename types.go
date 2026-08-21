@@ -348,6 +348,20 @@ type Language struct {
 	Countries []string `json:"countries"`
 }
 
+// Name is a parsed person name. Junk input returns Valid false, never an error.
+// Gender comes from dictionary data and is nil when the data does not decide.
+type Name struct {
+	Name       string  `json:"name"`
+	Valid      bool    `json:"valid"`
+	Prefix     *string `json:"prefix"`
+	First      *string `json:"first"`
+	Middle     *string `json:"middle"`
+	Last       *string `json:"last"`
+	Suffix     *string `json:"suffix"`
+	Gender     *string `json:"gender"`
+	Salutation *string `json:"salutation"`
+}
+
 type CurrencyRate struct {
 	Base   string  `json:"base"`
 	Quote  string  `json:"quote"`

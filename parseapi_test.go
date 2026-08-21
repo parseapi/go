@@ -79,6 +79,7 @@ func TestURLMapping(t *testing.T) {
 		{"currency", func(c *Client) error { _, err := c.Currency(ctx, "USD"); return err }, "/currency/USD", ""},
 		{"currency rate", func(c *Client) error { _, err := c.CurrencyRate(ctx, "USD", "EUR"); return err }, "/currency/USD/EUR", ""},
 		{"language", func(c *Client) error { _, err := c.Language(ctx, "en"); return err }, "/language/en", ""},
+		{"name encodes spaces", func(c *Client) error { _, err := c.Name(ctx, "Smith, John"); return err }, "/name/Smith%2C%20John", ""},
 		{"timezone encodes slash", func(c *Client) error { _, err := c.Timezone(ctx, "America/New_York", nil); return err }, "/timezone/America%2FNew_York", ""},
 		{"holiday", func(c *Client) error { _, err := c.Holiday(ctx, "US", &HolidayOptions{Year: 1955}); return err }, "/holiday/US", "year=1955"},
 		{"holiday date", func(c *Client) error { _, err := c.HolidayDate(ctx, "US", "2026-12-25"); return err }, "/holiday/US/2026-12-25", ""},

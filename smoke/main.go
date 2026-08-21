@@ -278,6 +278,14 @@ func main() {
 		return ""
 	})
 
+	name, err := parse.Name(ctx, "BILLY O'SHALL")
+	expectOk("name", name, err, func(r *parseapi.Name) string {
+		if r.Name != "Billy O'Shall" || !r.Valid || r.Gender == nil || *r.Gender != "male" {
+			return "wrong name"
+		}
+		return ""
+	})
+
 	timezone, err := parse.Timezone(ctx, "America/New_York", nil)
 	expectOk("timezone", timezone, err, func(r *parseapi.Timezone) string {
 		if r.OffsetMinutes != -240 && r.OffsetMinutes != -300 {

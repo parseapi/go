@@ -394,6 +394,12 @@ func (c *Client) Language(ctx context.Context, code string) (*Language, error) {
 	return out, c.get(ctx, "/language/"+seg(code), nil, nil, out)
 }
 
+// Name parses a person's name into its parts.
+func (c *Client) Name(ctx context.Context, name string) (*Name, error) {
+	out := &Name{}
+	return out, c.get(ctx, "/name/"+seg(name), nil, nil, out)
+}
+
 // CurrencyRate returns the daily official reference rate for a currency pair.
 func (c *Client) CurrencyRate(ctx context.Context, base, quote string) (*CurrencyRate, error) {
 	out := &CurrencyRate{}
