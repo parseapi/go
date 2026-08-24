@@ -12,6 +12,7 @@ type IPDeep struct {
 	Datacenter *bool   `json:"datacenter"`
 	Relay      *bool   `json:"relay"`
 	Tor        *bool   `json:"tor"`
+	VPN        *bool   `json:"vpn"`
 	Provider   *string `json:"provider"`
 }
 
@@ -261,7 +262,7 @@ type DomainDeep struct {
 	NS           []string            `json:"ns"`
 	MX           []MXRecord          `json:"mx"`
 	TXT          []string            `json:"txt"`
-	Provider     *string             `json:"provider"`
+	Mailhost     *string             `json:"mailhost"`
 	Registration *DomainRegistration `json:"registration"`
 }
 
