@@ -517,9 +517,17 @@ type WeatherHour struct {
 	ConditionEmoji      *string  `json:"condition_emoji"`
 }
 
+type WeatherMinute struct {
+	At              string   `json:"at"`
+	Precipitation   *float64 `json:"precipitation"`
+	PrecipitationIn *float64 `json:"precipitation_in"`
+	Type            *string  `json:"type"`
+}
+
 type WeatherDeep struct {
 	Forecast []WeatherForecastPeriod `json:"forecast"`
 	Alerts   []WeatherAlert          `json:"alerts"`
+	Minutes  []WeatherMinute         `json:"minutes"`
 	Hours    []WeatherHour           `json:"hours"`
 }
 
