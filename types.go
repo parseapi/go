@@ -222,23 +222,63 @@ type Email struct {
 	Deep        *EmailDeep `json:"deep,omitempty"`
 }
 
-type PhoneDeep struct {
-	Type    *string `json:"type"`
+type Phone struct {
+	Phone *string `json:"phone"`
+	Valid bool    `json:"valid"`
+	// Type is what the numbering plan can see: mobile, landline, toll_free, unknown. Never voip.
+	Type *string `json:"type"`
+	// State is the NPA-derived state code (US/CA).
+	State         *string `json:"state"`
+	StateName     *string `json:"state_name"`
+	Country       *string `json:"country"`
+	National      *string `json:"national"`
+	International *string `json:"international"`
+	// Deep is always empty. The metered proves are their own endpoints: Carrier, Caller, HLR.
+	Deep map[string]any `json:"deep,omitempty"`
+}
+
+type Carrier struct {
+	Phone   *string `json:"phone"`
+	Valid   bool    `json:"valid"`
+	Country *string `json:"country"`
+	// Type is the network's word, including voip.
+	Type *string `json:"type"`
+	// Carrier is the current carrier display name. Nil when the probe had no answer.
 	Carrier *string `json:"carrier"`
 	// Burner reports whether the carrier is a known burner number app. Nil when carrier is unknown.
-	Burner    *bool   `json:"burner"`
+	Burner *bool `json:"burner"`
+	// City is the issuing rate-center city.
 	City      *string `json:"city"`
 	State     *string `json:"state"`
 	StateName *string `json:"state_name"`
 }
 
-type Phone struct {
-	Phone         *string    `json:"phone"`
-	Valid         bool       `json:"valid"`
-	Country       *string    `json:"country"`
-	National      *string    `json:"national"`
-	International *string    `json:"international"`
-	Deep          *PhoneDeep `json:"deep,omitempty"`
+type Caller struct {
+	Phone   *string `json:"phone"`
+	Valid   bool    `json:"valid"`
+	Country *string `json:"country"`
+	// Caller is the CNAM record verbatim (all-caps telco artifact). Nil when no record or outside NANP.
+	Caller *string `json:"caller"`
+}
+
+type HLR struct {
+	Phone   *string `json:"phone"`
+	Valid   bool    `json:"valid"`
+	Country *string `json:"country"`
+	// Live reports whether the number is assigned to a subscriber.
+	Live *bool `json:"live"`
+	// Connected reports whether the handset is reachable right now. Nil means unconfirmed, never no.
+	Connected *bool `json:"connected"`
+	// The six network extras fill on live HLR dips only. Nil elsewhere (NANP, failover).
+	Roaming        *bool   `json:"roaming"`
+	RoamingNetwork *string `json:"roaming_network"`
+	// RoamingCountry is ISO2, uppercase.
+	RoamingCountry *string `json:"roaming_country"`
+	// Network is the current serving network name.
+	Network         *string `json:"network"`
+	OriginalNetwork *string `json:"original_network"`
+	MCC             *string `json:"mcc"`
+	MNC             *string `json:"mnc"`
 }
 
 type MXRecord struct {

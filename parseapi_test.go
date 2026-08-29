@@ -73,6 +73,12 @@ func TestURLMapping(t *testing.T) {
 		{"postal distance", func(c *Client) error { _, err := c.PostalDistance(ctx, "28202", "10001", "US"); return err }, "/postal/28202/distance/10001", "country=US"},
 		{"email", func(c *Client) error { _, err := c.Email(ctx, "a@b.com", nil); return err }, "/email/a@b.com", ""},
 		{"phone", func(c *Client) error { _, err := c.Phone(ctx, "+14155552671", &PhoneOptions{Deep: true}); return err }, "/phone/+14155552671", "deep=true"},
+		{"carrier", func(c *Client) error { _, err := c.Carrier(ctx, "+14155552671", nil); return err }, "/carrier/+14155552671", ""},
+		{"caller with country", func(c *Client) error {
+			_, err := c.Caller(ctx, "4155552671", &CountryOptions{Country: "US"})
+			return err
+		}, "/caller/4155552671", "country=US"},
+		{"hlr", func(c *Client) error { _, err := c.HLR(ctx, "+447712345678", nil); return err }, "/hlr/+447712345678", ""},
 		{"domain", func(c *Client) error { _, err := c.Domain(ctx, "example.com", nil); return err }, "/domain/example.com", ""},
 		{"mx", func(c *Client) error { _, err := c.MX(ctx, "example.com"); return err }, "/mx/example.com", ""},
 		{"useragent", func(c *Client) error { _, err := c.Useragent(ctx, "TestUA/1.0", nil); return err }, "/useragent", ""},

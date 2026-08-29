@@ -230,6 +230,31 @@ func main() {
 		return ""
 	})
 
+	// Metered core siblings: junk numbers answer 200 valid false, free, no vendor dip.
+	carrier, err := parse.Carrier(ctx, "555-0100", nil)
+	expectOk("carrier junk free", carrier, err, func(r *parseapi.Carrier) string {
+		if r.Valid {
+			return "expected invalid"
+		}
+		return ""
+	})
+
+	caller, err := parse.Caller(ctx, "555-0100", nil)
+	expectOk("caller junk free", caller, err, func(r *parseapi.Caller) string {
+		if r.Valid {
+			return "expected invalid"
+		}
+		return ""
+	})
+
+	hlr, err := parse.HLR(ctx, "555-0100", nil)
+	expectOk("hlr junk free", hlr, err, func(r *parseapi.HLR) string {
+		if r.Valid {
+			return "expected invalid"
+		}
+		return ""
+	})
+
 	domain, err := parse.Domain(ctx, "gmail.com", nil)
 	expectOk("domain", domain, err, func(r *parseapi.Domain) string {
 		if r.Available {

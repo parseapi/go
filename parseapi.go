@@ -364,6 +364,37 @@ func (c *Client) Phone(ctx context.Context, number string, opts *PhoneOptions) (
 	return out, c.get(ctx, "/phone/"+seg(number), values("country", country, "deep", deep), nil, out)
 }
 
+// CountryOptions narrows a phone-family lookup. Country is the default
+// region for national formats without a leading plus.
+type CountryOptions struct {
+	Country string
+}
+
+func countryValue(opts *CountryOptions) string {
+	if opts == nil {
+		return ""
+	}
+	return opts.Country
+}
+
+// Carrier looks up the current carrier serving a phone number. Metered.
+func (c *Client) Carrier(ctx context.Context, number string, opts *CountryOptions) (*Carrier, error) {
+	out := &Carrier{}
+	return out, c.get(ctx, "/carrier/"+seg(number), values("country", countryValue(opts)), nil, out)
+}
+
+// Caller looks up the caller ID name (CNAM) for a NANP phone number. Metered.
+func (c *Client) Caller(ctx context.Context, number string, opts *CountryOptions) (*Caller, error) {
+	out := &Caller{}
+	return out, c.get(ctx, "/caller/"+seg(number), values("country", countryValue(opts)), nil, out)
+}
+
+// HLR checks live network status for a phone number worldwide. Metered.
+func (c *Client) HLR(ctx context.Context, number string, opts *CountryOptions) (*HLR, error) {
+	out := &HLR{}
+	return out, c.get(ctx, "/hlr/"+seg(number), values("country", countryValue(opts)), nil, out)
+}
+
 // Domain checks if a domain is available to register.
 func (c *Client) Domain(ctx context.Context, domain string, opts *DeepOptions) (*Domain, error) {
 	out := &Domain{}
