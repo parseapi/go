@@ -462,41 +462,69 @@ type WeatherAlert struct {
 	Expires  *string `json:"expires"`
 }
 
+type WeatherHour struct {
+	At                  *string  `json:"at"`
+	Daytime             *bool    `json:"daytime"`
+	Temperature         *float64 `json:"temperature"`
+	TemperatureF        *float64 `json:"temperature_f"`
+	Humidity            *float64 `json:"humidity"`
+	PrecipitationChance *float64 `json:"precipitation_chance"`
+	WindSpeed           *float64 `json:"wind_speed"`
+	WindSpeedMph        *float64 `json:"wind_speed_mph"`
+	WindDirection       *float64 `json:"wind_direction"`
+	Condition           *string  `json:"condition"`
+	ConditionName       *string  `json:"condition_name"`
+	ConditionEmoji      *string  `json:"condition_emoji"`
+}
+
 type WeatherDeep struct {
 	Forecast []WeatherForecastPeriod `json:"forecast"`
 	Alerts   []WeatherAlert          `json:"alerts"`
+	Hours    []WeatherHour           `json:"hours"`
+}
+
+type WeatherCurrent struct {
+	Temperature    *float64 `json:"temperature"`
+	TemperatureF   *float64 `json:"temperature_f"`
+	FeelsLike      *float64 `json:"feels_like"`
+	FeelsLikeF     *float64 `json:"feels_like_f"`
+	Dewpoint       *float64 `json:"dewpoint"`
+	DewpointF      *float64 `json:"dewpoint_f"`
+	Humidity       *float64 `json:"humidity"`
+	WindSpeed      *float64 `json:"wind_speed"`
+	WindSpeedMph   *float64 `json:"wind_speed_mph"`
+	WindGust       *float64 `json:"wind_gust"`
+	WindGustMph    *float64 `json:"wind_gust_mph"`
+	WindDirection  *float64 `json:"wind_direction"`
+	Pressure       *float64 `json:"pressure"`
+	PressureInhg   *float64 `json:"pressure_inhg"`
+	Visibility     *float64 `json:"visibility"`
+	VisibilityMi   *float64 `json:"visibility_mi"`
+	Condition      *string  `json:"condition"`
+	ConditionName  *string  `json:"condition_name"`
+	ConditionEmoji *string  `json:"condition_emoji"`
+	ObservedAt     *string  `json:"observed_at"`
+}
+
+type WeatherStation struct {
+	ID         string   `json:"id"`
+	Name       *string  `json:"name"`
+	Distance   *float64 `json:"distance"`
+	DistanceMi *float64 `json:"distance_mi"`
+}
+
+type WeatherSource struct {
+	ID   string  `json:"id"`
+	Name *string `json:"name"`
 }
 
 type Weather struct {
-	Latitude          float64      `json:"latitude"`
-	Longitude         float64      `json:"longitude"`
-	Temperature       *float64     `json:"temperature"`
-	TemperatureF      *float64     `json:"temperature_f"`
-	FeelsLike         *float64     `json:"feels_like"`
-	FeelsLikeF        *float64     `json:"feels_like_f"`
-	Dewpoint          *float64     `json:"dewpoint"`
-	DewpointF         *float64     `json:"dewpoint_f"`
-	Humidity          *float64     `json:"humidity"`
-	WindSpeed         *float64     `json:"wind_speed"`
-	WindSpeedMph      *float64     `json:"wind_speed_mph"`
-	WindGust          *float64     `json:"wind_gust"`
-	WindGustMph       *float64     `json:"wind_gust_mph"`
-	WindDirection     *float64     `json:"wind_direction"`
-	Pressure          *float64     `json:"pressure"`
-	PressureInhg      *float64     `json:"pressure_inhg"`
-	Visibility        *float64     `json:"visibility"`
-	VisibilityMi      *float64     `json:"visibility_mi"`
-	Condition         *string      `json:"condition"`
-	ConditionName     *string      `json:"condition_name"`
-	ConditionEmoji    *string      `json:"condition_emoji"`
-	ObservedAt        *string      `json:"observed_at"`
-	Station           string       `json:"station"`
-	StationName       *string      `json:"station_name"`
-	StationDistance   float64      `json:"station_distance"`
-	StationDistanceMi float64      `json:"station_distance_mi"`
-	Source            string       `json:"source"`
-	SourceName        *string      `json:"source_name"`
-	Deep              *WeatherDeep `json:"deep,omitempty"`
+	Latitude  float64         `json:"latitude"`
+	Longitude float64         `json:"longitude"`
+	Current   WeatherCurrent  `json:"current"`
+	Station   *WeatherStation `json:"station"`
+	Source    WeatherSource   `json:"source"`
+	Deep      *WeatherDeep    `json:"deep,omitempty"`
 }
 
 type EmojiSkin struct {

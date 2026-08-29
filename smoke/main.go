@@ -336,7 +336,7 @@ func main() {
 
 	weather, err := parse.Weather(ctx, 40.7128, -74.006, nil)
 	expectOk("weather", weather, err, func(r *parseapi.Weather) string {
-		if r.Station == "" {
+		if r.Station == nil || r.Station.ID == "" {
 			return "no station"
 		}
 		return ""
