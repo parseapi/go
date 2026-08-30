@@ -219,6 +219,18 @@ func (c *Client) ContinentCountries(ctx context.Context, code string) (*Continen
 	return out, c.get(ctx, "/continent/"+seg(code)+"/countries", nil, nil, out)
 }
 
+// Bloc looks up a country group by code (EU, SCHENGEN, NATO, ...).
+func (c *Client) Bloc(ctx context.Context, code string) (*Bloc, error) {
+	out := &Bloc{}
+	return out, c.get(ctx, "/bloc/"+seg(code), nil, nil, out)
+}
+
+// BlocCountries lists the current members of a bloc.
+func (c *Client) BlocCountries(ctx context.Context, code string) (*BlocCountries, error) {
+	out := &BlocCountries{}
+	return out, c.get(ctx, "/bloc/"+seg(code)+"/countries", nil, nil, out)
+}
+
 // Country looks up a country by ISO code.
 func (c *Client) Country(ctx context.Context, code string) (*Country, error) {
 	out := &Country{}

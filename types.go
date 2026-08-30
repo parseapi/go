@@ -48,6 +48,24 @@ type ContinentCountries struct {
 	Countries []ContinentCountryItem `json:"countries"`
 }
 
+type Bloc struct {
+	Bloc    string `json:"bloc"`
+	Name    string `json:"name"`
+	Members int    `json:"members"`
+}
+
+type BlocCountryItem struct {
+	Country     string  `json:"country"`
+	Name        string  `json:"name"`
+	Emoji       *string `json:"emoji"`
+	CallingCode *string `json:"calling_code"`
+}
+
+type BlocCountries struct {
+	Bloc      string            `json:"bloc"`
+	Countries []BlocCountryItem `json:"countries"`
+}
+
 type Country struct {
 	Country        string   `json:"country"`
 	ISO3           string   `json:"iso3"`
@@ -72,6 +90,7 @@ type Country struct {
 	Emoji          *string  `json:"emoji"`
 	Languages      []string `json:"languages"`
 	Borders        []string `json:"borders"`
+	Blocs          []string `json:"blocs"`
 }
 
 type CountryStateItem struct {

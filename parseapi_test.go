@@ -53,6 +53,8 @@ func TestURLMapping(t *testing.T) {
 		{"ip deep", func(c *Client) error { _, err := c.IP(ctx, "8.8.8.8", &DeepOptions{Deep: true}); return err }, "/ip/8.8.8.8", "deep=true"},
 		{"continent", func(c *Client) error { _, err := c.Continent(ctx, "NA"); return err }, "/continent/NA", ""},
 		{"continent countries", func(c *Client) error { _, err := c.ContinentCountries(ctx, "NA"); return err }, "/continent/NA/countries", ""},
+		{"bloc", func(c *Client) error { _, err := c.Bloc(ctx, "EU"); return err }, "/bloc/EU", ""},
+		{"bloc countries", func(c *Client) error { _, err := c.BlocCountries(ctx, "SCHENGEN"); return err }, "/bloc/SCHENGEN/countries", ""},
 		{"country", func(c *Client) error { _, err := c.Country(ctx, "US"); return err }, "/country/US", ""},
 		{"country states", func(c *Client) error { _, err := c.CountryStates(ctx, "US"); return err }, "/country/US/states", ""},
 		{"state", func(c *Client) error { _, err := c.State(ctx, "NC", "US"); return err }, "/state/NC", "country=US"},

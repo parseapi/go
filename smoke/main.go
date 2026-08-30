@@ -113,6 +113,22 @@ func main() {
 		return ""
 	})
 
+	bloc, err := parse.Bloc(ctx, "EU")
+	expectOk("bloc", bloc, err, func(r *parseapi.Bloc) string {
+		if r.Name != "European Union" || r.Members != 27 {
+			return "wrong bloc"
+		}
+		return ""
+	})
+
+	blocCountries, err := parse.BlocCountries(ctx, "SCHENGEN")
+	expectOk("bloc countries", blocCountries, err, func(r *parseapi.BlocCountries) string {
+		if len(r.Countries) != 29 {
+			return "wrong members"
+		}
+		return ""
+	})
+
 	country, err := parse.Country(ctx, "US")
 	expectOk("country", country, err, func(r *parseapi.Country) string {
 		if r.ISO3 != "USA" {
