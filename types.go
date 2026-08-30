@@ -524,11 +524,24 @@ type WeatherMinute struct {
 	Type            *string  `json:"type"`
 }
 
+type WeatherDay struct {
+	Date                string   `json:"date"`
+	High                *float64 `json:"high"`
+	HighF               *float64 `json:"high_f"`
+	Low                 *float64 `json:"low"`
+	LowF                *float64 `json:"low_f"`
+	PrecipitationChance *float64 `json:"precipitation_chance"`
+	Condition           *string  `json:"condition"`
+	ConditionName       *string  `json:"condition_name"`
+	ConditionEmoji      *string  `json:"condition_emoji"`
+}
+
 type WeatherDeep struct {
 	Forecast []WeatherForecastPeriod `json:"forecast"`
 	Alerts   []WeatherAlert          `json:"alerts"`
 	Minutes  []WeatherMinute         `json:"minutes"`
 	Hours    []WeatherHour           `json:"hours"`
+	Days     []WeatherDay            `json:"days"`
 }
 
 type WeatherCurrent struct {
