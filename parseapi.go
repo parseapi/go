@@ -520,6 +520,13 @@ func (c *Client) Name(ctx context.Context, name string) (*Name, error) {
 	return out, c.get(ctx, "/name/"+seg(name), nil, nil, out)
 }
 
+// Sanctions screens a name against the official OFAC lists. Exact match
+// after normalization, never fuzzy. Sanctioned false is not clearance.
+func (c *Client) Sanctions(ctx context.Context, name string) (*Sanctions, error) {
+	out := &Sanctions{}
+	return out, c.get(ctx, "/sanctions/"+seg(name), nil, nil, out)
+}
+
 // CurrencyRateOptions selects a past bulletin day and/or converts an amount.
 type CurrencyRateOptions struct {
 	Date   string
