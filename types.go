@@ -296,10 +296,12 @@ type Vat struct {
 }
 
 type Iban struct {
-	Iban     *string `json:"iban"`
-	Valid    bool    `json:"valid"`
-	Country  *string `json:"country"`
-	Checksum *string `json:"checksum"`
+	Iban    *string `json:"iban"`
+	Valid   bool    `json:"valid"`
+	Country *string `json:"country"`
+	// Formatted is the print form in groups of four, for display. Nil when invalid.
+	Formatted *string `json:"formatted"`
+	Checksum  *string `json:"checksum"`
 	// Bank is the identifier parsed from the number, not a name.
 	Bank *string `json:"bank"`
 	// Branch is the identifier when that country has one.
