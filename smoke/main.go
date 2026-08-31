@@ -319,6 +319,22 @@ func main() {
 		return ""
 	})
 
+	vin, err := parse.Vin(ctx, "1HGCM82633A004352", nil)
+	expectOk("vin", vin, err, func(r *parseapi.Vin) string {
+		if !r.Valid || str(r.Make) != "Honda" {
+			return "make " + str(r.Make)
+		}
+		return ""
+	})
+
+	vinJunk, err := parse.Vin(ctx, "1HGCM82613A004352", nil)
+	expectOk("vin junk", vinJunk, err, func(r *parseapi.Vin) string {
+		if r.Valid {
+			return "expected invalid"
+		}
+		return ""
+	})
+
 	currency, err := parse.Currency(ctx, "USD")
 	expectOk("currency", currency, err, func(r *parseapi.Currency) string {
 		if str(r.Symbol) != "$" {

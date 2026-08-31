@@ -309,6 +309,50 @@ type Iban struct {
 	Account *string `json:"account"`
 }
 
+type VinRecall struct {
+	// Campaign is the government campaign number.
+	Campaign string `json:"campaign"`
+	// Date is the report date, ISO YYYY-MM-DD.
+	Date      *string `json:"date"`
+	Component *string `json:"component"`
+	// Summary is the filed summary verbatim.
+	Summary *string `json:"summary"`
+}
+
+type VinDeep struct {
+	// Recalls is the open campaigns for the decoded vehicle. Empty when none,
+	// nil when the registry did not answer.
+	Recalls []VinRecall `json:"recalls"`
+}
+
+type Vin struct {
+	// Vin is the normalized VIN, uppercase, no spaces. Invalid input still echoes the fold.
+	Vin    *string `json:"vin"`
+	Valid  bool    `json:"valid"`
+	Year   *int    `json:"year"`
+	Make   *string `json:"make"`
+	Model  *string `json:"model"`
+	Trim   *string `json:"trim"`
+	Series *string `json:"series"`
+	// Body is the body style (sedan, coupe, suv, pickup).
+	Body *string `json:"body"`
+	// Type is the vehicle type (passenger car, truck, motorcycle, bus, trailer).
+	Type         *string  `json:"type"`
+	Doors        *int     `json:"doors"`
+	Cylinders    *int     `json:"cylinders"`
+	Displacement *float64 `json:"displacement"`
+	Fuel         *string  `json:"fuel"`
+	Horsepower   *float64 `json:"horsepower"`
+	Drive        *string  `json:"drive"`
+	Transmission *string  `json:"transmission"`
+	Manufacturer *string  `json:"manufacturer"`
+	PlantCity    *string  `json:"plant_city"`
+	PlantState   *string  `json:"plant_state"`
+	PlantCountry *string  `json:"plant_country"`
+	Gvwr         *string  `json:"gvwr"`
+	Deep         *VinDeep `json:"deep,omitempty"`
+}
+
 type Phone struct {
 	Phone *string `json:"phone"`
 	Valid bool    `json:"valid"`

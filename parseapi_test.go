@@ -100,6 +100,11 @@ func TestURLMapping(t *testing.T) {
 		{"domain", func(c *Client) error { _, err := c.Domain(ctx, "example.com", nil); return err }, "/domain/example.com", ""},
 		{"mx", func(c *Client) error { _, err := c.MX(ctx, "example.com"); return err }, "/mx/example.com", ""},
 		{"useragent", func(c *Client) error { _, err := c.Useragent(ctx, "TestUA/1.0", nil); return err }, "/useragent", ""},
+		{"vin", func(c *Client) error { _, err := c.Vin(ctx, "1HGCM82633A004352", nil); return err }, "/vin/1HGCM82633A004352", ""},
+		{"vin deep", func(c *Client) error {
+			_, err := c.Vin(ctx, "1HGCM82633A004352", &DeepOptions{Deep: true})
+			return err
+		}, "/vin/1HGCM82633A004352", "deep=true"},
 		{"currency", func(c *Client) error { _, err := c.Currency(ctx, "USD"); return err }, "/currency/USD", ""},
 		{"currency rate", func(c *Client) error { _, err := c.CurrencyRate(ctx, "USD", "EUR", nil); return err }, "/currency/USD/EUR", ""},
 		{"currency rate date amount", func(c *Client) error {

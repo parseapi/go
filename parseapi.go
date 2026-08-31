@@ -490,6 +490,12 @@ func (c *Client) Useragent(ctx context.Context, ua string, opts *DeepOptions) (*
 	return out, c.get(ctx, "/useragent", values("deep", deepValue(opts)), map[string]string{"User-Agent": ua}, out)
 }
 
+// Vin decodes a 17-character VIN. Deep adds open recall campaigns on paid plans.
+func (c *Client) Vin(ctx context.Context, vin string, opts *DeepOptions) (*Vin, error) {
+	out := &Vin{}
+	return out, c.get(ctx, "/vin/"+seg(vin), values("deep", deepValue(opts)), nil, out)
+}
+
 // Currency looks up a currency by ISO 4217 code.
 func (c *Client) Currency(ctx context.Context, code string) (*Currency, error) {
 	out := &Currency{}

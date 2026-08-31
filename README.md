@@ -59,6 +59,7 @@ parse.Weather(ctx, 40.7128, -74.006, nil)
 parse.Domain(ctx, "example.com", nil)
 parse.MX(ctx, "example.com")
 parse.Useragent(ctx, uaString, nil)
+parse.Vin(ctx, "1HGCM82633A004352", nil)
 parse.Emoji(ctx, "rocket")
 parse.EmojiSearch(ctx, "fire", nil)
 ```
