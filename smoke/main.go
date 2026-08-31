@@ -311,7 +311,7 @@ func main() {
 		return ""
 	})
 
-	rate, err := parse.CurrencyRate(ctx, "USD", "EUR")
+	rate, err := parse.CurrencyRate(ctx, "USD", "EUR", nil)
 	expectOk("currency rate", rate, err, func(r *parseapi.CurrencyRate) string {
 		if r.Rate <= 0 || r.Rate >= 10 {
 			return fmt.Sprintf("rate %f", r.Rate)

@@ -493,10 +493,24 @@ func (c *Client) Name(ctx context.Context, name string) (*Name, error) {
 	return out, c.get(ctx, "/name/"+seg(name), nil, nil, out)
 }
 
+// CurrencyRateOptions selects a past bulletin day and/or converts an amount.
+type CurrencyRateOptions struct {
+	Date   string
+	Amount *float64
+}
+
 // CurrencyRate returns the daily official reference rate for a currency pair.
-func (c *Client) CurrencyRate(ctx context.Context, base, quote string) (*CurrencyRate, error) {
+func (c *Client) CurrencyRate(ctx context.Context, base, quote string, opts *CurrencyRateOptions) (*CurrencyRate, error) {
+	date := ""
+	amount := ""
+	if opts != nil {
+		date = opts.Date
+		if opts.Amount != nil {
+			amount = f(*opts.Amount)
+		}
+	}
 	out := &CurrencyRate{}
-	return out, c.get(ctx, "/currency/"+seg(base)+"/"+seg(quote), nil, nil, out)
+	return out, c.get(ctx, "/currency/"+seg(base)+"/"+seg(quote), values("date", date, "amount", amount), nil, out)
 }
 
 // TimezoneOptions evaluates the zone at an optional ISO-8601 instant.

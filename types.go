@@ -477,11 +477,13 @@ type Name struct {
 }
 
 type CurrencyRate struct {
-	Base   string  `json:"base"`
-	Quote  string  `json:"quote"`
-	Rate   float64 `json:"rate"`
-	Date   string  `json:"date"`
-	Source string  `json:"source,omitempty"`
+	Base      string   `json:"base"`
+	Quote     string   `json:"quote"`
+	Rate      float64  `json:"rate"`
+	Date      string   `json:"date"`
+	Amount    *float64 `json:"amount,omitempty"`
+	Converted *float64 `json:"converted,omitempty"`
+	Source    string   `json:"source,omitempty"`
 }
 
 type TimezoneNextDST struct {

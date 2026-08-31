@@ -96,7 +96,12 @@ func TestURLMapping(t *testing.T) {
 		{"mx", func(c *Client) error { _, err := c.MX(ctx, "example.com"); return err }, "/mx/example.com", ""},
 		{"useragent", func(c *Client) error { _, err := c.Useragent(ctx, "TestUA/1.0", nil); return err }, "/useragent", ""},
 		{"currency", func(c *Client) error { _, err := c.Currency(ctx, "USD"); return err }, "/currency/USD", ""},
-		{"currency rate", func(c *Client) error { _, err := c.CurrencyRate(ctx, "USD", "EUR"); return err }, "/currency/USD/EUR", ""},
+		{"currency rate", func(c *Client) error { _, err := c.CurrencyRate(ctx, "USD", "EUR", nil); return err }, "/currency/USD/EUR", ""},
+		{"currency rate date amount", func(c *Client) error {
+			amt := 100.0
+			_, err := c.CurrencyRate(ctx, "USD", "JPY", &CurrencyRateOptions{Date: "2026-08-28", Amount: &amt})
+			return err
+		}, "/currency/USD/JPY", "amount=100&date=2026-08-28"},
 		{"language", func(c *Client) error { _, err := c.Language(ctx, "en"); return err }, "/language/en", ""},
 		{"name encodes spaces", func(c *Client) error { _, err := c.Name(ctx, "Smith, John"); return err }, "/name/Smith%2C%20John", ""},
 		{"timezone encodes slash", func(c *Client) error { _, err := c.Timezone(ctx, "America/New_York", nil); return err }, "/timezone/America%2FNew_York", ""},
