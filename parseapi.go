@@ -392,6 +392,11 @@ type VatOptions struct {
 	Deep    bool
 }
 
+// IbanOptions fills a missing country prefix.
+type IbanOptions struct {
+	Country string
+}
+
 // Vat checksums a VAT number. Deep asks the live EU registry.
 func (c *Client) Vat(ctx context.Context, number string, opts *VatOptions) (*Vat, error) {
 	country, from, deep := "", "", ""
@@ -404,6 +409,16 @@ func (c *Client) Vat(ctx context.Context, number string, opts *VatOptions) (*Vat
 	}
 	out := &Vat{}
 	return out, c.get(ctx, "/vat/"+seg(number), values("country", country, "from", from, "deep", deep), nil, out)
+}
+
+// Iban checksums an IBAN and returns the bank, branch, and account identifiers sitting inside it.
+func (c *Client) Iban(ctx context.Context, iban string, opts *IbanOptions) (*Iban, error) {
+	country := ""
+	if opts != nil {
+		country = opts.Country
+	}
+	out := &Iban{}
+	return out, c.get(ctx, "/iban/"+seg(iban), values("country", country), nil, out)
 }
 
 // PhoneOptions narrows a phone lookup. Country is the default region for

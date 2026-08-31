@@ -81,6 +81,11 @@ func TestURLMapping(t *testing.T) {
 		{"postal distance", func(c *Client) error { _, err := c.PostalDistance(ctx, "28202", "10001", "US"); return err }, "/postal/28202/distance/10001", "country=US"},
 		{"email", func(c *Client) error { _, err := c.Email(ctx, "a@b.com", nil); return err }, "/email/a@b.com", ""},
 		{"vat", func(c *Client) error { _, err := c.Vat(ctx, "DE136695976", nil); return err }, "/vat/DE136695976", ""},
+		{"iban", func(c *Client) error { _, err := c.Iban(ctx, "DE89370400440532013000", nil); return err }, "/iban/DE89370400440532013000", ""},
+		{"iban country", func(c *Client) error {
+			_, err := c.Iban(ctx, "89370400440532013000", &IbanOptions{Country: "DE"})
+			return err
+		}, "/iban/89370400440532013000", "country=DE"},
 		{"vat from deep", func(c *Client) error {
 			_, err := c.Vat(ctx, "DE136695976", &VatOptions{From: "IE6388047V", Deep: true})
 			return err

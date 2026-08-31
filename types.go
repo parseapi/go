@@ -295,6 +295,18 @@ type Vat struct {
 	Deep    *VatDeep `json:"deep,omitempty"`
 }
 
+type Iban struct {
+	Iban     *string `json:"iban"`
+	Valid    bool    `json:"valid"`
+	Country  *string `json:"country"`
+	Checksum *string `json:"checksum"`
+	// Bank is the identifier parsed from the number, not a name.
+	Bank *string `json:"bank"`
+	// Branch is the identifier when that country has one.
+	Branch  *string `json:"branch"`
+	Account *string `json:"account"`
+}
+
 type Phone struct {
 	Phone *string `json:"phone"`
 	Valid bool    `json:"valid"`
