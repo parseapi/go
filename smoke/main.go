@@ -262,6 +262,22 @@ func main() {
 		return ""
 	})
 
+	npi, err := parse.Npi(ctx, "1881018208")
+	expectOk("npi", npi, err, func(r *parseapi.Npi) string {
+		if !r.Valid || r.Registered == nil || !*r.Registered {
+			return "not registered"
+		}
+		return ""
+	})
+
+	npiJunk, err := parse.Npi(ctx, "hello")
+	expectOk("npi junk", npiJunk, err, func(r *parseapi.Npi) string {
+		if r.Valid {
+			return "expected invalid"
+		}
+		return ""
+	})
+
 	phone, err := parse.Phone(ctx, "+14155552671", nil)
 	expectOk("phone", phone, err, func(r *parseapi.Phone) string {
 		if str(r.Phone) != "+14155552671" {

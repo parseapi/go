@@ -421,6 +421,12 @@ func (c *Client) Iban(ctx context.Context, iban string, opts *IbanOptions) (*Iba
 	return out, c.get(ctx, "/iban/"+seg(iban), values("country", country), nil, out)
 }
 
+// Npi looks up an NPI in the CMS NPPES registry of US healthcare providers.
+func (c *Client) Npi(ctx context.Context, npi string) (*Npi, error) {
+	out := &Npi{}
+	return out, c.get(ctx, "/npi/"+seg(npi), nil, nil, out)
+}
+
 // PhoneOptions narrows a phone lookup. Country is the default region for
 // national formats without a leading plus.
 type PhoneOptions struct {

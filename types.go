@@ -309,6 +309,34 @@ type Iban struct {
 	Account *string `json:"account"`
 }
 
+// Npi is a US healthcare provider record from the CMS NPPES registry.
+type Npi struct {
+	// Npi is the normalized 10-digit NPI. Invalid input still echoes the fold.
+	Npi   *string `json:"npi"`
+	Valid bool    `json:"valid"`
+	// Registered reports whether the NPI exists in the registry.
+	Registered *bool `json:"registered"`
+	Active     *bool `json:"active"`
+	// Excluded reports the OIG exclusion flag.
+	Excluded *bool `json:"excluded"`
+	// Type is individual or organization.
+	Type       *string `json:"type"`
+	Name       *string `json:"name"`
+	First      *string `json:"first"`
+	Last       *string `json:"last"`
+	Credential *string `json:"credential"`
+	Specialty  *string `json:"specialty"`
+	// Taxonomy is the NUCC taxonomy code.
+	Taxonomy  *string `json:"taxonomy"`
+	Address   *string `json:"address"`
+	City      *string `json:"city"`
+	State     *string `json:"state"`
+	StateName *string `json:"state_name"`
+	Postal    *string `json:"postal"`
+	Country   *string `json:"country"`
+	Phone     *string `json:"phone"`
+}
+
 type VinRecall struct {
 	// Campaign is the government campaign number.
 	Campaign string `json:"campaign"`
