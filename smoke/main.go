@@ -238,6 +238,14 @@ func main() {
 		return ""
 	})
 
+	vat, err := parse.Vat(ctx, "DE136695976", nil)
+	expectOk("vat", vat, err, func(r *parseapi.Vat) string {
+		if !r.Valid || str(r.Country) != "DE" {
+			return "not valid DE"
+		}
+		return ""
+	})
+
 	phone, err := parse.Phone(ctx, "+14155552671", nil)
 	expectOk("phone", phone, err, func(r *parseapi.Phone) string {
 		if str(r.Phone) != "+14155552671" {

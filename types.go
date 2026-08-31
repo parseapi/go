@@ -272,6 +272,29 @@ type Email struct {
 	Deep        *EmailDeep `json:"deep,omitempty"`
 }
 
+type VatAddress struct {
+	Street  *string `json:"street"`
+	City    *string `json:"city"`
+	Postal  *string `json:"postal"`
+	Country *string `json:"country"`
+}
+
+type VatDeep struct {
+	Registered   *bool       `json:"registered"`
+	Name         *string     `json:"name"`
+	Address      *VatAddress `json:"address"`
+	Consultation *string     `json:"consultation"`
+	Consulted    *string     `json:"consulted"`
+}
+
+type Vat struct {
+	Vat     *string  `json:"vat"`
+	Valid   bool     `json:"valid"`
+	Country *string  `json:"country"`
+	From    *string  `json:"from,omitempty"`
+	Deep    *VatDeep `json:"deep,omitempty"`
+}
+
 type Phone struct {
 	Phone *string `json:"phone"`
 	Valid bool    `json:"valid"`

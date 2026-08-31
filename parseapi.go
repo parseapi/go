@@ -383,6 +383,29 @@ func (c *Client) Email(ctx context.Context, email string, opts *DeepOptions) (*E
 	return out, c.get(ctx, "/email/"+seg(email), values("deep", deepValue(opts)), nil, out)
 }
 
+// VatOptions narrows a VAT lookup. Country fills a missing prefix. From is
+// the caller's own VAT number for a consultation identifier. Deep asks the
+// live EU registry.
+type VatOptions struct {
+	Country string
+	From    string
+	Deep    bool
+}
+
+// Vat checksums a VAT number. Deep asks the live EU registry.
+func (c *Client) Vat(ctx context.Context, number string, opts *VatOptions) (*Vat, error) {
+	country, from, deep := "", "", ""
+	if opts != nil {
+		country = opts.Country
+		from = opts.From
+		if opts.Deep {
+			deep = "true"
+		}
+	}
+	out := &Vat{}
+	return out, c.get(ctx, "/vat/"+seg(number), values("country", country, "from", from, "deep", deep), nil, out)
+}
+
 // PhoneOptions narrows a phone lookup. Country is the default region for
 // national formats without a leading plus.
 type PhoneOptions struct {

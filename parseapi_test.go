@@ -80,6 +80,11 @@ func TestURLMapping(t *testing.T) {
 		}, "/postal/28202/nearby", "country=US&radius=40&unit=km"},
 		{"postal distance", func(c *Client) error { _, err := c.PostalDistance(ctx, "28202", "10001", "US"); return err }, "/postal/28202/distance/10001", "country=US"},
 		{"email", func(c *Client) error { _, err := c.Email(ctx, "a@b.com", nil); return err }, "/email/a@b.com", ""},
+		{"vat", func(c *Client) error { _, err := c.Vat(ctx, "DE136695976", nil); return err }, "/vat/DE136695976", ""},
+		{"vat from deep", func(c *Client) error {
+			_, err := c.Vat(ctx, "DE136695976", &VatOptions{From: "IE6388047V", Deep: true})
+			return err
+		}, "/vat/DE136695976", "deep=true&from=IE6388047V"},
 		{"phone", func(c *Client) error { _, err := c.Phone(ctx, "+14155552671", &PhoneOptions{Deep: true}); return err }, "/phone/+14155552671", "deep=true"},
 		{"carrier", func(c *Client) error { _, err := c.Carrier(ctx, "+14155552671", nil); return err }, "/carrier/+14155552671", ""},
 		{"caller with country", func(c *Client) error {

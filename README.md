@@ -23,6 +23,7 @@ One method per endpoint, named after the route. Every method takes a context fir
 parse.IP(ctx, "8.8.8.8", nil)
 parse.IPSelf(ctx, nil)
 parse.Email(ctx, "hello@gmail.com", nil)
+parse.Vat(ctx, "DE136695976", nil)
 parse.Phone(ctx, "+14155552671", nil)
 parse.Carrier(ctx, "+14155552671", nil)
 parse.Caller(ctx, "+14155552671", nil)
