@@ -347,6 +347,63 @@ type VinRecall struct {
 	Summary *string `json:"summary"`
 }
 
+type HtsMeasure struct {
+	// Heading is the Chapter 99 heading, dotted (9903.01.24).
+	Heading string `json:"heading"`
+	// Description is the measure text verbatim.
+	Description string `json:"description"`
+	// Rate is the rate string verbatim.
+	Rate *string `json:"rate"`
+	// From is the effective date, ISO YYYY-MM-DD. Nil when the schedule states none.
+	From *string `json:"from"`
+	// Until is the expiry, ISO YYYY-MM-DD. Nil when open-ended.
+	Until *string `json:"until"`
+}
+
+type HtsDeep struct {
+	// Origin is the country the measures were resolved for.
+	Origin *string `json:"origin"`
+	// EffectiveRate is the composed ad valorem percent. Nil when the
+	// components do not compose cleanly.
+	EffectiveRate *float64 `json:"effective_rate"`
+	// Measures is every Chapter 99 tariff measure that applies to this code
+	// from this origin.
+	Measures []HtsMeasure `json:"measures"`
+}
+
+type Hts struct {
+	// Hts is the normalized code with dots (8471.30.01.00).
+	Hts string `json:"hts"`
+	// Description is the schedule line verbatim.
+	Description string `json:"description"`
+	// Lineage is the parent descriptions from the schedule outline, outermost first.
+	Lineage []string `json:"lineage"`
+	// Units is the units of quantity (No., kg).
+	Units []string `json:"units"`
+	// General is the column 1 general rate, verbatim.
+	General *string `json:"general"`
+	// Special is the column 1 special rate, verbatim.
+	Special *string `json:"special"`
+	// Other is the column 2 rate, verbatim.
+	Other *string `json:"other"`
+	// Revision is the official release that answered (2026HTSRev17).
+	Revision string   `json:"revision"`
+	Deep     *HtsDeep `json:"deep,omitempty"`
+}
+
+type HtsSearchHit struct {
+	Hts         string  `json:"hts"`
+	Description string  `json:"description"`
+	General     *string `json:"general"`
+}
+
+type HtsSearch struct {
+	Q        string `json:"q"`
+	Revision string `json:"revision"`
+	// Codes is up to 20 lines, best match first.
+	Codes []HtsSearchHit `json:"codes"`
+}
+
 type VinDeep struct {
 	// Recalls is the open campaigns for the decoded vehicle. Empty when none,
 	// nil when the registry did not answer.
@@ -365,20 +422,24 @@ type Vin struct {
 	// Body is the body style (sedan, coupe, suv, pickup).
 	Body *string `json:"body"`
 	// Type is the vehicle type (passenger car, truck, motorcycle, bus, trailer).
-	Type         *string  `json:"type"`
-	Doors        *int     `json:"doors"`
-	Cylinders    *int     `json:"cylinders"`
+	Type      *string `json:"type"`
+	Doors     *int    `json:"doors"`
+	Cylinders *int    `json:"cylinders"`
+	// Displacement is the engine displacement in liters.
 	Displacement *float64 `json:"displacement"`
 	Fuel         *string  `json:"fuel"`
 	Horsepower   *float64 `json:"horsepower"`
-	Drive        *string  `json:"drive"`
-	Transmission *string  `json:"transmission"`
-	Manufacturer *string  `json:"manufacturer"`
-	PlantCity    *string  `json:"plant_city"`
-	PlantState   *string  `json:"plant_state"`
-	PlantCountry *string  `json:"plant_country"`
-	Gvwr         *string  `json:"gvwr"`
-	Deep         *VinDeep `json:"deep,omitempty"`
+	// Drive is fwd, rwd, awd, or 4wd.
+	Drive *string `json:"drive"`
+	// Transmission is automatic, manual, or cvt.
+	Transmission *string `json:"transmission"`
+	Manufacturer *string `json:"manufacturer"`
+	PlantCity    *string `json:"plant_city"`
+	PlantState   *string `json:"plant_state"`
+	PlantCountry *string `json:"plant_country"`
+	// Gvwr is the gross vehicle weight rating class as filed.
+	Gvwr *string  `json:"gvwr"`
+	Deep *VinDeep `json:"deep,omitempty"`
 }
 
 type Phone struct {

@@ -502,6 +502,35 @@ func (c *Client) Vin(ctx context.Context, vin string, opts *DeepOptions) (*Vin, 
 	return out, c.get(ctx, "/vin/"+seg(vin), values("deep", deepValue(opts)), nil, out)
 }
 
+// HtsOptions carries the deep flag and the origin country for duty resolution.
+type HtsOptions struct {
+	// Deep requests deep.measures. Paid plans only.
+	Deep bool
+	// Origin is the ISO 3166-1 country of origin. Only read with Deep.
+	Origin string
+}
+
+// Hts looks up a US Harmonized Tariff Schedule code. Deep with an origin
+// resolves the Chapter 99 tariff measures that apply from that country.
+func (c *Client) Hts(ctx context.Context, code string, opts *HtsOptions) (*Hts, error) {
+	deep := ""
+	origin := ""
+	if opts != nil {
+		if opts.Deep {
+			deep = "true"
+		}
+		origin = opts.Origin
+	}
+	out := &Hts{}
+	return out, c.get(ctx, "/hts/"+seg(code), values("deep", deep, "origin", origin), nil, out)
+}
+
+// HtsSearch searches tariff schedule descriptions by product.
+func (c *Client) HtsSearch(ctx context.Context, q string) (*HtsSearch, error) {
+	out := &HtsSearch{}
+	return out, c.get(ctx, "/hts", values("q", q), nil, out)
+}
+
 // Currency looks up a currency by ISO 4217 code.
 func (c *Client) Currency(ctx context.Context, code string) (*Currency, error) {
 	out := &Currency{}
