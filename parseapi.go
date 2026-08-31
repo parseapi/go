@@ -243,8 +243,8 @@ func (c *Client) CountryStates(ctx context.Context, code string) (*CountryStates
 	return out, c.get(ctx, "/country/"+seg(code)+"/states", nil, nil, out)
 }
 
-// State looks up a state or province. Country is required because state codes
-// are not globally unique.
+// State looks up a state or province by code or name. Country is optional
+// when the code or name is globally unique. Pass "" to omit it.
 func (c *Client) State(ctx context.Context, code, country string) (*State, error) {
 	out := &State{}
 	return out, c.get(ctx, "/state/"+seg(code), values("country", country), nil, out)
@@ -259,16 +259,17 @@ func (c *Client) StateDistricts(ctx context.Context, code, country string) (*Sta
 // DistrictOptions narrows a district lookup.
 type DistrictOptions struct {
 	Country string
+	State   string
 }
 
-// District looks up a district (ADM2) by code.
+// District looks up a district (ADM2) by code or name.
 func (c *Client) District(ctx context.Context, code string, opts *DistrictOptions) (*District, error) {
-	country := ""
+	country, state := "", ""
 	if opts != nil {
-		country = opts.Country
+		country, state = opts.Country, opts.State
 	}
 	out := &District{}
-	return out, c.get(ctx, "/district/"+seg(code), values("country", country), nil, out)
+	return out, c.get(ctx, "/district/"+seg(code), values("country", country, "state", state), nil, out)
 }
 
 // CityOptions narrows a city lookup.
@@ -319,7 +320,33 @@ func (c *Client) CityNearest(ctx context.Context, lat, lon float64) (*CityNeares
 	return out, c.get(ctx, "/city", values("lat", f(lat), "lon", f(lon)), nil, out)
 }
 
-// Postal looks up a postal or ZIP code. Country is required.
+// CityNearbyOptions tunes cities around a named anchor.
+type CityNearbyOptions struct {
+	Country string
+	State   string
+	Radius  float64
+	Unit    string
+	Limit   int
+}
+
+// CityNearby lists cities around a named city, nearest first.
+func (c *Client) CityNearby(ctx context.Context, name string, opts *CityNearbyOptions) (*CityNearby, error) {
+	country, state, radius, unit, limit := "", "", "", "", ""
+	if opts != nil {
+		country, state, unit = opts.Country, opts.State, opts.Unit
+		if opts.Radius > 0 {
+			radius = f(opts.Radius)
+		}
+		if opts.Limit > 0 {
+			limit = strconv.Itoa(opts.Limit)
+		}
+	}
+	out := &CityNearby{}
+	return out, c.get(ctx, "/city/"+seg(name)+"/nearby", values("country", country, "state", state, "radius", radius, "unit", unit, "limit", limit), nil, out)
+}
+
+// Postal looks up a postal or ZIP code. Country is optional when the code is
+// unique. Pass "" to omit it.
 func (c *Client) Postal(ctx context.Context, code, country string) (*Postal, error) {
 	out := &Postal{}
 	return out, c.get(ctx, "/postal/"+seg(code), values("country", country), nil, out)

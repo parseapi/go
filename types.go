@@ -116,6 +116,13 @@ type State struct {
 	Population  *int64   `json:"population"`
 	Area        *float64 `json:"area"`
 	Timezone    *string  `json:"timezone"`
+	Timezones   []string `json:"timezones"`
+	ISO3166_2   *string  `json:"iso_3166_2"`
+	FIPS        *string  `json:"fips"`
+	Capital     *string  `json:"capital"`
+	AreaCodes   []string `json:"area_codes"`
+	Tax         *string  `json:"tax"`
+	TaxRate     *float64 `json:"tax_rate"`
 }
 
 type StateDistrictItem struct {
@@ -145,18 +152,30 @@ type District struct {
 	Population  *int64   `json:"population"`
 	LandArea    *float64 `json:"land_area"`
 	WaterArea   *float64 `json:"water_area"`
+	Seat        *string  `json:"seat"`
+	Timezone    *string  `json:"timezone"`
+	Timezones   []string `json:"timezones"`
 }
 
 type City struct {
-	Name       string   `json:"name"`
-	LocalName  *string  `json:"local_name"`
-	State      *string  `json:"state"`
-	StateName  *string  `json:"state_name"`
-	Country    string   `json:"country"`
-	Latitude   *float64 `json:"latitude"`
-	Longitude  *float64 `json:"longitude"`
-	Population *int64   `json:"population"`
-	Timezone   *string  `json:"timezone"`
+	Name         string   `json:"name"`
+	LocalName    *string  `json:"local_name"`
+	Type         *string  `json:"type"`
+	Capital      *string  `json:"capital"`
+	State        *string  `json:"state"`
+	StateName    *string  `json:"state_name"`
+	District     *string  `json:"district"`
+	DistrictName *string  `json:"district_name"`
+	Country      string   `json:"country"`
+	CountryName  *string  `json:"country_name"`
+	Latitude     *float64 `json:"latitude"`
+	Longitude    *float64 `json:"longitude"`
+	Elevation    *float64 `json:"elevation"`
+	ElevationFt  *float64 `json:"elevation_ft"`
+	Population   *int64   `json:"population"`
+	LandArea     *float64 `json:"land_area"`
+	WaterArea    *float64 `json:"water_area"`
+	Timezone     *string  `json:"timezone"`
 	// ID is the minted parse id (city_ + 12 chars). Stable pin via /city/id/{id}.
 	ID string `json:"id"`
 }
@@ -175,6 +194,15 @@ type CitySearch struct {
 	Cities  []City `json:"cities"`
 }
 
+type CityNearby struct {
+	City    string        `json:"city"`
+	State   *string       `json:"state"`
+	Country string        `json:"country"`
+	Radius  float64       `json:"radius"`
+	Unit    string        `json:"unit"`
+	Nearby  []CityNearest `json:"nearby"`
+}
+
 type Postal struct {
 	Postal            string   `json:"postal"`
 	City              *string  `json:"city"`
@@ -186,11 +214,14 @@ type Postal struct {
 	StateName         *string  `json:"state_name"`
 	StateNameLocal    *string  `json:"state_name_local"`
 	Country           string   `json:"country"`
+	CountryName       *string  `json:"country_name"`
 	Latitude          *float64 `json:"latitude"`
 	Longitude         *float64 `json:"longitude"`
 	Elevation         *float64 `json:"elevation"`
 	ElevationFt       *float64 `json:"elevation_ft"`
 	Population        *int64   `json:"population"`
+	LandArea          *float64 `json:"land_area"`
+	WaterArea         *float64 `json:"water_area"`
 	Timezone          *string  `json:"timezone"`
 	Currency          *string  `json:"currency"`
 	Neighbors         []string `json:"neighbors"`

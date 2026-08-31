@@ -67,7 +67,13 @@ func TestURLMapping(t *testing.T) {
 			return err
 		}, "/city", "country=US&limit=10&q=char"},
 		{"city nearest", func(c *Client) error { _, err := c.CityNearest(ctx, 35.2271, -80.8431); return err }, "/city", "lat=35.2271&lon=-80.8431"},
+		{"city nearby", func(c *Client) error {
+			_, err := c.CityNearby(ctx, "denver", &CityNearbyOptions{Radius: 8, Unit: "mi", Limit: 3})
+			return err
+		}, "/city/denver/nearby", "limit=3&radius=8&unit=mi"},
+		{"state by name", func(c *Client) error { _, err := c.State(ctx, "colorado", ""); return err }, "/state/colorado", ""},
 		{"postal", func(c *Client) error { _, err := c.Postal(ctx, "28202", "US"); return err }, "/postal/28202", "country=US"},
+		{"postal bare", func(c *Client) error { _, err := c.Postal(ctx, "SW1A 1AA", ""); return err }, "/postal/SW1A%201AA", ""},
 		{"postal nearby", func(c *Client) error {
 			_, err := c.PostalNearby(ctx, "28202", "US", &PostalNearbyOptions{Radius: 40, Unit: "km"})
 			return err
