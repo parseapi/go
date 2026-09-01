@@ -383,16 +383,16 @@ func main() {
 		return ""
 	})
 
-	sanctions, err := parse.Sanctions(ctx, "AEROCARIBBEAN AIRLINES")
-	expectOk("sanctions", sanctions, err, func(r *parseapi.Sanctions) string {
+	ofac, err := parse.Ofac(ctx, "AEROCARIBBEAN AIRLINES")
+	expectOk("ofac", ofac, err, func(r *parseapi.Sanctions) string {
 		if !r.Sanctioned || len(r.Matches) == 0 || r.Matches[0].List != "sdn" {
 			return "expected sdn match"
 		}
 		return ""
 	})
 
-	sanctionsClean, err := parse.Sanctions(ctx, "Jane Smith")
-	expectOk("sanctions clean", sanctionsClean, err, func(r *parseapi.Sanctions) string {
+	ofacClean, err := parse.Ofac(ctx, "Jane Smith")
+	expectOk("ofac clean", ofacClean, err, func(r *parseapi.Sanctions) string {
 		if r.Sanctioned || len(r.Matches) != 0 {
 			return "expected no match"
 		}
