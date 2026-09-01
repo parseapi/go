@@ -150,18 +150,22 @@ type District struct {
 	Latitude    *float64 `json:"latitude"`
 	Longitude   *float64 `json:"longitude"`
 	Population  *int64   `json:"population"`
-	LandArea    *float64 `json:"land_area"`
-	WaterArea   *float64 `json:"water_area"`
-	Seat        *string  `json:"seat"`
-	Timezone    *string  `json:"timezone"`
-	Timezones   []string `json:"timezones"`
+	// Area is the total in km2 (land + water, or the official total).
+	Area *float64 `json:"area"`
+	// LandArea / WaterArea are the km2 split, null when the source publishes total only.
+	LandArea  *float64 `json:"land_area"`
+	WaterArea *float64 `json:"water_area"`
+	Seat      *string  `json:"seat"`
+	Timezone  *string  `json:"timezone"`
+	Timezones []string `json:"timezones"`
 }
 
 type City struct {
-	Name         string   `json:"name"`
-	LocalName    *string  `json:"local_name"`
-	Type         *string  `json:"type"`
-	Capital      *string  `json:"capital"`
+	Name      string  `json:"name"`
+	LocalName *string `json:"local_name"`
+	Type      *string `json:"type"`
+	// CapitalOf says what this city is the capital of: country, state, or null.
+	CapitalOf    *string  `json:"capital_of"`
 	State        *string  `json:"state"`
 	StateName    *string  `json:"state_name"`
 	District     *string  `json:"district"`
@@ -173,9 +177,12 @@ type City struct {
 	Elevation    *float64 `json:"elevation"`
 	ElevationFt  *float64 `json:"elevation_ft"`
 	Population   *int64   `json:"population"`
-	LandArea     *float64 `json:"land_area"`
-	WaterArea    *float64 `json:"water_area"`
-	Timezone     *string  `json:"timezone"`
+	// Area is the total in km2 (land + water, or the official total).
+	Area *float64 `json:"area"`
+	// LandArea / WaterArea are the km2 split, null when the source publishes total only.
+	LandArea  *float64 `json:"land_area"`
+	WaterArea *float64 `json:"water_area"`
+	Timezone  *string  `json:"timezone"`
 	// ID is the minted parse id (city_ + 12 chars). Stable pin via /city/id/{id}.
 	ID string `json:"id"`
 }
@@ -220,11 +227,14 @@ type Postal struct {
 	Elevation         *float64 `json:"elevation"`
 	ElevationFt       *float64 `json:"elevation_ft"`
 	Population        *int64   `json:"population"`
-	LandArea          *float64 `json:"land_area"`
-	WaterArea         *float64 `json:"water_area"`
-	Timezone          *string  `json:"timezone"`
-	Currency          *string  `json:"currency"`
-	Neighbors         []string `json:"neighbors"`
+	// Area is the total in km2, null when the source has no water split.
+	Area *float64 `json:"area"`
+	// LandArea / WaterArea are the km2 split where the source has them.
+	LandArea  *float64 `json:"land_area"`
+	WaterArea *float64 `json:"water_area"`
+	Timezone  *string  `json:"timezone"`
+	Currency  *string  `json:"currency"`
+	Neighbors []string `json:"neighbors"`
 }
 
 type PostalNearbyItem struct {
@@ -284,7 +294,8 @@ type VatDeep struct {
 	Name         *string     `json:"name"`
 	Address      *VatAddress `json:"address"`
 	Consultation *string     `json:"consultation"`
-	Consulted    *string     `json:"consulted"`
+	// ConsultedAt is the registry timestamp of this check, ISO.
+	ConsultedAt *string `json:"consulted_at"`
 }
 
 type Vat struct {
@@ -400,8 +411,8 @@ type HtsSearchHit struct {
 type HtsSearch struct {
 	Q        string `json:"q"`
 	Revision string `json:"revision"`
-	// Codes is up to 20 lines, best match first.
-	Codes []HtsSearchHit `json:"codes"`
+	// Lines is up to 20 tariff lines, best match first.
+	Lines []HtsSearchHit `json:"lines"`
 }
 
 type VinDeep struct {
@@ -443,14 +454,14 @@ type Vin struct {
 }
 
 type Phone struct {
-	Phone *string `json:"phone"`
-	Valid bool    `json:"valid"`
+	Phone   *string `json:"phone"`
+	Valid   bool    `json:"valid"`
+	Country *string `json:"country"`
 	// Type is what the numbering plan can see: mobile, landline, toll_free, unknown. Never voip.
 	Type *string `json:"type"`
 	// State is the NPA-derived state code (US/CA).
 	State         *string `json:"state"`
 	StateName     *string `json:"state_name"`
-	Country       *string `json:"country"`
 	National      *string `json:"national"`
 	International *string `json:"international"`
 	// Deep is always empty. The metered proves are their own endpoints: Carrier, Caller, HLR.
