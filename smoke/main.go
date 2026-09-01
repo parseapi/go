@@ -262,7 +262,7 @@ func main() {
 		return ""
 	})
 
-	npi, err := parse.Npi(ctx, "1881018208")
+	npi, err := parse.Npi(ctx, "1881018208", nil)
 	expectOk("npi", npi, err, func(r *parseapi.Npi) string {
 		if !r.Valid || r.Registered == nil || !*r.Registered {
 			return "not registered"
@@ -270,7 +270,7 @@ func main() {
 		return ""
 	})
 
-	npiJunk, err := parse.Npi(ctx, "hello")
+	npiJunk, err := parse.Npi(ctx, "hello", nil)
 	expectOk("npi junk", npiJunk, err, func(r *parseapi.Npi) string {
 		if r.Valid {
 			return "expected invalid"

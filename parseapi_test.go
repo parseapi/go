@@ -86,7 +86,8 @@ func TestURLMapping(t *testing.T) {
 			_, err := c.Iban(ctx, "89370400440532013000", &IbanOptions{Country: "DE"})
 			return err
 		}, "/iban/89370400440532013000", "country=DE"},
-		{"npi", func(c *Client) error { _, err := c.Npi(ctx, "1881018208"); return err }, "/npi/1881018208", ""},
+		{"npi", func(c *Client) error { _, err := c.Npi(ctx, "1881018208", nil); return err }, "/npi/1881018208", ""},
+		{"npi deep", func(c *Client) error { _, err := c.Npi(ctx, "1881018208", &DeepOptions{Deep: true}); return err }, "/npi/1881018208", "deep=true"},
 		{"vat from deep", func(c *Client) error {
 			_, err := c.Vat(ctx, "DE136695976", &VatOptions{From: "IE6388047V", Deep: true})
 			return err

@@ -338,14 +338,33 @@ type Npi struct {
 	Credential *string `json:"credential"`
 	Specialty  *string `json:"specialty"`
 	// Taxonomy is the NUCC taxonomy code.
-	Taxonomy  *string `json:"taxonomy"`
-	Address   *string `json:"address"`
-	City      *string `json:"city"`
+	Taxonomy  *string  `json:"taxonomy"`
+	Address   *string  `json:"address"`
+	City      *string  `json:"city"`
+	State     *string  `json:"state"`
+	StateName *string  `json:"state_name"`
+	Postal    *string  `json:"postal"`
+	Country   *string  `json:"country"`
+	Phone     *string  `json:"phone"`
+	Deep      *NpiDeep `json:"deep,omitempty"`
+}
+
+// NpiEnrollment is one Medicare FFS enrollment row.
+type NpiEnrollment struct {
+	// Type is part_a, part_b, practitioner, dme, order_refer, or mdpp.
+	Type      *string `json:"type"`
+	Specialty *string `json:"specialty"`
 	State     *string `json:"state"`
-	StateName *string `json:"state_name"`
-	Postal    *string `json:"postal"`
-	Country   *string `json:"country"`
-	Phone     *string `json:"phone"`
+}
+
+// NpiDeep is Medicare enrollment on paid plans.
+type NpiDeep struct {
+	// Medicare is whether the NPI is in the published FFS enrollment extract.
+	Medicare *bool `json:"medicare"`
+	// OptOut is whether the NPI is on the CMS opt-out affidavit list.
+	OptOut *bool `json:"opt_out"`
+	// Enrollments is type, specialty, and state. Empty when Medicare is false.
+	Enrollments []NpiEnrollment `json:"enrollments"`
 }
 
 type VinRecall struct {

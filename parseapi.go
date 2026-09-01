@@ -422,9 +422,10 @@ func (c *Client) Iban(ctx context.Context, iban string, opts *IbanOptions) (*Iba
 }
 
 // Npi looks up an NPI in the CMS NPPES registry of US healthcare providers.
-func (c *Client) Npi(ctx context.Context, npi string) (*Npi, error) {
+// Deep adds Medicare enrollment on paid plans.
+func (c *Client) Npi(ctx context.Context, npi string, opts *DeepOptions) (*Npi, error) {
 	out := &Npi{}
-	return out, c.get(ctx, "/npi/"+seg(npi), nil, nil, out)
+	return out, c.get(ctx, "/npi/"+seg(npi), values("deep", deepValue(opts)), nil, out)
 }
 
 // PhoneOptions narrows a phone lookup. Country is the default region for
