@@ -328,6 +328,8 @@ type Npi struct {
 	// Registered reports whether the NPI exists in the registry.
 	Registered *bool `json:"registered"`
 	Active     *bool `json:"active"`
+	// DeactivatedAt is the ISO date CMS deactivated the NPI.
+	DeactivatedAt *string `json:"deactivated_at"`
 	// Excluded reports the OIG exclusion flag.
 	Excluded *bool `json:"excluded"`
 	// Type is individual or organization.
