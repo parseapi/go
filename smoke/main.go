@@ -383,22 +383,6 @@ func main() {
 		return ""
 	})
 
-	ofac, err := parse.Ofac(ctx, "AEROCARIBBEAN AIRLINES")
-	expectOk("ofac", ofac, err, func(r *parseapi.Sanctions) string {
-		if !r.Sanctioned || len(r.Matches) == 0 || r.Matches[0].List != "sdn" {
-			return "expected sdn match"
-		}
-		return ""
-	})
-
-	ofacClean, err := parse.Ofac(ctx, "Jane Smith")
-	expectOk("ofac clean", ofacClean, err, func(r *parseapi.Sanctions) string {
-		if r.Sanctioned || len(r.Matches) != 0 {
-			return "expected no match"
-		}
-		return ""
-	})
-
 	timezone, err := parse.Timezone(ctx, "America/New_York", nil)
 	expectOk("timezone", timezone, err, func(r *parseapi.Timezone) string {
 		if r.OffsetMinutes != -240 && r.OffsetMinutes != -300 {

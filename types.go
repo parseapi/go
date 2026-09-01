@@ -623,28 +623,6 @@ type Name struct {
 	Salutation *string `json:"salutation"`
 }
 
-// SanctionsMatch is one official OFAC record, verbatim.
-type SanctionsMatch struct {
-	// OFAC uid, stable across publications.
-	ID   int    `json:"id"`
-	List string `json:"list"`
-	Type string `json:"type"`
-	// Listed primary name, verbatim.
-	Name string `json:"name"`
-	// Official sanctions program codes (SDGT, CUBA, IRGC).
-	Programs []string `json:"programs"`
-}
-
-// Sanctions is an OFAC screening result. Sanctioned false means not on the
-// list as published. It is not clearance.
-type Sanctions struct {
-	// The name you passed, folded to its match key.
-	Name       string           `json:"name"`
-	Sanctioned bool             `json:"sanctioned"`
-	// Official records matched. Empty when Sanctioned is false.
-	Matches []SanctionsMatch `json:"matches"`
-}
-
 type CurrencyRate struct {
 	Base      string   `json:"base"`
 	Quote     string   `json:"quote"`
