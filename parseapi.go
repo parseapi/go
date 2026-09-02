@@ -511,9 +511,9 @@ type HtsOptions struct {
 	Origin string
 }
 
-// Hts looks up a US Harmonized Tariff Schedule code. Deep with an origin
+// Tariff looks up US import duty for an HTS code. Deep with an origin
 // resolves the Chapter 99 tariff measures that apply from that country.
-func (c *Client) Hts(ctx context.Context, code string, opts *HtsOptions) (*Hts, error) {
+func (c *Client) Tariff(ctx context.Context, code string, opts *HtsOptions) (*Hts, error) {
 	deep := ""
 	origin := ""
 	if opts != nil {
@@ -523,13 +523,13 @@ func (c *Client) Hts(ctx context.Context, code string, opts *HtsOptions) (*Hts, 
 		origin = opts.Origin
 	}
 	out := &Hts{}
-	return out, c.get(ctx, "/hts/"+seg(code), values("deep", deep, "origin", origin), nil, out)
+	return out, c.get(ctx, "/tariff/"+seg(code), values("deep", deep, "origin", origin), nil, out)
 }
 
-// HtsSearch searches tariff schedule descriptions by product.
-func (c *Client) HtsSearch(ctx context.Context, q string) (*HtsSearch, error) {
+// TariffSearch searches tariff schedule descriptions by product.
+func (c *Client) TariffSearch(ctx context.Context, q string) (*HtsSearch, error) {
 	out := &HtsSearch{}
-	return out, c.get(ctx, "/hts", values("q", q), nil, out)
+	return out, c.get(ctx, "/tariff", values("q", q), nil, out)
 }
 
 // Currency looks up a currency by ISO 4217 code.
