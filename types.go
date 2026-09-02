@@ -483,6 +483,8 @@ type Phone struct {
 	// State is the NPA-derived state code (US/CA).
 	State         *string `json:"state"`
 	StateName     *string `json:"state_name"`
+	// Timezone is the numbering-plan IANA id. Nil when the prefix covers more than one zone.
+	Timezone      *string `json:"timezone"`
 	National      *string `json:"national"`
 	International *string `json:"international"`
 	// Deep is always empty. The metered proves are their own endpoints: Carrier, Caller, HLR.
