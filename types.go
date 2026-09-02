@@ -314,7 +314,9 @@ type Iban struct {
 	Formatted *string `json:"formatted"`
 	Checksum  *string `json:"checksum"`
 	// Bank is the identifier parsed from the number, not a name.
-	Bank *string `json:"bank"`
+	Bank     *string `json:"bank"`
+	BankName *string `json:"bank_name"`
+	Bic      *string `json:"bic"`
 	// Branch is the identifier when that country has one.
 	Branch  *string `json:"branch"`
 	Account *string `json:"account"`
