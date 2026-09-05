@@ -4,10 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
+	"sync/atomic"
 	"testing"
+	"time"
 )
 
 type capture struct {
@@ -48,86 +52,94 @@ func TestURLMapping(t *testing.T) {
 		wantPath  string
 		wantQuery string
 	}{
-		{"ip", func(c *Client) error { _, err := c.IP(ctx, "8.8.8.8", nil); return err }, "/ip/8.8.8.8", ""},
-		{"ip self", func(c *Client) error { _, err := c.IPSelf(ctx, nil); return err }, "/ip", ""},
-		{"ip deep", func(c *Client) error { _, err := c.IP(ctx, "8.8.8.8", &DeepOptions{Deep: true}); return err }, "/ip/8.8.8.8", "deep=true"},
+		{"ip", func(c *Client) error { _, err := c.IP(ctx, "8.8.8.8"); return err }, "/ip/8.8.8.8", ""},
+		{"ip self", func(c *Client) error { _, err := c.IPSelf(ctx); return err }, "/ip", ""},
+		{"ip deep", func(c *Client) error { _, err := c.IP(ctx, "8.8.8.8", IPOptions{Deep: true}); return err }, "/ip/8.8.8.8", "deep=true"},
 		{"continent", func(c *Client) error { _, err := c.Continent(ctx, "NA"); return err }, "/continent/NA", ""},
 		{"continent countries", func(c *Client) error { _, err := c.ContinentCountries(ctx, "NA"); return err }, "/continent/NA/countries", ""},
 		{"bloc", func(c *Client) error { _, err := c.Bloc(ctx, "EU"); return err }, "/bloc/EU", ""},
 		{"bloc countries", func(c *Client) error { _, err := c.BlocCountries(ctx, "SCHENGEN"); return err }, "/bloc/SCHENGEN/countries", ""},
 		{"country", func(c *Client) error { _, err := c.Country(ctx, "US"); return err }, "/country/US", ""},
 		{"country states", func(c *Client) error { _, err := c.CountryStates(ctx, "US"); return err }, "/country/US/states", ""},
-		{"state", func(c *Client) error { _, err := c.State(ctx, "NC", "US"); return err }, "/state/NC", "country=US"},
-		{"state districts", func(c *Client) error { _, err := c.StateDistricts(ctx, "NC", "US"); return err }, "/state/NC/districts", "country=US"},
-		{"district", func(c *Client) error { _, err := c.District(ctx, "37081", nil); return err }, "/district/37081", ""},
-		{"city", func(c *Client) error { _, err := c.City(ctx, "charlotte", &CityOptions{State: "NC"}); return err }, "/city/charlotte", "state=NC"},
+		{"state", func(c *Client) error { _, err := c.State(ctx, "NC", StateOptions{Country: "US"}); return err }, "/state/NC", "country=US"},
+		{"state districts", func(c *Client) error {
+			_, err := c.StateDistricts(ctx, "NC", StateDistrictsOptions{Country: "US"})
+			return err
+		}, "/state/NC/districts", "country=US"},
+		{"district", func(c *Client) error { _, err := c.District(ctx, "37081"); return err }, "/district/37081", ""},
+		{"city", func(c *Client) error { _, err := c.City(ctx, "charlotte", CityOptions{State: "NC"}); return err }, "/city/charlotte", "state=NC"},
 		{"city id", func(c *Client) error { _, err := c.CityID(ctx, "city_mb8mbqrkz8zb"); return err }, "/city/id/city_mb8mbqrkz8zb", ""},
 		{"city search", func(c *Client) error {
-			_, err := c.CitySearch(ctx, "char", &CitySearchOptions{Country: "US", Limit: 10})
+			_, err := c.CitySearch(ctx, "char", CitySearchOptions{Country: "US", Limit: 10})
 			return err
 		}, "/city", "country=US&limit=10&q=char"},
 		{"city nearest", func(c *Client) error { _, err := c.CityNearest(ctx, 35.2271, -80.8431); return err }, "/city", "lat=35.2271&lon=-80.8431"},
 		{"city nearby", func(c *Client) error {
-			_, err := c.CityNearby(ctx, "denver", &CityNearbyOptions{Radius: 8, Unit: "mi", Limit: 3})
+			_, err := c.CityNearby(ctx, "denver", CityNearbyOptions{Radius: 8, Unit: "mi", Limit: 3})
 			return err
 		}, "/city/denver/nearby", "limit=3&radius=8&unit=mi"},
-		{"state by name", func(c *Client) error { _, err := c.State(ctx, "colorado", ""); return err }, "/state/colorado", ""},
-		{"postal", func(c *Client) error { _, err := c.Postal(ctx, "28202", "US"); return err }, "/postal/28202", "country=US"},
-		{"postal bare", func(c *Client) error { _, err := c.Postal(ctx, "SW1A 1AA", ""); return err }, "/postal/SW1A%201AA", ""},
+		{"state by name", func(c *Client) error { _, err := c.State(ctx, "colorado"); return err }, "/state/colorado", ""},
+		{"postal", func(c *Client) error { _, err := c.Postal(ctx, "28202", PostalOptions{Country: "US"}); return err }, "/postal/28202", "country=US"},
+		{"postal bare", func(c *Client) error { _, err := c.Postal(ctx, "SW1A 1AA"); return err }, "/postal/SW1A%201AA", ""},
 		{"postal nearby", func(c *Client) error {
-			_, err := c.PostalNearby(ctx, "28202", "US", &PostalNearbyOptions{Radius: 40, Unit: "km"})
+			_, err := c.PostalNearby(ctx, "28202", PostalNearbyOptions{Country: "US", Radius: 40, Unit: "km"})
 			return err
 		}, "/postal/28202/nearby", "country=US&radius=40&unit=km"},
-		{"postal distance", func(c *Client) error { _, err := c.PostalDistance(ctx, "28202", "10001", "US"); return err }, "/postal/28202/distance/10001", "country=US"},
-		{"email", func(c *Client) error { _, err := c.Email(ctx, "a@b.com", nil); return err }, "/email/a@b.com", ""},
-		{"vat", func(c *Client) error { _, err := c.Vat(ctx, "DE136695976", nil); return err }, "/vat/DE136695976", ""},
-		{"iban", func(c *Client) error { _, err := c.Iban(ctx, "DE89370400440532013000", nil); return err }, "/iban/DE89370400440532013000", ""},
+		{"postal distance", func(c *Client) error {
+			_, err := c.PostalDistance(ctx, "28202", "10001", PostalDistanceOptions{Country: "US"})
+			return err
+		}, "/postal/28202/distance/10001", "country=US"},
+		{"email", func(c *Client) error { _, err := c.Email(ctx, "a@b.com"); return err }, "/email/a@b.com", ""},
+		{"vat", func(c *Client) error { _, err := c.VAT(ctx, "DE136695976"); return err }, "/vat/DE136695976", ""},
+		{"iban", func(c *Client) error { _, err := c.IBAN(ctx, "DE89370400440532013000"); return err }, "/iban/DE89370400440532013000", ""},
 		{"iban country", func(c *Client) error {
-			_, err := c.Iban(ctx, "89370400440532013000", &IbanOptions{Country: "DE"})
+			_, err := c.IBAN(ctx, "89370400440532013000", IBANOptions{Country: "DE"})
 			return err
 		}, "/iban/89370400440532013000", "country=DE"},
-		{"npi", func(c *Client) error { _, err := c.Npi(ctx, "1881018208", nil); return err }, "/npi/1881018208", ""},
-		{"npi deep", func(c *Client) error { _, err := c.Npi(ctx, "1881018208", &DeepOptions{Deep: true}); return err }, "/npi/1881018208", "deep=true"},
+		{"npi", func(c *Client) error { _, err := c.NPI(ctx, "1881018208"); return err }, "/npi/1881018208", ""},
+		{"npi deep", func(c *Client) error { _, err := c.NPI(ctx, "1881018208", NPIOptions{Deep: true}); return err }, "/npi/1881018208", "deep=true"},
 		{"vat from deep", func(c *Client) error {
-			_, err := c.Vat(ctx, "DE136695976", &VatOptions{From: "IE6388047V", Deep: true})
+			_, err := c.VAT(ctx, "DE136695976", VATOptions{From: "IE6388047V", Deep: true})
 			return err
 		}, "/vat/DE136695976", "deep=true&from=IE6388047V"},
-		{"phone", func(c *Client) error { _, err := c.Phone(ctx, "+14155552671", &PhoneOptions{Deep: true}); return err }, "/phone/+14155552671", "deep=true"},
-		{"carrier", func(c *Client) error { _, err := c.Carrier(ctx, "+14155552671", nil); return err }, "/carrier/+14155552671", ""},
+		{"phone", func(c *Client) error { _, err := c.Phone(ctx, "+14155552671", PhoneOptions{Deep: true}); return err }, "/phone/+14155552671", "deep=true"},
+		{"carrier", func(c *Client) error { _, err := c.Carrier(ctx, "+14155552671"); return err }, "/carrier/+14155552671", ""},
 		{"caller with country", func(c *Client) error {
-			_, err := c.Caller(ctx, "4155552671", &CountryOptions{Country: "US"})
+			_, err := c.Caller(ctx, "4155552671", CallerOptions{Country: "US"})
 			return err
 		}, "/caller/4155552671", "country=US"},
-		{"hlr", func(c *Client) error { _, err := c.HLR(ctx, "+447712345678", nil); return err }, "/hlr/+447712345678", ""},
-		{"domain", func(c *Client) error { _, err := c.Domain(ctx, "example.com", nil); return err }, "/domain/example.com", ""},
+		{"hlr", func(c *Client) error { _, err := c.HLR(ctx, "+447712345678"); return err }, "/hlr/+447712345678", ""},
+		{"domain", func(c *Client) error { _, err := c.Domain(ctx, "example.com"); return err }, "/domain/example.com", ""},
+		{"asn", func(c *Client) error { _, err := c.ASN(ctx, "AS13335"); return err }, "/asn/AS13335", ""},
+		{"mac", func(c *Client) error { _, err := c.MAC(ctx, "00:1B:63:84:45:E6"); return err }, "/mac/00:1B:63:84:45:E6", ""},
 		{"mx", func(c *Client) error { _, err := c.MX(ctx, "example.com"); return err }, "/mx/example.com", ""},
-		{"useragent", func(c *Client) error { _, err := c.Useragent(ctx, "TestUA/1.0", nil); return err }, "/useragent", ""},
-		{"vin", func(c *Client) error { _, err := c.Vin(ctx, "1HGCM82633A004352", nil); return err }, "/vin/1HGCM82633A004352", ""},
+		{"useragent", func(c *Client) error { _, err := c.UserAgent(ctx, "TestUA/1.0"); return err }, "/useragent", ""},
+		{"vin", func(c *Client) error { _, err := c.VIN(ctx, "1HGCM82633A004352"); return err }, "/vin/1HGCM82633A004352", ""},
 		{"vin deep", func(c *Client) error {
-			_, err := c.Vin(ctx, "1HGCM82633A004352", &DeepOptions{Deep: true})
+			_, err := c.VIN(ctx, "1HGCM82633A004352", VINOptions{Deep: true})
 			return err
 		}, "/vin/1HGCM82633A004352", "deep=true"},
 		{"currency", func(c *Client) error { _, err := c.Currency(ctx, "USD"); return err }, "/currency/USD", ""},
-		{"currency rate", func(c *Client) error { _, err := c.CurrencyRate(ctx, "USD", "EUR", nil); return err }, "/currency/USD/EUR", ""},
+		{"currency rate", func(c *Client) error { _, err := c.CurrencyRate(ctx, "USD", "EUR"); return err }, "/currency/USD/EUR", ""},
 		{"currency rate date amount", func(c *Client) error {
 			amt := 100.0
-			_, err := c.CurrencyRate(ctx, "USD", "JPY", &CurrencyRateOptions{Date: "2026-08-28", Amount: &amt})
+			_, err := c.CurrencyRate(ctx, "USD", "JPY", CurrencyRateOptions{Date: "2026-08-28", Amount: &amt})
 			return err
 		}, "/currency/USD/JPY", "amount=100&date=2026-08-28"},
 		{"language", func(c *Client) error { _, err := c.Language(ctx, "en"); return err }, "/language/en", ""},
 		{"name encodes spaces", func(c *Client) error { _, err := c.Name(ctx, "Smith, John"); return err }, "/name/Smith%2C%20John", ""},
-		{"timezone encodes slash", func(c *Client) error { _, err := c.Timezone(ctx, "America/New_York", nil); return err }, "/timezone/America%2FNew_York", ""},
-		{"holiday", func(c *Client) error { _, err := c.Holiday(ctx, "US", &HolidayOptions{Year: 1955}); return err }, "/holiday/US", "year=1955"},
+		{"timezone encodes slash", func(c *Client) error { _, err := c.Timezone(ctx, "America/New_York"); return err }, "/timezone/America%2FNew_York", ""},
+		{"holiday", func(c *Client) error { _, err := c.Holiday(ctx, "US", HolidayOptions{Year: 1955}); return err }, "/holiday/US", "year=1955"},
 		{"holiday date", func(c *Client) error { _, err := c.HolidayDate(ctx, "US", "2026-12-25"); return err }, "/holiday/US/2026-12-25", ""},
 		{"elevation", func(c *Client) error { _, err := c.Elevation(ctx, 35.2, -80.8); return err }, "/elevation", "lat=35.2&lon=-80.8"},
-		{"point deep", func(c *Client) error { _, err := c.Point(ctx, 36.0726, -79.792, &DeepOptions{Deep: true}); return err }, "/point", "deep=true&lat=36.0726&lon=-79.792"},
+		{"point deep", func(c *Client) error { _, err := c.Point(ctx, 36.0726, -79.792, PointOptions{Deep: true}); return err }, "/point", "deep=true&lat=36.0726&lon=-79.792"},
 		{"weather", func(c *Client) error {
-			_, err := c.Weather(ctx, 40.7128, -74.006, &DeepOptions{Deep: true})
+			_, err := c.Weather(ctx, 40.7128, -74.006, WeatherOptions{Deep: true})
 			return err
 		}, "/weather", "deep=true&lat=40.7128&lon=-74.006"},
 		{"emoji", func(c *Client) error { _, err := c.Emoji(ctx, "rocket"); return err }, "/emoji/rocket", ""},
 		{"emoji search", func(c *Client) error {
-			_, err := c.EmojiSearch(ctx, "fire", &EmojiSearchOptions{Limit: 20})
+			_, err := c.EmojiSearch(ctx, "fire", EmojiSearchOptions{Limit: 20})
 			return err
 		}, "/emoji", "limit=20&q=fire"},
 	}
@@ -161,9 +173,9 @@ func TestHeaders(t *testing.T) {
 	}
 }
 
-func TestUseragentHeaderOverride(t *testing.T) {
+func TestUserAgentHeaderOverride(t *testing.T) {
 	client, captured := newTestClient(t, okJSON(`{}`))
-	if _, err := client.Useragent(context.Background(), "Mozilla/5.0 (Test)", nil); err != nil {
+	if _, err := client.UserAgent(context.Background(), "Mozilla/5.0 (Test)"); err != nil {
 		t.Fatal(err)
 	}
 	if got := captured.header.Get("User-Agent"); got != "Mozilla/5.0 (Test)" {
@@ -200,7 +212,7 @@ func TestErrorShape(t *testing.T) {
 			"request_id": "req_abc",
 		})
 	})
-	_, err := client.City(context.Background(), "notarealcityxyz", nil)
+	_, err := client.City(context.Background(), "notarealcityxyz")
 	var apiErr *Error
 	if !errors.As(err, &apiErr) {
 		t.Fatalf("expected *Error, got %T", err)
@@ -284,7 +296,7 @@ func TestGivesUpAfterRetries(t *testing.T) {
 func TestDeepTriadDecoding(t *testing.T) {
 	// deep omitted -> nil, deep {} -> empty struct pointer, populated -> fields set
 	client, _ := newTestClient(t, okJSON(`{"ip":"1.2.3.4"}`))
-	result, err := client.IP(context.Background(), "1.2.3.4", nil)
+	result, err := client.IP(context.Background(), "1.2.3.4")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -293,7 +305,7 @@ func TestDeepTriadDecoding(t *testing.T) {
 	}
 
 	client2, _ := newTestClient(t, okJSON(`{"ip":"1.2.3.4","deep":{}}`))
-	result2, err := client2.IP(context.Background(), "1.2.3.4", &DeepOptions{Deep: true})
+	result2, err := client2.IP(context.Background(), "1.2.3.4", IPOptions{Deep: true})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -309,4 +321,298 @@ func TestMain(m *testing.M) {
 	// Keep env overrides from leaking into URL assertions.
 	os.Unsetenv("PARSEAPI_BASE_URL")
 	os.Exit(m.Run())
+}
+
+func TestCancellationDuringRetry(t *testing.T) {
+	var attempts atomic.Int32
+	client, _ := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		attempts.Add(1)
+		w.Header().Set("Retry-After", "5")
+		w.WriteHeader(http.StatusServiceUnavailable)
+	}, WithRetries(2))
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	defer cancel()
+	started := time.Now()
+	_, err := client.Country(ctx, "US")
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("want deadline error, got %v", err)
+	}
+	if time.Since(started) > time.Second {
+		t.Fatal("cancellation waited for retry backoff")
+	}
+	if attempts.Load() != 1 {
+		t.Fatalf("made %d attempts after cancellation", attempts.Load())
+	}
+}
+
+func TestHTTPClientOptionsDoNotMutateCaller(t *testing.T) {
+	shared := &http.Client{Timeout: time.Minute}
+	client, err := New("test_key", WithHTTPClient(shared), WithTimeout(time.Second))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if shared.Timeout != time.Minute || client.httpClient.Timeout != time.Second {
+		t.Fatal("timeout option mutated the caller's HTTP client")
+	}
+}
+
+func TestInvalidConstructionReturnsError(t *testing.T) {
+	for _, options := range [][]Option{
+		{nil},
+		{WithHTTPClient(nil)},
+		{WithHTTPClient(nil), WithTimeout(time.Second)},
+		{WithRetries(-1)},
+		{WithTimeout(-time.Second)},
+	} {
+		if _, err := New("test_key", options...); err == nil {
+			t.Fatal("invalid client configuration did not return an error")
+		}
+	}
+}
+
+func TestClientFormattingRedactsKey(t *testing.T) {
+	client, err := New("secret_key_for_debug_test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, value := range []any{client, *client} {
+		for _, format := range []string{"%v", "%+v", "%#v", "%s"} {
+			output := fmt.Sprintf(format, value)
+			if strings.Contains(output, "secret_key_for_debug_test") {
+				t.Fatal("client formatting exposed its key")
+			}
+			if !strings.Contains(output, "[REDACTED]") {
+				t.Fatalf("expected redacted marker in %s", output)
+			}
+		}
+	}
+}
+
+func TestDateAndTimezoneMapping(t *testing.T) {
+	ctx := context.Background()
+	cases := []struct {
+		name        string
+		invoke      func(*Client) error
+		path, query string
+	}{
+		{"date", func(c *Client) error {
+			_, err := c.Date(ctx, "03/04/2026", DateOptions{Format: "mdy", To: "2026-12-25"})
+			return err
+		}, "/date/03%2F04%2F2026", "format=mdy&to=2026-12-25"},
+		{"today", func(c *Client) error { _, err := c.DateToday(ctx, DateTodayOptions{To: "2026-12-25"}); return err }, "/date", "to=2026-12-25"},
+		{"timezone coordinates", func(c *Client) error {
+			_, err := c.TimezoneAt(ctx, 0, 180, TimezoneAtOptions{At: "2026-09-05T12:00:00Z"})
+			return err
+		}, "/timezone", "at=2026-09-05T12%3A00%3A00Z&lat=0&lon=180"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			client, got := newTestClient(t, okJSON(`{}`))
+			if err := tc.invoke(client); err != nil {
+				t.Fatal(err)
+			}
+			if got.path != tc.path || got.rawQry != tc.query {
+				t.Fatalf("got %s?%s", got.path, got.rawQry)
+			}
+		})
+	}
+}
+
+func TestDateAndTimezoneNullableResults(t *testing.T) {
+	client, _ := newTestClient(t, okJSON(`{"date":"03/04/2026","valid":false,"year":null,"leap":null,"future_field":{"value":true}}`))
+	date, err := client.Date(context.Background(), "03/04/2026")
+	if err != nil || date.Valid || date.Year != nil || date.Leap != nil {
+		t.Fatalf("date: %+v, %v", date, err)
+	}
+	client, _ = newTestClient(t, okJSON(`{"latitude":0,"longitude":180,"timezone":null,"name":null,"abbreviation":null,"offset":null,"offset_minutes":null,"dst":null,"next_dst":null,"future_field":true}`))
+	zone, err := client.TimezoneAt(context.Background(), 0, 180)
+	if err != nil || zone.Timezone != nil || zone.DST != nil || zone.OffsetMinutes != nil {
+		t.Fatalf("zone: %+v, %v", zone, err)
+	}
+}
+
+func TestDefaultClientDoesNotForwardKeyOnRedirect(t *testing.T) {
+	var destinationCalls atomic.Int32
+	destination := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		destinationCalls.Add(1)
+		_, _ = w.Write([]byte(`{}`))
+	}))
+	defer destination.Close()
+	client, _ := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, destination.URL+"/country/US", http.StatusFound)
+	})
+	_, err := client.Country(context.Background(), "US")
+	var apiErr *Error
+	if !errors.As(err, &apiErr) || apiErr.Status != http.StatusFound {
+		t.Fatalf("expected redirect as API error, got %v", err)
+	}
+	if destinationCalls.Load() != 0 {
+		t.Fatal("client followed a redirect to another origin")
+	}
+}
+
+func TestFinalOptionsAndNewProducts(t *testing.T) {
+	ctx := context.Background()
+	tests := []struct {
+		name        string
+		call        func(*Client) error
+		path, query string
+	}{
+		{"timezone conversion", func(c *Client) error {
+			_, err := c.Timezone(ctx, "America/New_York", TimezoneOptions{At: "2026-09-05T15:00:00", To: "Asia/Tokyo"})
+			return err
+		}, "/timezone/America%2FNew_York", "at=2026-09-05T15%3A00%3A00&to=Asia%2FTokyo"},
+		{"weather history", func(c *Client) error {
+			_, err := c.Weather(ctx, 1, 2, WeatherOptions{Deep: true, Date: "2026-09-01"})
+			return err
+		}, "/weather", "date=2026-09-01&deep=true&lat=1&lon=2"},
+		{"address", func(c *Client) error {
+			_, err := c.Address(ctx, "123 Main St", AddressOptions{Country: "US", Deep: true})
+			return err
+		}, "/address/123%20Main%20St", "country=US&deep=true"},
+		{"address search", func(c *Client) error {
+			_, err := c.AddressSearch(ctx, "123 Main", AddressSearchOptions{Country: "US", Postal: "28202", City: "Charlotte", State: "NC", IP: "8.8.8.8"})
+			return err
+		}, "/address", "city=Charlotte&country=US&ip=8.8.8.8&postal=28202&q=123+Main&state=NC"},
+		{"company", func(c *Client) error {
+			_, err := c.Company(ctx, "123456789", CompanyOptions{Country: "FR", Deep: true})
+			return err
+		}, "/company/123456789", "country=FR&deep=true"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			client, got := newTestClient(t, okJSON(`{}`))
+			if err := tc.call(client); err != nil {
+				t.Fatal(err)
+			}
+			if got.path != tc.path || got.rawQry != tc.query {
+				t.Fatalf("got %s?%s", got.path, got.rawQry)
+			}
+		})
+	}
+}
+
+func TestMultipleOptionValuesFailBeforeRequest(t *testing.T) {
+	var calls atomic.Int32
+	client, _ := newTestClient(t, func(w http.ResponseWriter, r *http.Request) { calls.Add(1) })
+	response, err := client.IP(context.Background(), "8.8.8.8", IPOptions{}, IPOptions{Deep: true})
+	if err == nil || response != nil || calls.Load() != 0 {
+		t.Fatal("expected an options error before any request")
+	}
+}
+
+func TestMeteredRetryDefaultsAndExplicitOverride(t *testing.T) {
+	ctx := context.Background()
+	tests := []struct {
+		name   string
+		invoke func(*Client) error
+		want   int32
+	}{
+		{"country", func(c *Client) error { _, e := c.Country(ctx, "US"); return e }, 3},
+		{"phone", func(c *Client) error { _, e := c.Phone(ctx, "555-0100"); return e }, 3},
+		{"carrier", func(c *Client) error { _, e := c.Carrier(ctx, "555-0100"); return e }, 1},
+		{"caller", func(c *Client) error { _, e := c.Caller(ctx, "555-0100"); return e }, 1},
+		{"hlr", func(c *Client) error { _, e := c.HLR(ctx, "555-0100"); return e }, 1},
+		{"email", func(c *Client) error { _, e := c.Email(ctx, "a@b.com"); return e }, 3},
+		{"email deep", func(c *Client) error { _, e := c.Email(ctx, "a@b.com", EmailOptions{Deep: true}); return e }, 1},
+		{"vat", func(c *Client) error { _, e := c.VAT(ctx, "DE136695976"); return e }, 3},
+		{"vat deep", func(c *Client) error { _, e := c.VAT(ctx, "DE136695976", VATOptions{Deep: true}); return e }, 1},
+		{"address", func(c *Client) error { _, e := c.Address(ctx, "123 Main St"); return e }, 3},
+		{"address deep", func(c *Client) error { _, e := c.Address(ctx, "123 Main St", AddressOptions{Deep: true}); return e }, 1},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			for _, explicit := range []bool{false, true} {
+				var calls atomic.Int32
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					calls.Add(1)
+					w.Header().Set("Retry-After", "0")
+					w.WriteHeader(503)
+				}))
+				opts := []Option{WithBaseURL(server.URL)}
+				if explicit {
+					opts = append(opts, WithRetries(1))
+				}
+				client, e := New("test_key", opts...)
+				if e != nil {
+					t.Fatal(e)
+				}
+				err := tc.invoke(client)
+				var apiErr *Error
+				if !errors.As(err, &apiErr) || apiErr.Status != 503 {
+					t.Fatalf("unexpected error: %v", err)
+				}
+				want := tc.want
+				if explicit {
+					want = 2
+				}
+				if calls.Load() != want {
+					t.Fatalf("explicit=%v got %d attempts want %d", explicit, calls.Load(), want)
+				}
+				server.Close()
+			}
+		})
+	}
+}
+
+func TestRetryAfterSupportsHTTPDates(t *testing.T) {
+	if delay := retryDelay(0, time.Now().Add(time.Hour).UTC().Format(http.TimeFormat)); delay != 5*time.Second {
+		t.Fatalf("cap: %v", delay)
+	}
+	if delay := retryDelay(0, time.Now().Add(-time.Hour).UTC().Format(http.TimeFormat)); delay != 0 {
+		t.Fatalf("past: %v", delay)
+	}
+	if delay := retryDelay(0, "0"); delay != 0 {
+		t.Fatalf("numeric: %v", delay)
+	}
+}
+
+func TestNewNullableResponseFields(t *testing.T) {
+	var company Company
+	if err := json.Unmarshal([]byte(`{"company":"x","registered":null,"active":null,"gst":null,"siege":null,"kind":"LIMITED","type":"company","deep":{},"future":true}`), &company); err != nil {
+		t.Fatal(err)
+	}
+	if company.Registered != nil || company.Active != nil || company.GST != nil || company.Siege != nil || company.Deep == nil {
+		t.Fatalf("nulls: %+v", company)
+	}
+	var weather Weather
+	if err := json.Unmarshal([]byte(`{"deep":{"hours":[{"feels_like":22,"wind_gust":4}],"days":[{"sunrise":"06:00"}],"air":{"aqi":10},"history":{"date":"2026-09-01","high":24}}}`), &weather); err != nil {
+		t.Fatal(err)
+	}
+	if weather.Deep == nil || weather.Deep.Air == nil || weather.Deep.History == nil || weather.Deep.Hours[0].FeelsLike == nil {
+		t.Fatalf("weather: %+v", weather)
+	}
+	var zone Timezone
+	if err := json.Unmarshal([]byte(`{"timezone":"America/New_York","to":{"timezone":"Asia/Tokyo","at":"2026-09-06T04:00:00+09:00"}}`), &zone); err != nil {
+		t.Fatal(err)
+	}
+	if zone.To == nil || zone.To.At == "" {
+		t.Fatal("missing converted time")
+	}
+}
+
+func TestUnresolvedCompanyAndAddressEchoesStayNull(t *testing.T) {
+	var company Company
+	if err := json.Unmarshal([]byte(`{"company":null,"valid":false}`), &company); err != nil {
+		t.Fatal(err)
+	}
+	if company.Company != nil || company.Valid {
+		t.Fatal("unknown company was changed")
+	}
+	var address Address
+	if err := json.Unmarshal([]byte(`{"address":null,"valid":false}`), &address); err != nil {
+		t.Fatal(err)
+	}
+	if address.Address != nil || address.Valid {
+		t.Fatal("unknown address was changed")
+	}
+}
+
+func TestReservedOptionsRejectMultipleValues(t *testing.T) {
+	var calls atomic.Int32
+	client, _ := newTestClient(t, func(w http.ResponseWriter, r *http.Request) { calls.Add(1) })
+	result, err := client.Country(context.Background(), "US", CountryOptions{}, CountryOptions{})
+	if err == nil || result != nil || calls.Load() != 0 {
+		t.Fatal("reserved options did not enforce one value before request")
+	}
 }

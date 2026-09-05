@@ -1,106 +1,86 @@
-# parseapi Go
-
-Official parseAPI client for Go.
-
 ```bash
 go get github.com/parseapi/go
 ```
 
 ```go
-import parseapi "github.com/parseapi/go"
-
 parse, err := parseapi.New("your-api-key")
+if err != nil {
+    return err
+}
 country, err := parse.Country(ctx, "US")
 ```
 
-Get a key at [parseapi.com](https://parseapi.com). An empty key falls back to the `PARSEAPI_KEY` environment variable.
+Import `parseapi "github.com/parseapi/go"`. Every call takes a `context.Context` first and returns a typed result plus an error. Check the error before using the result. Get a key at [parseapi.com](https://parseapi.com). An empty key reads `PARSEAPI_KEY`.
 
 ## Calls
 
-One method per endpoint, named after the route. Every method takes a context first. Optional parameters ride in a per-method options struct, nil means defaults.
+Choose the operation and pass what you have. Related operations are separate direct calls, and results are plain data.
 
 ```go
-parse.IP(ctx, "8.8.8.8", nil)
-parse.IPSelf(ctx, nil)
-parse.Email(ctx, "hello@gmail.com", nil)
-parse.Vat(ctx, "DE136695976", nil)
-parse.Iban(ctx, "DE89370400440532013000", nil)
-parse.Npi(ctx, "1881018208", nil)
-parse.Phone(ctx, "+14155552671", nil)
-parse.Carrier(ctx, "+14155552671", nil)
-parse.Caller(ctx, "+14155552671", nil)
-parse.HLR(ctx, "+14155552671", nil)
-parse.Postal(ctx, "SW1A 1AA", "")
-parse.Postal(ctx, "28202", "US")
-parse.PostalNearby(ctx, "28202", "US", &parseapi.PostalNearbyOptions{Radius: 40})
-parse.PostalDistance(ctx, "28202", "10001", "US")
-parse.City(ctx, "charlotte", &parseapi.CityOptions{Country: "US"})
-parse.CityID(ctx, "city_mb8mbqrkz8zb")
-parse.CitySearch(ctx, "char", &parseapi.CitySearchOptions{Country: "US", Limit: 10})
-parse.CityNearest(ctx, 35.2271, -80.8431)
-parse.CityNearby(ctx, "denver", &parseapi.CityNearbyOptions{Radius: 8, Unit: "mi"})
-parse.Country(ctx, "US")
-parse.CountryStates(ctx, "US")
-parse.State(ctx, "colorado", "")
-parse.State(ctx, "NC", "US")
-parse.StateDistricts(ctx, "NC", "US")
-parse.District(ctx, "37081", nil)
-parse.Continent(ctx, "NA")
-parse.ContinentCountries(ctx, "NA")
-parse.Currency(ctx, "USD")
-parse.CurrencyRate(ctx, "USD", "EUR", nil)
-parse.Language(ctx, "en")
-parse.Name(ctx, "BILLY OSHALL")
-parse.Timezone(ctx, "America/New_York", nil)
-parse.Holiday(ctx, "US", &parseapi.HolidayOptions{Year: 2026})
-parse.HolidayDate(ctx, "US", "2026-12-25")
-parse.Elevation(ctx, 35.2271, -80.8431)
-parse.Point(ctx, 36.0726, -79.792, nil)
-parse.Weather(ctx, 40.7128, -74.006, nil)
-parse.Domain(ctx, "example.com", nil)
-parse.MX(ctx, "example.com")
-parse.Useragent(ctx, uaString, nil)
-parse.Vin(ctx, "1HGCM82633A004352", nil)
-parse.Emoji(ctx, "rocket")
-parse.EmojiSearch(ctx, "fire", nil)
+country, err := parse.Country(ctx, "US")
+states, err := parse.CountryStates(ctx, "US")
+postal, err := parse.Postal(ctx, "28202", parseapi.PostalOptions{Country: "US"})
+city, err := parse.City(ctx, "charlotte", parseapi.CityOptions{State: "NC", Country: "US"})
+phone, err := parse.Phone(ctx, "+14155552671")
 ```
 
-Every response is a typed struct. Nullable fields are pointers.
-
-## Deep
-
-Pass deep options to include the nested deep object with richer fields.
+Optional query inputs use one options value. Omit it to use defaults. Use named fields, such as `PostalOptions{Country: "US"}`. Passing more than one options value returns an error before making a request. Every operation reserves its own options type, including operations whose options are currently empty. New optional fields can be added without changing calls or stored method signatures.
 
 ```go
-ip, err := parse.IP(ctx, "52.94.76.10", &parseapi.DeepOptions{Deep: true})
-if ip.Deep != nil && ip.Deep.Datacenter != nil && *ip.Deep.Datacenter {
-	// datacenter IP
-}
+parse.IP(ctx, "8.8.8.8", parseapi.IPOptions{Deep: true})
+parse.Email(ctx, "hello@example.com", parseapi.EmailOptions{Deep: true})
+parse.VAT(ctx, "DE136695976", parseapi.VATOptions{Deep: true})
+parse.IBAN(ctx, "DE89370400440532013000")
+parse.NPI(ctx, "1881018208")
+parse.ASN(ctx, "AS13335")
+parse.MAC(ctx, "00:1B:63:84:45:E6")
+parse.VIN(ctx, "1HGCM82633A004352")
+parse.Carrier(ctx, "+14155552671")
+parse.Caller(ctx, "+18004633339")
+parse.HLR(ctx, "+447712345678")
+parse.UserAgent(ctx, "Mozilla/5.0")
+parse.Tariff(ctx, "8471.30.01.00", parseapi.TariffOptions{Origin: "DE", Deep: true})
+parse.Address(ctx, "123 Main St", parseapi.AddressOptions{Country: "US"})
+parse.AddressSearch(ctx, "123 Main", parseapi.AddressSearchOptions{Country: "US", State: "NC"})
+parse.Company(ctx, "123456789", parseapi.CompanyOptions{Country: "FR"})
+parse.Date(ctx, "03/04/2026", parseapi.DateOptions{Format: "mdy"})
+parse.DateToday(ctx, parseapi.DateTodayOptions{To: "2026-12-25"})
+parse.Timezone(ctx, "America/New_York", parseapi.TimezoneOptions{At: "2026-09-05T15:00:00", To: "Asia/Tokyo"})
+parse.TimezoneAt(ctx, 40.7128, -74.006)
+parse.Weather(ctx, 40.7128, -74.006, parseapi.WeatherOptions{Deep: true, Date: "2026-09-01"})
 ```
+
+Use named fields when constructing response values for fixtures too. Response and options structs reserve room for future fields and cannot be compared with `==`. Nullable values are pointers. Unknown JSON fields are accepted. An omitted `deep` is nil, a requested empty `deep` is a non-nil object, and unknown fields within it stay nil. Nullable arrays use nil slices.
 
 ## Errors
 
-Every non-2xx response returns a `*parseapi.Error` with `Status`, `Code`, `Docs`, and `RequestID`. Branch on `Code`.
+Every non-2xx response returns `*parseapi.Error` with `Status`, `Code`, `Message`, `Docs`, and `RequestID`. Branch on `Code`.
 
 ```go
-_, err := parse.City(ctx, "atlantis", nil)
+_, err := parse.City(ctx, "atlantis")
 var apiErr *parseapi.Error
 if errors.As(err, &apiErr) && apiErr.Code == "not_found" {
-	// no such city
+    // No matching city.
 }
 ```
 
-## Options
+Network failures, invalid JSON, and context cancellation retain their native Go error types. A failed call returns a nil result.
+
+## Requests and retries
+
+Create one client and share it across goroutines. A context deadline covers the whole call, including retry waits. The client timeout defaults to 10 seconds per attempt. Cancellation stops the request and any retry wait.
+
+Ordinary lookups retry twice on network failures, 429, 500, 502, 503, and 504. Carrier, caller, and HLR calls use one attempt by default. Deep email, VAT, and address calls also use one attempt, reserving that behavior for address verification. Address deep currently returns an empty object. An explicit retry setting applies to every call, including metered operations. Additional attempts can be billed.
 
 ```go
 parse, err := parseapi.New("your-api-key",
-	parseapi.WithTimeout(10*time.Second), // per-attempt timeout
-	parseapi.WithRetries(2),              // automatic retries on network errors, 429, and 5xx
+    parseapi.WithTimeout(5*time.Second),
+    parseapi.WithRetries(0),
 )
 ```
 
-Requires Go 1.21 or later. Standard library only, zero dependencies.
+`WithRetries(0)` disables all automatic retries. Both numeric and HTTP-date `Retry-After` values are honored, capped at five seconds. Built-in requests do not follow redirects. `WithHTTPClient` copies your client and keeps redirects disabled. Custom transports must also keep credentials on the requested origin.
 
-## Docs
+Requires Go 1.21 or later. Standard library only.
 
-Full field reference for every endpoint: [parseapi.com/docs](https://parseapi.com/docs)
+[Full endpoint and field reference](https://parseapi.com/docs)

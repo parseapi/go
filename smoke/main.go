@@ -81,7 +81,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	ip, err := parse.IP(ctx, "8.8.8.8", nil)
+	ip, err := parse.IP(ctx, "8.8.8.8")
 	expectOk("ip", ip, err, func(r *parseapi.IP) string {
 		if r.IP != "8.8.8.8" {
 			return "wrong ip"
@@ -89,7 +89,7 @@ func main() {
 		return ""
 	})
 
-	me, err := parse.IPSelf(ctx, nil)
+	me, err := parse.IPSelf(ctx)
 	expectOk("ip self", me, err, func(r *parseapi.IP) string {
 		if r.IP == "" {
 			return "no ip"
@@ -145,7 +145,7 @@ func main() {
 		return ""
 	})
 
-	state, err := parse.State(ctx, "NC", "US")
+	state, err := parse.State(ctx, "NC", parseapi.StateOptions{Country: "US"})
 	expectOk("state", state, err, func(r *parseapi.State) string {
 		if r.Name != "North Carolina" {
 			return "wrong name"
@@ -153,7 +153,7 @@ func main() {
 		return ""
 	})
 
-	districts, err := parse.StateDistricts(ctx, "NC", "US")
+	districts, err := parse.StateDistricts(ctx, "NC", parseapi.StateDistrictsOptions{Country: "US"})
 	expectOk("state districts", districts, err, func(r *parseapi.StateDistricts) string {
 		if len(r.Districts) == 0 {
 			return "empty"
@@ -161,7 +161,7 @@ func main() {
 		return ""
 	})
 
-	district, err := parse.District(ctx, "37081", nil)
+	district, err := parse.District(ctx, "37081")
 	expectOk("district", district, err, func(r *parseapi.District) string {
 		if r.Name == "" {
 			return "no name"
@@ -169,7 +169,7 @@ func main() {
 		return ""
 	})
 
-	city, err := parse.City(ctx, "charlotte", &parseapi.CityOptions{Country: "US"})
+	city, err := parse.City(ctx, "charlotte", parseapi.CityOptions{Country: "US"})
 	expectOk("city", city, err, func(r *parseapi.City) string {
 		if r.Name != "Charlotte" {
 			return "wrong city"
@@ -190,7 +190,7 @@ func main() {
 		})
 	}
 
-	citySearch, err := parse.CitySearch(ctx, "char", &parseapi.CitySearchOptions{Country: "US", Limit: 5})
+	citySearch, err := parse.CitySearch(ctx, "char", parseapi.CitySearchOptions{Country: "US", Limit: 5})
 	expectOk("city search", citySearch, err, func(r *parseapi.CitySearch) string {
 		if len(r.Cities) == 0 {
 			return "empty"
@@ -206,7 +206,7 @@ func main() {
 		return ""
 	})
 
-	postal, err := parse.Postal(ctx, "28202", "US")
+	postal, err := parse.Postal(ctx, "28202", parseapi.PostalOptions{Country: "US"})
 	expectOk("postal", postal, err, func(r *parseapi.Postal) string {
 		if str(r.City) != "Charlotte" {
 			return "city " + str(r.City)
@@ -214,7 +214,7 @@ func main() {
 		return ""
 	})
 
-	nearby, err := parse.PostalNearby(ctx, "28202", "US", &parseapi.PostalNearbyOptions{Radius: 40})
+	nearby, err := parse.PostalNearby(ctx, "28202", parseapi.PostalNearbyOptions{Country: "US", Radius: 40})
 	expectOk("postal nearby", nearby, err, func(r *parseapi.PostalNearby) string {
 		if len(r.Nearby) == 0 {
 			return "empty"
@@ -222,7 +222,7 @@ func main() {
 		return ""
 	})
 
-	distance, err := parse.PostalDistance(ctx, "28202", "10001", "US")
+	distance, err := parse.PostalDistance(ctx, "28202", "10001", parseapi.PostalDistanceOptions{Country: "US"})
 	expectOk("postal distance", distance, err, func(r *parseapi.PostalDistance) string {
 		if r.Distance < 800 || r.Distance > 1000 {
 			return fmt.Sprintf("distance %.1f", r.Distance)
@@ -230,7 +230,7 @@ func main() {
 		return ""
 	})
 
-	email, err := parse.Email(ctx, "hello@gmail.com", nil)
+	email, err := parse.Email(ctx, "hello@gmail.com")
 	expectOk("email", email, err, func(r *parseapi.Email) string {
 		if !r.Valid {
 			return "not valid"
@@ -238,47 +238,47 @@ func main() {
 		return ""
 	})
 
-	vat, err := parse.Vat(ctx, "DE136695976", nil)
-	expectOk("vat", vat, err, func(r *parseapi.Vat) string {
+	vat, err := parse.VAT(ctx, "DE136695976")
+	expectOk("vat", vat, err, func(r *parseapi.VAT) string {
 		if !r.Valid || str(r.Country) != "DE" {
 			return "not valid DE"
 		}
 		return ""
 	})
 
-	iban, err := parse.Iban(ctx, "DE89370400440532013000", nil)
-	expectOk("iban", iban, err, func(r *parseapi.Iban) string {
+	iban, err := parse.IBAN(ctx, "DE89370400440532013000")
+	expectOk("iban", iban, err, func(r *parseapi.IBAN) string {
 		if !r.Valid || str(r.Country) != "DE" || str(r.Bank) != "37040044" {
 			return "not valid DE"
 		}
 		return ""
 	})
 
-	ibanJunk, err := parse.Iban(ctx, "hello", nil)
-	expectOk("iban junk", ibanJunk, err, func(r *parseapi.Iban) string {
+	ibanJunk, err := parse.IBAN(ctx, "hello")
+	expectOk("iban junk", ibanJunk, err, func(r *parseapi.IBAN) string {
 		if r.Valid {
 			return "expected invalid"
 		}
 		return ""
 	})
 
-	npi, err := parse.Npi(ctx, "1881018208", nil)
-	expectOk("npi", npi, err, func(r *parseapi.Npi) string {
+	npi, err := parse.NPI(ctx, "1881018208")
+	expectOk("npi", npi, err, func(r *parseapi.NPI) string {
 		if !r.Valid || r.Registered == nil || !*r.Registered {
 			return "not registered"
 		}
 		return ""
 	})
 
-	npiJunk, err := parse.Npi(ctx, "hello", nil)
-	expectOk("npi junk", npiJunk, err, func(r *parseapi.Npi) string {
+	npiJunk, err := parse.NPI(ctx, "hello")
+	expectOk("npi junk", npiJunk, err, func(r *parseapi.NPI) string {
 		if r.Valid {
 			return "expected invalid"
 		}
 		return ""
 	})
 
-	phone, err := parse.Phone(ctx, "+14155552671", nil)
+	phone, err := parse.Phone(ctx, "+14155552671")
 	expectOk("phone", phone, err, func(r *parseapi.Phone) string {
 		if str(r.Phone) != "+14155552671" {
 			return "phone " + str(r.Phone)
@@ -286,8 +286,8 @@ func main() {
 		return ""
 	})
 
-	// Metered core siblings: junk numbers answer 200 valid false, free, no vendor dip.
-	carrier, err := parse.Carrier(ctx, "555-0100", nil)
+	// Metered core siblings: junk numbers return valid false without a metered lookup.
+	carrier, err := parse.Carrier(ctx, "555-0100")
 	expectOk("carrier junk free", carrier, err, func(r *parseapi.Carrier) string {
 		if r.Valid {
 			return "expected invalid"
@@ -295,7 +295,7 @@ func main() {
 		return ""
 	})
 
-	caller, err := parse.Caller(ctx, "555-0100", nil)
+	caller, err := parse.Caller(ctx, "555-0100")
 	expectOk("caller junk free", caller, err, func(r *parseapi.Caller) string {
 		if r.Valid {
 			return "expected invalid"
@@ -303,7 +303,7 @@ func main() {
 		return ""
 	})
 
-	hlr, err := parse.HLR(ctx, "555-0100", nil)
+	hlr, err := parse.HLR(ctx, "555-0100")
 	expectOk("hlr junk free", hlr, err, func(r *parseapi.HLR) string {
 		if r.Valid {
 			return "expected invalid"
@@ -311,10 +311,25 @@ func main() {
 		return ""
 	})
 
-	domain, err := parse.Domain(ctx, "gmail.com", nil)
+	domain, err := parse.Domain(ctx, "gmail.com")
 	expectOk("domain", domain, err, func(r *parseapi.Domain) string {
 		if r.Available {
 			return "gmail available?"
+		}
+		return ""
+	})
+
+	asn, err := parse.ASN(ctx, "AS13335")
+	expectOk("asn", asn, err, func(r *parseapi.ASN) string {
+		if r.ASN != 13335 {
+			return "wrong ASN"
+		}
+		return ""
+	})
+	mac, err := parse.MAC(ctx, "00:1B:63:84:45:E6")
+	expectOk("mac", mac, err, func(r *parseapi.MAC) string {
+		if !r.Valid || r.MAC != "00:1B:63:84:45:E6" || r.Local == nil || *r.Local || r.Multicast == nil || *r.Multicast {
+			return "wrong MAC"
 		}
 		return ""
 	})
@@ -327,24 +342,24 @@ func main() {
 		return ""
 	})
 
-	ua, err := parse.Useragent(ctx, testUA, nil)
-	expectOk("useragent", ua, err, func(r *parseapi.Useragent) string {
+	ua, err := parse.UserAgent(ctx, testUA)
+	expectOk("useragent", ua, err, func(r *parseapi.UserAgent) string {
 		if str(r.Browser) != "Chrome" {
 			return "browser " + str(r.Browser)
 		}
 		return ""
 	})
 
-	vin, err := parse.Vin(ctx, "1HGCM82633A004352", nil)
-	expectOk("vin", vin, err, func(r *parseapi.Vin) string {
+	vin, err := parse.VIN(ctx, "1HGCM82633A004352")
+	expectOk("vin", vin, err, func(r *parseapi.VIN) string {
 		if !r.Valid || str(r.Make) != "Honda" {
 			return "make " + str(r.Make)
 		}
 		return ""
 	})
 
-	vinJunk, err := parse.Vin(ctx, "1HGCM82613A004352", nil)
-	expectOk("vin junk", vinJunk, err, func(r *parseapi.Vin) string {
+	vinJunk, err := parse.VIN(ctx, "1HGCM82613A004352")
+	expectOk("vin junk", vinJunk, err, func(r *parseapi.VIN) string {
 		if r.Valid {
 			return "expected invalid"
 		}
@@ -359,7 +374,7 @@ func main() {
 		return ""
 	})
 
-	rate, err := parse.CurrencyRate(ctx, "USD", "EUR", nil)
+	rate, err := parse.CurrencyRate(ctx, "USD", "EUR")
 	expectOk("currency rate", rate, err, func(r *parseapi.CurrencyRate) string {
 		if r.Rate <= 0 || r.Rate >= 10 {
 			return fmt.Sprintf("rate %f", r.Rate)
@@ -383,15 +398,15 @@ func main() {
 		return ""
 	})
 
-	timezone, err := parse.Timezone(ctx, "America/New_York", nil)
+	timezone, err := parse.Timezone(ctx, "America/New_York")
 	expectOk("timezone", timezone, err, func(r *parseapi.Timezone) string {
-		if r.OffsetMinutes != -240 && r.OffsetMinutes != -300 {
+		if r.OffsetMinutes == nil || (*r.OffsetMinutes != -240 && *r.OffsetMinutes != -300) {
 			return fmt.Sprintf("offset %d", r.OffsetMinutes)
 		}
 		return ""
 	})
 
-	holidays, err := parse.Holiday(ctx, "US", nil)
+	holidays, err := parse.Holiday(ctx, "US")
 	expectOk("holiday", holidays, err, func(r *parseapi.HolidayYear) string {
 		if len(r.Holidays) <= 5 {
 			return "too few"
@@ -423,7 +438,7 @@ func main() {
 		return ""
 	})
 
-	point, err := parse.Point(ctx, 36.0726, -79.792, nil)
+	point, err := parse.Point(ctx, 36.0726, -79.792)
 	expectOk("point", point, err, func(r *parseapi.Point) string {
 		if str(r.Country) != "US" {
 			return "country " + str(r.Country)
@@ -431,7 +446,7 @@ func main() {
 		return ""
 	})
 
-	weather, err := parse.Weather(ctx, 40.7128, -74.006, nil)
+	weather, err := parse.Weather(ctx, 40.7128, -74.006)
 	expectOk("weather", weather, err, func(r *parseapi.Weather) string {
 		if r.Station == nil || r.Station.ID == "" {
 			return "no station"
@@ -447,7 +462,7 @@ func main() {
 		return ""
 	})
 
-	emojiSearch, err := parse.EmojiSearch(ctx, "fire", &parseapi.EmojiSearchOptions{Limit: 5})
+	emojiSearch, err := parse.EmojiSearch(ctx, "fire", parseapi.EmojiSearchOptions{Limit: 5})
 	expectOk("emoji search", emojiSearch, err, func(r *parseapi.EmojiSearch) string {
 		if len(r.Emojis) == 0 {
 			return "empty"
@@ -455,7 +470,7 @@ func main() {
 		return ""
 	})
 
-	pointDeep, err := parse.Point(ctx, 36.0726, -79.792, &parseapi.DeepOptions{Deep: true})
+	pointDeep, err := parse.Point(ctx, 36.0726, -79.792, parseapi.PointOptions{Deep: true})
 	expectOk("point deep triad", pointDeep, err, func(r *parseapi.Point) string {
 		if r.Deep == nil {
 			return "deep missing"
@@ -463,7 +478,7 @@ func main() {
 		return ""
 	})
 
-	_, err = parse.City(ctx, "notarealcityxyz", nil)
+	_, err = parse.City(ctx, "notarealcityxyz")
 	expectError("honest 404", err, "not_found")
 
 	bogus, _ := parseapi.New("bogus_key_123", parseapi.WithRetries(0))
