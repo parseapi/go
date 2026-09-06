@@ -1,4 +1,4 @@
-// Package parseapi is the official parseAPI client for Go.
+// Package parseapi is the official ParseAPI client for Go.
 // One key, minimal JSON, fast. https://parseapi.com
 package parseapi
 
@@ -41,7 +41,7 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("parseapi: %s (%s)", e.Message, e.Code)
 }
 
-// Client is a parseAPI client. Create one with New and share it.
+// Client is a ParseAPI client. Create one with New and share it.
 type Client struct {
 	apiKey     string
 	baseURL    string
