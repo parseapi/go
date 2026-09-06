@@ -228,6 +228,18 @@ type CityNearby struct {
 	Nearby  []CityNearest `json:"nearby"`
 }
 
+// PostalMetro describes an area's share of ZIP addresses. Category shares are independent fractions.
+type PostalMetro struct {
+	_                [0]func()
+	Code             string   `json:"code"`
+	Name             string   `json:"name"`
+	Type             string   `json:"type"`
+	Share            *float64 `json:"share"`
+	ResidentialShare *float64 `json:"residential_share"`
+	BusinessShare    *float64 `json:"business_share"`
+	OtherShare       *float64 `json:"other_share"`
+}
+
 type Postal struct {
 	_                 [0]func()
 	Postal            string   `json:"postal"`
@@ -254,16 +266,19 @@ type Postal struct {
 	Timezone  *string  `json:"timezone"`
 	Currency  *string  `json:"currency"`
 	Neighbors []string `json:"neighbors"`
+	// Metros is nil when unknown, and non-nil empty when observed outside all covered areas.
+	Metros []PostalMetro `json:"metros"`
 }
 
 type PostalNearbyItem struct {
 	_          [0]func()
-	Postal     string  `json:"postal"`
-	City       *string `json:"city"`
-	State      *string `json:"state"`
-	Country    string  `json:"country"`
-	Distance   float64 `json:"distance"`
-	DistanceMi float64 `json:"distance_mi"`
+	Postal     string        `json:"postal"`
+	City       *string       `json:"city"`
+	State      *string       `json:"state"`
+	Country    string        `json:"country"`
+	Distance   float64       `json:"distance"`
+	DistanceMi float64       `json:"distance_mi"`
+	Metros     []PostalMetro `json:"metros"`
 }
 
 type PostalNearby struct {
@@ -272,13 +287,15 @@ type PostalNearby struct {
 	Country string             `json:"country"`
 	Radius  float64            `json:"radius"`
 	Unit    string             `json:"unit"`
+	Metros  []PostalMetro      `json:"metros"`
 	Nearby  []PostalNearbyItem `json:"nearby"`
 }
 
 type PostalDistanceEnd struct {
 	_      [0]func()
-	Postal string  `json:"postal"`
-	City   *string `json:"city"`
+	Postal string        `json:"postal"`
+	City   *string       `json:"city"`
+	Metros []PostalMetro `json:"metros"`
 }
 
 type PostalDistance struct {
