@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	version         = "0.3.1"
+	version         = "0.3.2"
 	defaultBaseURL  = "https://api.parseapi.com"
 	defaultTimeout  = 10 * time.Second
 	defaultRetries  = 2
