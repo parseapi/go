@@ -1150,3 +1150,31 @@ type Company struct {
 	Invoice     *string      `json:"invoice"`
 	Deep        *CompanyDeep `json:"deep,omitempty"`
 }
+
+// MeasureChoice is one explicit interpretation of an ambiguous unit.
+type MeasureChoice struct {
+	Unit string `json:"unit"`
+	Name string `json:"name"`
+}
+
+// Measure contains the parsed result. Amount stays a decimal string, including zero.
+type Measure struct {
+	Measure string          `json:"measure"`
+	Valid   bool            `json:"valid"`
+	Type    *string         `json:"type"`
+	Amount  *string         `json:"amount"`
+	Unit    *string         `json:"unit"`
+	Reason  *string         `json:"reason"`
+	Choices []MeasureChoice `json:"choices"`
+}
+
+type MeasureUnit struct {
+	Unit    string   `json:"unit"`
+	Name    string   `json:"name"`
+	Type    string   `json:"type"`
+	Aliases []string `json:"aliases"`
+}
+
+type MeasureUnits struct {
+	Units []MeasureUnit `json:"units"`
+}

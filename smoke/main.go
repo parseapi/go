@@ -334,6 +334,23 @@ func main() {
 		return ""
 	})
 
+	measure, err := parse.Measure(ctx, "5 ft 11 in", parseapi.MeasureOptions{To: "cm"})
+	expectOk("measure", measure, err, func(r *parseapi.Measure) string {
+		if !r.Valid || str(r.Amount) != "180.34" || str(r.Unit) != "cm" {
+			return "wrong conversion"
+		}
+		return ""
+	})
+	units, err := parse.MeasureUnits(ctx, parseapi.MeasureUnitsOptions{Unit: "m"})
+	expectOk("measureUnits", units, err, func(r *parseapi.MeasureUnits) string {
+		for _, unit := range r.Units {
+			if unit.Unit == "m" {
+				return ""
+			}
+		}
+		return "missing metre"
+	})
+
 	mx, err := parse.MX(ctx, "gmail.com")
 	expectOk("mx", mx, err, func(r *parseapi.MX) string {
 		if len(r.MX) == 0 {

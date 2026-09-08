@@ -81,6 +81,19 @@ parse.Weather(ctx, 40.7128, -74.006, parseapi.WeatherOptions{Deep: true, Date: "
 
 Use named fields when constructing response values for fixtures too. Response and options structs reserve room for future fields and cannot be compared with `==`. Nullable values are pointers. Unknown JSON fields are accepted. An omitted `deep` is nil, a requested empty `deep` is a non-nil object, and unknown fields within it stay nil. Nullable arrays use nil slices.
 
+## Measurements
+
+```go
+result, err := client.Measure(ctx, "5 ft 11 in", parseapi.MeasureOptions{To: "cm"})
+if err != nil { return err }
+units, err := client.MeasureUnits(ctx, parseapi.MeasureUnitsOptions{Unit: "m"})
+if err != nil { return err }
+```
+
+`amount` is a decimal string, such as `"180.34"`. Without `to`, the API returns the canonical unit for the measurement type. Pass `locale` for number formatting and `system` (`us` or `imperial`) when a customary unit needs context. Ambiguous input returns `valid: false`, a `reason`, and available `choices`. Invalid or incompatible target units use the normal API error.
+
+Unit discovery accepts optional `query`, `type`, and `unit` filters. `unit` selects compatible targets. Omit the filters for the reviewed catalog. Both operations use pooled requests.
+
 ## Deep
 
 Choose enrichment for the question you need answered.

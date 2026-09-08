@@ -1382,3 +1382,46 @@ func (c *Client) Company(ctx context.Context, number string, options ...CompanyO
 	}
 	return out, nil
 }
+
+// MeasureOptions configures measurement conversion and explicit ambiguity resolution.
+type MeasureOptions struct {
+	_      [0]func()
+	To     string
+	Locale string
+	System string
+}
+
+// Measure parses or converts a measurement. Amount is a decimal string. Without To,
+// the API uses the type's canonical unit. System accepts us or imperial.
+func (c *Client) Measure(ctx context.Context, measure string, options ...MeasureOptions) (*Measure, error) {
+	opts, err := oneOption(options)
+	if err != nil {
+		return nil, err
+	}
+	out := &Measure{}
+	if err := c.get(ctx, "/measure/"+seg(measure), values("to", opts.To, "locale", opts.Locale, "system", opts.System), nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// MeasureUnitsOptions filters the reviewed unit catalog. Unit selects compatible targets.
+type MeasureUnitsOptions struct {
+	_     [0]func()
+	Query string
+	Type  string
+	Unit  string
+}
+
+// MeasureUnits discovers reviewed units and their accepted aliases.
+func (c *Client) MeasureUnits(ctx context.Context, options ...MeasureUnitsOptions) (*MeasureUnits, error) {
+	opts, err := oneOption(options)
+	if err != nil {
+		return nil, err
+	}
+	out := &MeasureUnits{}
+	if err := c.get(ctx, "/measure/units", values("q", opts.Query, "type", opts.Type, "unit", opts.Unit), nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
