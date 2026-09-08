@@ -1043,19 +1043,20 @@ func (c *Client) Language(ctx context.Context, code string, options ...LanguageO
 	return out, nil
 }
 
-// NameOptions reserves optional settings for Name.
+// NameOptions configures Name. Country is an ISO2 gender context.
 type NameOptions struct {
-	_ [0]func()
+	_       [0]func()
+	Country string
 }
 
 // Name calls /name/{name}.
 func (c *Client) Name(ctx context.Context, name string, options ...NameOptions) (*Name, error) {
-	_, err := oneOption(options)
+	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
 	}
 	out := &Name{}
-	if err := c.get(ctx, "/name/"+seg(name), nil, nil, out); err != nil {
+	if err := c.get(ctx, "/name/"+seg(name), values("country", opts.Country), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil

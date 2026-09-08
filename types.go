@@ -742,16 +742,20 @@ type Language struct {
 // Name is a parsed person name. Junk input returns Valid false, never an error.
 // Gender comes from dictionary data and is nil when the data does not decide.
 type Name struct {
-	_          [0]func()
-	Name       string  `json:"name"`
-	Valid      bool    `json:"valid"`
-	Prefix     *string `json:"prefix"`
-	First      *string `json:"first"`
-	Middle     *string `json:"middle"`
-	Last       *string `json:"last"`
-	Suffix     *string `json:"suffix"`
-	Gender     *string `json:"gender"`
-	Salutation *string `json:"salutation"`
+	_     [0]func()
+	Name  string `json:"name"`
+	Valid bool   `json:"valid"`
+	// Known is name membership, independent of gender.
+	Known bool `json:"known"`
+	// Countries are name associations, not the person's nationality.
+	Countries  []string `json:"countries"`
+	Prefix     *string  `json:"prefix"`
+	First      *string  `json:"first"`
+	Middle     *string  `json:"middle"`
+	Last       *string  `json:"last"`
+	Suffix     *string  `json:"suffix"`
+	Gender     *string  `json:"gender"`
+	Salutation *string  `json:"salutation"`
 }
 
 type CurrencyRate struct {
