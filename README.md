@@ -68,6 +68,8 @@ parse.Carrier(ctx, "+14155552671")
 parse.Caller(ctx, "+18004633339")
 parse.HLR(ctx, "+447712345678")
 parse.UserAgent(ctx, "Mozilla/5.0")
+parse.DNS(ctx, "example.com")
+parse.DNS(ctx, "_dmarc.example.com", parseapi.DNSOptions{Type: "TXT"})
 parse.Tariff(ctx, "8471.30.01.00", parseapi.TariffOptions{Origin: "DE", Deep: true})
 parse.Address(ctx, "123 Main St", parseapi.AddressOptions{Country: "US"})
 parse.AddressSearch(ctx, "123 Main", parseapi.AddressSearchOptions{Country: "US", State: "NC"})
@@ -80,6 +82,8 @@ parse.Weather(ctx, 40.7128, -74.006, parseapi.WeatherOptions{Deep: true, Date: "
 ```
 
 Use named fields when constructing response values for fixtures too. Response and options structs reserve room for future fields and cannot be compared with `==`. Nullable values are pointers. Unknown JSON fields are accepted. An omitted `deep` is nil, a requested empty `deep` is a non-nil object, and unknown fields within it stay nil. Nullable arrays use nil slices.
+
+DNS uses pooled requests on every plan. Omit `type` to check A, AAAA, CNAME, MX, NS, TXT, SOA, CAA, SRV and PTR. Records contain `name`, `type`, `ttl` in seconds and a DNS presentation `value`. TXT values retain quoting and chunk boundaries. A selected question can include its CNAME chain. Empty records mean no records. Lookup failures remain errors.
 
 ## Measurements
 

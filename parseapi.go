@@ -901,6 +901,26 @@ func (c *Client) MAC(ctx context.Context, mac string, options ...MACOptions) (*M
 	return out, nil
 }
 
+// DNSOptions configures DNS. Type selects the question, including its CNAME chain.
+// Omit Type to check all ten supported record types.
+type DNSOptions struct {
+	_    [0]func()
+	Type string
+}
+
+// DNS returns published DNS records with TTLs. Pooled on every plan.
+func (c *Client) DNS(ctx context.Context, domain string, options ...DNSOptions) (*DNS, error) {
+	opts, err := oneOption(options)
+	if err != nil {
+		return nil, err
+	}
+	out := &DNS{}
+	if err := c.get(ctx, "/dns/"+seg(domain), values("type", opts.Type), nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MXOptions reserves optional settings for MX.
 type MXOptions struct {
 	_ [0]func()

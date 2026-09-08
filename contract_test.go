@@ -63,3 +63,5 @@ var _ func(*parseapi.Client, context.Context, string, ...parseapi.AddressSearchO
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.CompanyOptions) (*parseapi.Company, error) = (*parseapi.Client).Company
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.MeasureOptions) (*parseapi.Measure, error) = (*parseapi.Client).Measure
 var _ func(*parseapi.Client, context.Context, ...parseapi.MeasureUnitsOptions) (*parseapi.MeasureUnits, error) = (*parseapi.Client).MeasureUnits
+
+var _ func(*parseapi.Client, context.Context, string, ...parseapi.DNSOptions) (*parseapi.DNS, error) = (*parseapi.Client).DNS

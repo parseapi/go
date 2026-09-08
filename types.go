@@ -651,6 +651,21 @@ type MAC struct {
 	Multicast *bool   `json:"multicast"`
 }
 
+// DNSRecord preserves DNS presentation text, including TXT quoting.
+type DNSRecord struct {
+	_     [0]func()
+	Name  string `json:"name"`
+	Type  string `json:"type"`
+	TTL   uint32 `json:"ttl"`
+	Value string `json:"value"`
+}
+
+type DNS struct {
+	_       [0]func()
+	Domain  string      `json:"domain"`
+	Records []DNSRecord `json:"records"`
+}
+
 type MX struct {
 	_      [0]func()
 	Domain string     `json:"domain"`

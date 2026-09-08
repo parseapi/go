@@ -351,6 +351,16 @@ func main() {
 		return "missing metre"
 	})
 
+	dns, err := parse.DNS(ctx, "example.com", parseapi.DNSOptions{Type: "A"})
+	expectOk("dns", dns, err, func(r *parseapi.DNS) string {
+		for _, record := range r.Records {
+			if record.Type == "A" {
+				return ""
+			}
+		}
+		return "no A records"
+	})
+
 	mx, err := parse.MX(ctx, "gmail.com")
 	expectOk("mx", mx, err, func(r *parseapi.MX) string {
 		if len(r.MX) == 0 {
