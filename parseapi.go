@@ -283,7 +283,7 @@ type IPOptions struct {
 	Deep bool
 }
 
-// IP calls /ip/{ip}.
+// IP looks up an IP. Deep enrichment is included with a paid plan, without a separate check meter.
 func (c *Client) IP(ctx context.Context, ip string, options ...IPOptions) (*IP, error) {
 	opts, err := oneOption(options)
 	if err != nil {
@@ -306,7 +306,7 @@ type IPSelfOptions struct {
 	Deep bool
 }
 
-// IPSelf calls /ip.
+// IPSelf looks up the public IP making this request. On a server, this is the server's IP.
 func (c *Client) IPSelf(ctx context.Context, options ...IPSelfOptions) (*IP, error) {
 	opts, err := oneOption(options)
 	if err != nil {
@@ -607,7 +607,8 @@ type PostalOptions struct {
 	Country string
 }
 
-// Postal calls /postal/{code}.
+// Postal looks up a postal area. Pass country when known. Check nullable coordinates before
+// another location lookup.
 func (c *Client) Postal(ctx context.Context, code string, options ...PostalOptions) (*Postal, error) {
 	opts, err := oneOption(options)
 	if err != nil {
@@ -670,7 +671,9 @@ type EmailOptions struct {
 	Deep bool
 }
 
-// Email calls /email/{email}.
+// Email parses an email and check its format and domain. Deep explicitly requests a metered
+// deliverability check. Deep checks use one attempt by default. An explicit retry count can repeat
+// paid usage.
 func (c *Client) Email(ctx context.Context, email string, options ...EmailOptions) (*Email, error) {
 	opts, err := oneOption(options)
 	if err != nil {
@@ -695,7 +698,9 @@ type VATOptions struct {
 	Deep    bool
 }
 
-// VAT calls /vat/{number}.
+// VAT checks VAT format and checksum. Deep requests a metered registry check where supported. Deep
+// checks use one attempt by default. Supply your own VAT number for a consultation reference when
+// supported.
 func (c *Client) VAT(ctx context.Context, number string, options ...VATOptions) (*VAT, error) {
 	opts, err := oneOption(options)
 	if err != nil {
@@ -761,7 +766,8 @@ type PhoneOptions struct {
 	Deep    bool
 }
 
-// Phone calls /phone/{number}.
+// Phone parses a phone number and its formats. Pass country for national numbers when needed. Deep
+// returns an empty object. Carrier, caller, and HLR are separate metered lookups.
 func (c *Client) Phone(ctx context.Context, number string, options ...PhoneOptions) (*Phone, error) {
 	opts, err := oneOption(options)
 	if err != nil {
@@ -784,7 +790,7 @@ type CarrierOptions struct {
 	Country string
 }
 
-// Carrier calls /carrier/{number}.
+// Carrier requests a metered carrier lookup. No automatic retries by default.
 func (c *Client) Carrier(ctx context.Context, number string, options ...CarrierOptions) (*Carrier, error) {
 	opts, err := oneOption(options)
 	if err != nil {
@@ -803,7 +809,7 @@ type CallerOptions struct {
 	Country string
 }
 
-// Caller calls /caller/{number}.
+// Caller requests a metered caller-name lookup for a NANP number. No automatic retries by default.
 func (c *Client) Caller(ctx context.Context, number string, options ...CallerOptions) (*Caller, error) {
 	opts, err := oneOption(options)
 	if err != nil {
@@ -822,7 +828,8 @@ type HLROptions struct {
 	Country string
 }
 
-// HLR calls /hlr/{number}.
+// HLR requests a metered live-status lookup. Nil status means unconfirmed. No automatic retries by
+// default.
 func (c *Client) HLR(ctx context.Context, number string, options ...HLROptions) (*HLR, error) {
 	opts, err := oneOption(options)
 	if err != nil {
@@ -1245,7 +1252,8 @@ type WeatherOptions struct {
 	Date string
 }
 
-// Weather calls /weather.
+// Weather gets weather for a point. Both unit systems are returned. Pass known coordinates from a
+// postal, city, or location result.
 func (c *Client) Weather(ctx context.Context, lat float64, lon float64, options ...WeatherOptions) (*Weather, error) {
 	opts, err := oneOption(options)
 	if err != nil {
