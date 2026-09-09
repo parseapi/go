@@ -128,6 +128,15 @@ func TestURLMapping(t *testing.T) {
 		}, "/currency/USD/JPY", "amount=100&date=2026-08-28"},
 		{"language", func(c *Client) error { _, err := c.Language(ctx, "en"); return err }, "/language/en", ""},
 		{"name encodes spaces", func(c *Client) error { _, err := c.Name(ctx, "Smith, John"); return err }, "/name/Smith%2C%20John", ""},
+		{"time UTC", func(c *Client) error { _, err := c.Time(ctx, ""); return err }, "/time", ""},
+		{"time conversion", func(c *Client) error {
+			_, err := c.Time(ctx, "America/New_York", TimeOptions{At: "2026-09-05T15:00:00", To: "Asia/Tokyo"})
+			return err
+		}, "/time/America%2FNew_York", "at=2026-09-05T15%3A00%3A00&to=Asia%2FTokyo"},
+		{"time coordinates", func(c *Client) error {
+			_, err := c.TimeAt(ctx, 0, 0, TimeAtOptions{At: "1970-01-01T00:00:00Z", To: "UTC"})
+			return err
+		}, "/time", "at=1970-01-01T00%3A00%3A00Z&lat=0&lon=0&to=UTC"},
 		{"timezone encodes slash", func(c *Client) error { _, err := c.Timezone(ctx, "America/New_York"); return err }, "/timezone/America%2FNew_York", ""},
 		{"holiday", func(c *Client) error { _, err := c.Holiday(ctx, "US", HolidayOptions{Year: 1955}); return err }, "/holiday/US", "year=1955"},
 		{"holiday date", func(c *Client) error { _, err := c.HolidayDate(ctx, "US", "2026-12-25"); return err }, "/holiday/US/2026-12-25", ""},
@@ -614,5 +623,28 @@ func TestReservedOptionsRejectMultipleValues(t *testing.T) {
 	result, err := client.Country(context.Background(), "US", CountryOptions{}, CountryOptions{})
 	if err == nil || result != nil || calls.Load() != 0 {
 		t.Fatal("reserved options did not enforce one value before request")
+	}
+}
+
+func TestTimeUnixAndUnknown(t *testing.T) {
+	var historical Time
+	if err := json.Unmarshal([]byte(`{"offset_seconds":-17762,"offset_minutes":-296,"at":"1880-01-01T00:00:00-04:56:02"}`), &historical); err != nil {
+		t.Fatal(err)
+	}
+	if historical.OffsetSeconds == nil || *historical.OffsetSeconds != -17762 || historical.OffsetMinutes == nil || *historical.OffsetMinutes != -296 {
+		t.Fatalf("lost historical offset: %#v", historical)
+	}
+	var clock Time
+	if err := json.Unmarshal([]byte(`{"timezone":"UTC","at":"1970-01-01T00:00:00+00:00","unix":0,"to":{"timezone":"UTC","unix":0}}`), &clock); err != nil {
+		t.Fatal(err)
+	}
+	if clock.Unix == nil || *clock.Unix != 0 || clock.To == nil || clock.To.Unix == nil || *clock.To.Unix != 0 {
+		t.Fatalf("lost Unix zero: %#v", clock)
+	}
+	if err := json.Unmarshal([]byte(`{"timezone":null,"at":null,"unix":null,"to":null}`), &clock); err != nil {
+		t.Fatal(err)
+	}
+	if clock.At != nil || clock.Unix != nil || clock.To != nil {
+		t.Fatalf("lost null: %#v", clock)
 	}
 }

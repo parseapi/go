@@ -78,14 +78,19 @@ parse.AddressSearch(ctx, "123 Main", parseapi.AddressSearchOptions{Country: "US"
 parse.Company(ctx, "123456789", parseapi.CompanyOptions{Country: "FR"})
 parse.Date(ctx, "03/04/2026", parseapi.DateOptions{Format: "mdy"})
 parse.DateToday(ctx, parseapi.DateTodayOptions{To: "2026-12-25"})
-parse.Timezone(ctx, "America/New_York", parseapi.TimezoneOptions{At: "2026-09-05T15:00:00", To: "Asia/Tokyo"})
-parse.TimezoneAt(ctx, 40.7128, -74.006)
+parse.Time(ctx, "") // UTC now
+parse.Time(ctx, "America/New_York", parseapi.TimeOptions{At: "2026-09-05T15:00:00", To: "Asia/Tokyo"})
+parse.TimeAt(ctx, 40.7128, -74.006)
 parse.Weather(ctx, 40.7128, -74.006, parseapi.WeatherOptions{Deep: true, Date: "2026-09-01"})
 ```
 
 Use named fields when constructing response values for fixtures too. Response and options structs reserve room for future fields and cannot be compared with `==`. Nullable values are pointers. Unknown JSON fields are accepted. An omitted `deep` is nil, a requested empty `deep` is a non-nil object, and unknown fields within it stay nil. Nullable arrays use nil slices.
 
 DNS uses pooled requests on every plan. Omit `type` to check A, AAAA, CNAME, MX, NS, TXT, SOA, CAA, SRV and PTR. Records contain `name`, `type`, `ttl` in seconds and a DNS presentation `value`. TXT values retain quoting and chunk boundaries. A selected question can include its CNAME chain. Empty records mean no records. Lookup failures remain errors.
+
+## Time
+
+`time` returns local ISO `at` with its UTC offset and integer Unix seconds in `unix`. `offset_seconds` is the exact offset, while `offset_minutes` is whole minutes. Historical offsets and ISO times can include offset seconds. Omitted `at` means now. With `to`, an offsetless `at` is source wall time. Otherwise it is UTC. Include an offset for repeated local times around a clock change. Current time and conversion use pooled requests on every plan. Coordinate clock fields can be null when the timezone is unknown. Existing `timezone` methods remain supported.
 
 ## Measurements
 

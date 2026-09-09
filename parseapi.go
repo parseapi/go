@@ -1146,6 +1146,50 @@ func (c *Client) CurrencyRate(ctx context.Context, base string, quote string, op
 	return out, nil
 }
 
+// TimeOptions configures Time. With To, offsetless At is source wall time.
+type TimeOptions struct {
+	_  [0]func()
+	At string
+	To string
+}
+
+// Time returns local time and timezone facts. An empty timezone selects UTC.
+func (c *Client) Time(ctx context.Context, timezone string, options ...TimeOptions) (*Time, error) {
+	opts, err := oneOption(options)
+	if err != nil {
+		return nil, err
+	}
+	path := "/time"
+	if timezone != "" {
+		path += "/" + seg(timezone)
+	}
+	out := &Time{}
+	if err := c.get(ctx, path, values("at", opts.At, "to", opts.To), nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// TimeAtOptions configures TimeAt. Omitted fields use API defaults.
+type TimeAtOptions struct {
+	_  [0]func()
+	At string
+	To string
+}
+
+// TimeAt returns local time at the coordinates, optionally converted with To.
+func (c *Client) TimeAt(ctx context.Context, lat float64, lon float64, options ...TimeAtOptions) (*Time, error) {
+	opts, err := oneOption(options)
+	if err != nil {
+		return nil, err
+	}
+	out := &Time{}
+	if err := c.get(ctx, "/time", values("lat", f(lat), "lon", f(lon), "at", opts.At, "to", opts.To), nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TimezoneOptions configures Timezone. Omitted fields use API defaults.
 type TimezoneOptions struct {
 	_  [0]func()

@@ -792,18 +792,23 @@ type TimezoneNextDST struct {
 	Abbreviation string `json:"abbreviation"`
 }
 
+// Time contains the local clock and timezone facts. Nil clock fields mean no resolved zone.
+type Time = Timezone
+
 type Timezone struct {
 	_             [0]func()
 	Timezone      *string                   `json:"timezone"`
 	Name          *string                   `json:"name"`
 	Abbreviation  *string                   `json:"abbreviation"`
 	Offset        *string                   `json:"offset"`
+	OffsetSeconds *int                      `json:"offset_seconds,omitempty"`
 	OffsetMinutes *int                      `json:"offset_minutes"`
 	DST           *bool                     `json:"dst"`
 	NextDST       *TimezoneNextDST          `json:"next_dst"`
 	Latitude      *float64                  `json:"latitude,omitempty"`
 	Longitude     *float64                  `json:"longitude,omitempty"`
 	At            *string                   `json:"at,omitempty"`
+	Unix          *int64                    `json:"unix,omitempty"`
 	To            *TimezoneConversionTarget `json:"to,omitempty"`
 }
 
@@ -1051,9 +1056,11 @@ type TimezoneConversionTarget struct {
 	Name          *string `json:"name"`
 	Abbreviation  *string `json:"abbreviation"`
 	Offset        string  `json:"offset"`
+	OffsetSeconds *int    `json:"offset_seconds,omitempty"`
 	OffsetMinutes int     `json:"offset_minutes"`
 	DST           bool    `json:"dst"`
 	At            string  `json:"at"`
+	Unix          *int64  `json:"unix,omitempty"`
 }
 
 type WeatherAir struct {
