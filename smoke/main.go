@@ -131,8 +131,8 @@ func main() {
 
 	country, err := parse.Country(ctx, "US")
 	expectOk("country", country, err, func(r *parseapi.Country) string {
-		if r.ISO3 != "USA" {
-			return "wrong iso3"
+		if r.Country != "US" {
+			return "wrong country"
 		}
 		return ""
 	})
@@ -426,7 +426,7 @@ func main() {
 
 	name, err := parse.Name(ctx, "BILLY O'SHALL")
 	expectOk("name", name, err, func(r *parseapi.Name) string {
-		if r.Name != "Billy O'Shall" || !r.Valid || r.Gender == nil || *r.Gender != "male" {
+		if r.Name != "Billy O'Shall" || !r.Valid {
 			return "wrong name"
 		}
 		return ""
@@ -434,8 +434,8 @@ func main() {
 
 	timezone, err := parse.Timezone(ctx, "America/New_York")
 	expectOk("timezone", timezone, err, func(r *parseapi.Timezone) string {
-		if r.OffsetMinutes == nil || (*r.OffsetMinutes != -240 && *r.OffsetMinutes != -300) {
-			return fmt.Sprintf("offset %d", r.OffsetMinutes)
+		if r.Offset == nil || (*r.Offset != "-04:00" && *r.Offset != "-05:00") {
+			return fmt.Sprintf("offset %v", r.Offset)
 		}
 		return ""
 	})

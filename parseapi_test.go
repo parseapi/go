@@ -428,14 +428,14 @@ func TestDateAndTimezoneMapping(t *testing.T) {
 }
 
 func TestDateAndTimezoneNullableResults(t *testing.T) {
-	client, _ := newTestClient(t, okJSON(`{"date":"03/04/2026","valid":false,"year":null,"leap":null,"future_field":{"value":true}}`))
+	client, _ := newTestClient(t, okJSON(`{"date":"03/04/2026","valid":false,"future_field":{"value":true},"deep":{"year":null,"leap":null}}`))
 	date, err := client.Date(context.Background(), "03/04/2026")
-	if err != nil || date.Valid || date.Year != nil || date.Leap != nil {
+	if err != nil || date.Valid || date.Deep.Year != nil || date.Deep.Leap != nil {
 		t.Fatalf("date: %+v, %v", date, err)
 	}
-	client, _ = newTestClient(t, okJSON(`{"latitude":0,"longitude":180,"timezone":null,"name":null,"abbreviation":null,"offset":null,"offset_minutes":null,"dst":null,"next_dst":null,"future_field":true}`))
+	client, _ = newTestClient(t, okJSON(`{"latitude":0,"longitude":180,"timezone":null,"abbreviation":null,"offset":null,"dst":null,"future_field":true,"deep":{"name":null,"offset_minutes":null,"next_dst":null}}`))
 	zone, err := client.TimezoneAt(context.Background(), 0, 180)
-	if err != nil || zone.Timezone != nil || zone.DST != nil || zone.OffsetMinutes != nil {
+	if err != nil || zone.Timezone != nil || zone.DST != nil || zone.Deep.OffsetMinutes != nil {
 		t.Fatalf("zone: %+v, %v", zone, err)
 	}
 }
@@ -578,10 +578,10 @@ func TestRetryAfterSupportsHTTPDates(t *testing.T) {
 
 func TestNewNullableResponseFields(t *testing.T) {
 	var company Company
-	if err := json.Unmarshal([]byte(`{"company":"x","registered":null,"active":null,"gst":null,"siege":null,"kind":"LIMITED","type":"company","deep":{},"future":true}`), &company); err != nil {
+	if err := json.Unmarshal([]byte(`{"company":"x","registered":null,"active":null,"type":"company","deep":{"gst":null,"siege":null,"kind":"LIMITED"},"future":true}`), &company); err != nil {
 		t.Fatal(err)
 	}
-	if company.Registered != nil || company.Active != nil || company.GST != nil || company.Siege != nil || company.Deep == nil {
+	if company.Registered != nil || company.Active != nil || company.Deep.GST != nil || company.Deep.Siege != nil || company.Deep == nil {
 		t.Fatalf("nulls: %+v", company)
 	}
 	var weather Weather
@@ -628,10 +628,10 @@ func TestReservedOptionsRejectMultipleValues(t *testing.T) {
 
 func TestTimeUnixAndUnknown(t *testing.T) {
 	var historical Time
-	if err := json.Unmarshal([]byte(`{"offset_seconds":-17762,"offset_minutes":-296,"at":"1880-01-01T00:00:00-04:56:02"}`), &historical); err != nil {
+	if err := json.Unmarshal([]byte(`{"deep":{"offset_seconds":-17762,"offset_minutes":-296},"at":"1880-01-01T00:00:00-04:56:02"}`), &historical); err != nil {
 		t.Fatal(err)
 	}
-	if historical.OffsetSeconds == nil || *historical.OffsetSeconds != -17762 || historical.OffsetMinutes == nil || *historical.OffsetMinutes != -296 {
+	if historical.Deep.OffsetSeconds == nil || *historical.Deep.OffsetSeconds != -17762 || historical.Deep.OffsetMinutes == nil || *historical.Deep.OffsetMinutes != -296 {
 		t.Fatalf("lost historical offset: %#v", historical)
 	}
 	var clock Time

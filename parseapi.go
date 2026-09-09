@@ -397,17 +397,22 @@ func (c *Client) BlocCountries(ctx context.Context, code string, options ...Bloc
 
 // CountryOptions reserves optional settings for Country.
 type CountryOptions struct {
-	_ [0]func()
+	_    [0]func()
+	Deep bool
 }
 
 // Country calls /country/{code}.
 func (c *Client) Country(ctx context.Context, code string, options ...CountryOptions) (*Country, error) {
-	_, err := oneOption(options)
+	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &Country{}
-	if err := c.get(ctx, "/country/"+seg(code), nil, nil, out); err != nil {
+	if err := c.get(ctx, "/country/"+seg(code), values("deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -435,6 +440,7 @@ func (c *Client) CountryStates(ctx context.Context, code string, options ...Coun
 type StateOptions struct {
 	_       [0]func()
 	Country string
+	Deep    bool
 }
 
 // State calls /state/{code}.
@@ -443,8 +449,12 @@ func (c *Client) State(ctx context.Context, code string, options ...StateOptions
 	if err != nil {
 		return nil, err
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &State{}
-	if err := c.get(ctx, "/state/"+seg(code), values("country", opts.Country), nil, out); err != nil {
+	if err := c.get(ctx, "/state/"+seg(code), values("country", opts.Country, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -454,6 +464,7 @@ func (c *Client) State(ctx context.Context, code string, options ...StateOptions
 type StateDistrictsOptions struct {
 	_       [0]func()
 	Country string
+	Deep    bool
 }
 
 // StateDistricts calls /state/{code}/districts.
@@ -462,8 +473,12 @@ func (c *Client) StateDistricts(ctx context.Context, code string, options ...Sta
 	if err != nil {
 		return nil, err
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &StateDistricts{}
-	if err := c.get(ctx, "/state/"+seg(code)+"/districts", values("country", opts.Country), nil, out); err != nil {
+	if err := c.get(ctx, "/state/"+seg(code)+"/districts", values("country", opts.Country, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -474,6 +489,7 @@ type DistrictOptions struct {
 	_       [0]func()
 	Country string
 	State   string
+	Deep    bool
 }
 
 // District calls /district/{code}.
@@ -482,8 +498,12 @@ func (c *Client) District(ctx context.Context, code string, options ...DistrictO
 	if err != nil {
 		return nil, err
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &District{}
-	if err := c.get(ctx, "/district/"+seg(code), values("country", opts.Country, "state", opts.State), nil, out); err != nil {
+	if err := c.get(ctx, "/district/"+seg(code), values("country", opts.Country, "state", opts.State, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -494,6 +514,7 @@ type CityOptions struct {
 	_       [0]func()
 	Country string
 	State   string
+	Deep    bool
 }
 
 // City calls /city/{name}.
@@ -502,8 +523,12 @@ func (c *Client) City(ctx context.Context, name string, options ...CityOptions) 
 	if err != nil {
 		return nil, err
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &City{}
-	if err := c.get(ctx, "/city/"+seg(name), values("country", opts.Country, "state", opts.State), nil, out); err != nil {
+	if err := c.get(ctx, "/city/"+seg(name), values("country", opts.Country, "state", opts.State, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -511,17 +536,22 @@ func (c *Client) City(ctx context.Context, name string, options ...CityOptions) 
 
 // CityIDOptions reserves optional settings for CityID.
 type CityIDOptions struct {
-	_ [0]func()
+	_    [0]func()
+	Deep bool
 }
 
 // CityID calls /city/id/{id}.
 func (c *Client) CityID(ctx context.Context, id string, options ...CityIDOptions) (*City, error) {
-	_, err := oneOption(options)
+	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &City{}
-	if err := c.get(ctx, "/city/id/"+seg(id), nil, nil, out); err != nil {
+	if err := c.get(ctx, "/city/id/"+seg(id), values("deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -533,6 +563,7 @@ type CitySearchOptions struct {
 	Country string
 	State   string
 	Limit   int
+	Deep    bool
 }
 
 // CitySearch calls /city.
@@ -545,8 +576,12 @@ func (c *Client) CitySearch(ctx context.Context, query string, options ...CitySe
 	if opts.Limit != 0 {
 		limit = strconv.Itoa(opts.Limit)
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &CitySearch{}
-	if err := c.get(ctx, "/city", values("q", query, "country", opts.Country, "state", opts.State, "limit", limit), nil, out); err != nil {
+	if err := c.get(ctx, "/city", values("q", query, "country", opts.Country, "state", opts.State, "limit", limit, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -554,17 +589,22 @@ func (c *Client) CitySearch(ctx context.Context, query string, options ...CitySe
 
 // CityNearestOptions reserves optional settings for CityNearest.
 type CityNearestOptions struct {
-	_ [0]func()
+	_    [0]func()
+	Deep bool
 }
 
 // CityNearest calls /city.
 func (c *Client) CityNearest(ctx context.Context, lat float64, lon float64, options ...CityNearestOptions) (*CityNearest, error) {
-	_, err := oneOption(options)
+	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &CityNearest{}
-	if err := c.get(ctx, "/city", values("lat", f(lat), "lon", f(lon)), nil, out); err != nil {
+	if err := c.get(ctx, "/city", values("lat", f(lat), "lon", f(lon), "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -578,6 +618,7 @@ type CityNearbyOptions struct {
 	Radius  float64
 	Unit    string
 	Limit   int
+	Deep    bool
 }
 
 // CityNearby calls /city/{name}/nearby.
@@ -594,8 +635,12 @@ func (c *Client) CityNearby(ctx context.Context, name string, options ...CityNea
 	if opts.Limit != 0 {
 		limit = strconv.Itoa(opts.Limit)
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &CityNearby{}
-	if err := c.get(ctx, "/city/"+seg(name)+"/nearby", values("country", opts.Country, "state", opts.State, "radius", radius, "unit", opts.Unit, "limit", limit), nil, out); err != nil {
+	if err := c.get(ctx, "/city/"+seg(name)+"/nearby", values("country", opts.Country, "state", opts.State, "radius", radius, "unit", opts.Unit, "limit", limit, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -605,6 +650,7 @@ func (c *Client) CityNearby(ctx context.Context, name string, options ...CityNea
 type PostalOptions struct {
 	_       [0]func()
 	Country string
+	Deep    bool
 }
 
 // Postal looks up a postal area. Pass country when known. Check nullable coordinates before
@@ -614,8 +660,12 @@ func (c *Client) Postal(ctx context.Context, code string, options ...PostalOptio
 	if err != nil {
 		return nil, err
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &Postal{}
-	if err := c.get(ctx, "/postal/"+seg(code), values("country", opts.Country), nil, out); err != nil {
+	if err := c.get(ctx, "/postal/"+seg(code), values("country", opts.Country, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -627,6 +677,7 @@ type PostalNearbyOptions struct {
 	Country string
 	Radius  float64
 	Unit    string
+	Deep    bool
 }
 
 // PostalNearby calls /postal/{code}/nearby.
@@ -639,8 +690,12 @@ func (c *Client) PostalNearby(ctx context.Context, code string, options ...Posta
 	if opts.Radius != 0 {
 		radius = f(opts.Radius)
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &PostalNearby{}
-	if err := c.get(ctx, "/postal/"+seg(code)+"/nearby", values("country", opts.Country, "radius", radius, "unit", opts.Unit), nil, out); err != nil {
+	if err := c.get(ctx, "/postal/"+seg(code)+"/nearby", values("country", opts.Country, "radius", radius, "unit", opts.Unit, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -650,6 +705,7 @@ func (c *Client) PostalNearby(ctx context.Context, code string, options ...Posta
 type PostalDistanceOptions struct {
 	_       [0]func()
 	Country string
+	Deep    bool
 }
 
 // PostalDistance calls /postal/{code}/distance/{other}.
@@ -658,8 +714,12 @@ func (c *Client) PostalDistance(ctx context.Context, code string, other string, 
 	if err != nil {
 		return nil, err
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &PostalDistance{}
-	if err := c.get(ctx, "/postal/"+seg(code)+"/distance/"+seg(other), values("country", opts.Country), nil, out); err != nil {
+	if err := c.get(ctx, "/postal/"+seg(code)+"/distance/"+seg(other), values("country", opts.Country, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -721,6 +781,7 @@ func (c *Client) VAT(ctx context.Context, number string, options ...VATOptions) 
 type IBANOptions struct {
 	_       [0]func()
 	Country string
+	Deep    bool
 }
 
 // IBAN calls /iban/{iban}.
@@ -729,8 +790,12 @@ func (c *Client) IBAN(ctx context.Context, iban string, options ...IBANOptions) 
 	if err != nil {
 		return nil, err
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &IBAN{}
-	if err := c.get(ctx, "/iban/"+seg(iban), values("country", opts.Country), nil, out); err != nil {
+	if err := c.get(ctx, "/iban/"+seg(iban), values("country", opts.Country, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -767,7 +832,7 @@ type PhoneOptions struct {
 }
 
 // Phone parses a phone number and its formats. Pass country for national numbers when needed. Deep
-// returns an empty object. Carrier, caller, and HLR are separate metered lookups.
+// reveals numbering-plan location and timezone on every plan. Carrier, caller, and HLR are separate metered lookups.
 func (c *Client) Phone(ctx context.Context, number string, options ...PhoneOptions) (*Phone, error) {
 	opts, err := oneOption(options)
 	if err != nil {
@@ -788,6 +853,7 @@ func (c *Client) Phone(ctx context.Context, number string, options ...PhoneOptio
 type CarrierOptions struct {
 	_       [0]func()
 	Country string
+	Deep    bool
 }
 
 // Carrier requests a metered carrier lookup. No automatic retries by default.
@@ -796,8 +862,12 @@ func (c *Client) Carrier(ctx context.Context, number string, options ...CarrierO
 	if err != nil {
 		return nil, err
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &Carrier{}
-	if err := c.get(ctx, "/carrier/"+seg(number), values("country", opts.Country), nil, out); err != nil {
+	if err := c.get(ctx, "/carrier/"+seg(number), values("country", opts.Country, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -826,6 +896,7 @@ func (c *Client) Caller(ctx context.Context, number string, options ...CallerOpt
 type HLROptions struct {
 	_       [0]func()
 	Country string
+	Deep    bool
 }
 
 // HLR requests a metered live-status lookup. Nil status means unconfirmed. No automatic retries by
@@ -835,8 +906,12 @@ func (c *Client) HLR(ctx context.Context, number string, options ...HLROptions) 
 	if err != nil {
 		return nil, err
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &HLR{}
-	if err := c.get(ctx, "/hlr/"+seg(number), values("country", opts.Country), nil, out); err != nil {
+	if err := c.get(ctx, "/hlr/"+seg(number), values("country", opts.Country, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -848,7 +923,8 @@ type DomainOptions struct {
 	Deep bool
 }
 
-// Domain calls /domain/{domain}.
+// Domain checks whether a domain is registered.
+// Deep adds registration dates, registrar, status and DNSSEC on paid plans.
 func (c *Client) Domain(ctx context.Context, domain string, options ...DomainOptions) (*Domain, error) {
 	opts, err := oneOption(options)
 	if err != nil {
@@ -919,6 +995,23 @@ func (c *Client) BIN(ctx context.Context, bin string, options ...BINOptions) (*B
 	}
 	out := &BIN{}
 	if err := c.get(ctx, "/bin/"+seg(bin), values("deep", deep), nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// SWIFTOptions reserves optional settings for SWIFT.
+type SWIFTOptions struct {
+	_ [0]func()
+}
+
+// SWIFT checks BIC syntax and finds a known institution. A nil name means unknown.
+func (c *Client) SWIFT(ctx context.Context, code string, options ...SWIFTOptions) (*SWIFT, error) {
+	if _, err := oneOption(options); err != nil {
+		return nil, err
+	}
+	out := &SWIFT{}
+	if err := c.get(ctx, "/swift/"+seg(code), nil, nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1010,16 +1103,22 @@ func (c *Client) VIN(ctx context.Context, vin string, options ...VINOptions) (*V
 
 // NAICSOptions reserves optional settings for NAICS.
 type NAICSOptions struct {
-	_ [0]func()
+	_    [0]func()
+	Deep bool
 }
 
 // NAICS looks up a US NAICS 2022 code and its hierarchy.
 func (c *Client) NAICS(ctx context.Context, code string, options ...NAICSOptions) (*NAICS, error) {
-	if _, err := oneOption(options); err != nil {
+	opts, err := oneOption(options)
+	if err != nil {
 		return nil, err
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &NAICS{}
-	if err := c.get(ctx, "/naics/"+seg(code), nil, nil, out); err != nil {
+	if err := c.get(ctx, "/naics/"+seg(code), values("deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1029,6 +1128,7 @@ func (c *Client) NAICS(ctx context.Context, code string, options ...NAICSOptions
 type NAICSSearchOptions struct {
 	_     [0]func()
 	Limit int
+	Deep  bool
 }
 
 // NAICSSearch searches US NAICS 2022 industry names and activity terms.
@@ -1041,8 +1141,12 @@ func (c *Client) NAICSSearch(ctx context.Context, query string, options ...NAICS
 	if opts.Limit != 0 {
 		limit = strconv.Itoa(opts.Limit)
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &NAICSSearch{}
-	if err := c.get(ctx, "/naics", values("q", query, "limit", limit), nil, out); err != nil {
+	if err := c.get(ctx, "/naics", values("q", query, "limit", limit, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1092,17 +1196,22 @@ func (c *Client) TariffSearch(ctx context.Context, query string, options ...Tari
 
 // CurrencyOptions reserves optional settings for Currency.
 type CurrencyOptions struct {
-	_ [0]func()
+	_    [0]func()
+	Deep bool
 }
 
 // Currency calls /currency/{code}.
 func (c *Client) Currency(ctx context.Context, code string, options ...CurrencyOptions) (*Currency, error) {
-	_, err := oneOption(options)
+	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &Currency{}
-	if err := c.get(ctx, "/currency/"+seg(code), nil, nil, out); err != nil {
+	if err := c.get(ctx, "/currency/"+seg(code), values("deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1110,17 +1219,22 @@ func (c *Client) Currency(ctx context.Context, code string, options ...CurrencyO
 
 // LanguageOptions reserves optional settings for Language.
 type LanguageOptions struct {
-	_ [0]func()
+	_    [0]func()
+	Deep bool
 }
 
 // Language calls /language/{code}.
 func (c *Client) Language(ctx context.Context, code string, options ...LanguageOptions) (*Language, error) {
-	_, err := oneOption(options)
+	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &Language{}
-	if err := c.get(ctx, "/language/"+seg(code), nil, nil, out); err != nil {
+	if err := c.get(ctx, "/language/"+seg(code), values("deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1130,6 +1244,7 @@ func (c *Client) Language(ctx context.Context, code string, options ...LanguageO
 type NameOptions struct {
 	_       [0]func()
 	Country string
+	Deep    bool
 }
 
 // Name calls /name/{name}.
@@ -1138,8 +1253,12 @@ func (c *Client) Name(ctx context.Context, name string, options ...NameOptions) 
 	if err != nil {
 		return nil, err
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &Name{}
-	if err := c.get(ctx, "/name/"+seg(name), values("country", opts.Country), nil, out); err != nil {
+	if err := c.get(ctx, "/name/"+seg(name), values("country", opts.Country, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1171,9 +1290,10 @@ func (c *Client) CurrencyRate(ctx context.Context, base string, quote string, op
 
 // TimeOptions configures Time. With To, offsetless At is source wall time.
 type TimeOptions struct {
-	_  [0]func()
-	At string
-	To string
+	_    [0]func()
+	At   string
+	To   string
+	Deep bool
 }
 
 // Time returns local time and timezone facts. An empty timezone selects UTC.
@@ -1186,8 +1306,12 @@ func (c *Client) Time(ctx context.Context, timezone string, options ...TimeOptio
 	if timezone != "" {
 		path += "/" + seg(timezone)
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &Time{}
-	if err := c.get(ctx, path, values("at", opts.At, "to", opts.To), nil, out); err != nil {
+	if err := c.get(ctx, path, values("at", opts.At, "to", opts.To, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1195,9 +1319,10 @@ func (c *Client) Time(ctx context.Context, timezone string, options ...TimeOptio
 
 // TimeAtOptions configures TimeAt. Omitted fields use API defaults.
 type TimeAtOptions struct {
-	_  [0]func()
-	At string
-	To string
+	_    [0]func()
+	At   string
+	To   string
+	Deep bool
 }
 
 // TimeAt returns local time at the coordinates, optionally converted with To.
@@ -1206,8 +1331,12 @@ func (c *Client) TimeAt(ctx context.Context, lat float64, lon float64, options .
 	if err != nil {
 		return nil, err
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &Time{}
-	if err := c.get(ctx, "/time", values("lat", f(lat), "lon", f(lon), "at", opts.At, "to", opts.To), nil, out); err != nil {
+	if err := c.get(ctx, "/time", values("lat", f(lat), "lon", f(lon), "at", opts.At, "to", opts.To, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1215,9 +1344,10 @@ func (c *Client) TimeAt(ctx context.Context, lat float64, lon float64, options .
 
 // TimezoneOptions configures Timezone. Omitted fields use API defaults.
 type TimezoneOptions struct {
-	_  [0]func()
-	At string
-	To string
+	_    [0]func()
+	At   string
+	To   string
+	Deep bool
 }
 
 // Timezone calls /timezone/{timezone}.
@@ -1226,8 +1356,12 @@ func (c *Client) Timezone(ctx context.Context, timezone string, options ...Timez
 	if err != nil {
 		return nil, err
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &Timezone{}
-	if err := c.get(ctx, "/timezone/"+seg(timezone), values("at", opts.At, "to", opts.To), nil, out); err != nil {
+	if err := c.get(ctx, "/timezone/"+seg(timezone), values("at", opts.At, "to", opts.To, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1235,8 +1369,9 @@ func (c *Client) Timezone(ctx context.Context, timezone string, options ...Timez
 
 // TimezoneAtOptions configures TimezoneAt. Omitted fields use API defaults.
 type TimezoneAtOptions struct {
-	_  [0]func()
-	At string
+	_    [0]func()
+	At   string
+	Deep bool
 }
 
 // TimezoneAt calls /timezone.
@@ -1245,8 +1380,12 @@ func (c *Client) TimezoneAt(ctx context.Context, lat float64, lon float64, optio
 	if err != nil {
 		return nil, err
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &Timezone{}
-	if err := c.get(ctx, "/timezone", values("lat", f(lat), "lon", f(lon), "at", opts.At), nil, out); err != nil {
+	if err := c.get(ctx, "/timezone", values("lat", f(lat), "lon", f(lon), "at", opts.At, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1257,6 +1396,7 @@ type DateOptions struct {
 	_      [0]func()
 	Format string
 	To     string
+	Deep   bool
 }
 
 // Date calls /date/{date}.
@@ -1265,8 +1405,12 @@ func (c *Client) Date(ctx context.Context, date string, options ...DateOptions) 
 	if err != nil {
 		return nil, err
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &DateInfo{}
-	if err := c.get(ctx, "/date/"+seg(date), values("format", opts.Format, "to", opts.To), nil, out); err != nil {
+	if err := c.get(ctx, "/date/"+seg(date), values("format", opts.Format, "to", opts.To, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1274,8 +1418,9 @@ func (c *Client) Date(ctx context.Context, date string, options ...DateOptions) 
 
 // DateTodayOptions configures DateToday. Omitted fields use API defaults.
 type DateTodayOptions struct {
-	_  [0]func()
-	To string
+	_    [0]func()
+	To   string
+	Deep bool
 }
 
 // DateToday calls /date.
@@ -1284,8 +1429,12 @@ func (c *Client) DateToday(ctx context.Context, options ...DateTodayOptions) (*D
 	if err != nil {
 		return nil, err
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &DateInfo{}
-	if err := c.get(ctx, "/date", values("to", opts.To), nil, out); err != nil {
+	if err := c.get(ctx, "/date", values("to", opts.To, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1400,17 +1549,22 @@ func (c *Client) Weather(ctx context.Context, lat float64, lon float64, options 
 
 // EmojiOptions reserves optional settings for Emoji.
 type EmojiOptions struct {
-	_ [0]func()
+	_    [0]func()
+	Deep bool
 }
 
 // Emoji calls /emoji/{emoji}.
 func (c *Client) Emoji(ctx context.Context, emoji string, options ...EmojiOptions) (*Emoji, error) {
-	_, err := oneOption(options)
+	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &Emoji{}
-	if err := c.get(ctx, "/emoji/"+seg(emoji), nil, nil, out); err != nil {
+	if err := c.get(ctx, "/emoji/"+seg(emoji), values("deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1420,6 +1574,7 @@ func (c *Client) Emoji(ctx context.Context, emoji string, options ...EmojiOption
 type EmojiSearchOptions struct {
 	_     [0]func()
 	Limit int
+	Deep  bool
 }
 
 // EmojiSearch calls /emoji.
@@ -1432,8 +1587,12 @@ func (c *Client) EmojiSearch(ctx context.Context, query string, options ...Emoji
 	if opts.Limit != 0 {
 		limit = strconv.Itoa(opts.Limit)
 	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
 	out := &EmojiSearch{}
-	if err := c.get(ctx, "/emoji", values("q", query, "limit", limit), nil, out); err != nil {
+	if err := c.get(ctx, "/emoji", values("q", query, "limit", limit, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1548,23 +1707,6 @@ func (c *Client) MeasureUnits(ctx context.Context, options ...MeasureUnitsOption
 	}
 	out := &MeasureUnits{}
 	if err := c.get(ctx, "/measure/units", values("q", opts.Query, "type", opts.Type, "unit", opts.Unit), nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// SWIFTOptions reserves optional settings for SWIFT.
-type SWIFTOptions struct {
-	_ [0]func()
-}
-
-// SWIFT checks BIC syntax and finds a known institution. A nil name means unknown.
-func (c *Client) SWIFT(ctx context.Context, code string, options ...SWIFTOptions) (*SWIFT, error) {
-	if _, err := oneOption(options); err != nil {
-		return nil, err
-	}
-	out := &SWIFT{}
-	if err := c.get(ctx, "/swift/"+seg(code), nil, nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil

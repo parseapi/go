@@ -86,7 +86,7 @@ parse.TimeAt(ctx, 40.7128, -74.006)
 parse.Weather(ctx, 40.7128, -74.006, parseapi.WeatherOptions{Deep: true, Date: "2026-09-01"})
 ```
 
-NAICS records include classification `exclusions`, each with a description and linked codes. Generic exclusions can have no linked codes. Omitted or null exclusions in older responses remain unknown. Search results also include `match`: the matched `field` (`name`, `term` or `naics`) and `text`, plus `corrections` with `from` and `to` tokens for typo fallback. Corrections are empty for exact, plural and prefix matches. Direct code lookups omit `match`. Older responses may omit it.
+Paid NAICS `deep` includes full definitions, child categories and classification `exclusions`, each with a description and linked codes. Generic exclusions can have no linked codes. Omitted or null exclusions in older responses remain unknown. Search results keep `country` and `year` on the envelope and optional depth on each result. They also include core `match`: the matched `field` (`name`, `term` or `naics`) and `text`, plus `corrections` with `from` and `to` tokens for typo fallback. Corrections are empty for exact, plural and prefix matches. Direct code lookups omit `match`. Older responses may omit it.
 
 Use named fields when constructing response values for fixtures too. Response and options structs reserve room for future fields and cannot be compared with `==`. Nullable values are pointers. Unknown JSON fields are accepted. An omitted `deep` is nil, a requested empty `deep` is a non-nil object, and unknown fields within it stay nil. Nullable arrays use nil slices.
 
@@ -94,7 +94,7 @@ DNS uses pooled requests on every plan. Omit `type` to check A, AAAA, CNAME, MX,
 
 ## Time
 
-`time` returns local ISO `at` with its UTC offset and integer Unix seconds in `unix`. `offset_seconds` is the exact offset, while `offset_minutes` is whole minutes. Historical offsets and ISO times can include offset seconds. Omitted `at` means now. With `to`, an offsetless `at` is source wall time. Otherwise it is UTC. Include an offset for repeated local times around a clock change. Current time and conversion use pooled requests on every plan. Coordinate clock fields can be null when the timezone is unknown. Existing `timezone` methods remain supported.
+`time` returns local ISO `at` with its UTC offset and integer Unix seconds in `unix`. Request `deep` for the display name, exact `offset_seconds`, whole `offset_minutes` and next clock change. A conversion target has its own optional `deep` without a next-change field. Historical offsets and ISO times can include offset seconds. Omitted `at` means now. With `to`, an offsetless `at` is source wall time. Otherwise it is UTC. Include an offset for repeated local times around a clock change. Current time and conversion use pooled requests on every plan. Coordinate clock fields can be null when the timezone is unknown. Existing `timezone` methods remain supported.
 
 ## Measurements
 
@@ -111,14 +111,21 @@ Unit discovery accepts optional `query`, `type`, and `unit` filters. `unit` sele
 
 ## Deep
 
-Choose enrichment for the question you need answered.
+The default call returns the common answer. Request more detail with `parse.Country(ctx, "US", parseapi.CountryOptions{Deep: true})`. Read those fields from the optional deep member; this does not change the core answer.
 
 | Operation | What `deep` requests |
 |---|---|
 | IP | Richer IP fields included with a paid plan. No separate check meter. |
+| Domain | Registration dates, registrar, status and DNSSEC, included with a paid plan. Use `DNS` for DNS records and `MX` for mail routing. |
 | Email | A metered deliverability check, using included email checks or enabled on-demand usage. |
 | VAT | A metered registry check where supported, using included VAT checks or enabled on-demand usage. |
-| Phone | An empty object. Number parsing and formats are already in the core response. |
+| Country, State, City, District, Postal | Reference profiles included with a paid plan; place identity and coordinates stay core. |
+| VIN, NPI, NAICS, Company | Paid technical or registration profiles. NPI exclusion status and NAICS hierarchy stay core. |
+| Tariff | Paid schedule columns and units; add origin for applicable measures. |
+| Name, Weather | Paid name context or weather detail; parsing and current conditions stay core. |
+| Phone, IBAN | Numbering-plan or bank structure detail in the same pooled request on every plan. |
+| Time, Date, Currency, Language, Emoji, Point | Optional reference detail in the same pooled request on every plan. |
+| Carrier, HLR | Available place or network detail from the same metered core unit, including Free included units. |
 
 Carrier, caller, and HLR are separate metered operations. Choose them explicitly when you need their answers. Ordinary lookups retry twice by default. Metered checks use one attempt by default. Setting retries explicitly can repeat paid usage.
 
