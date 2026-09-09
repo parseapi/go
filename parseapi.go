@@ -985,6 +985,46 @@ func (c *Client) VIN(ctx context.Context, vin string, options ...VINOptions) (*V
 	return out, nil
 }
 
+// NAICSOptions reserves optional settings for NAICS.
+type NAICSOptions struct {
+	_ [0]func()
+}
+
+// NAICS looks up a US NAICS 2022 code and its hierarchy.
+func (c *Client) NAICS(ctx context.Context, code string, options ...NAICSOptions) (*NAICS, error) {
+	if _, err := oneOption(options); err != nil {
+		return nil, err
+	}
+	out := &NAICS{}
+	if err := c.get(ctx, "/naics/"+seg(code), nil, nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// NAICSSearchOptions configures keyword search. Limit defaults to 10 and accepts 1-50.
+type NAICSSearchOptions struct {
+	_     [0]func()
+	Limit int
+}
+
+// NAICSSearch searches US NAICS 2022 industry names and activity terms.
+func (c *Client) NAICSSearch(ctx context.Context, query string, options ...NAICSSearchOptions) (*NAICSSearch, error) {
+	opts, err := oneOption(options)
+	if err != nil {
+		return nil, err
+	}
+	limit := ""
+	if opts.Limit != 0 {
+		limit = strconv.Itoa(opts.Limit)
+	}
+	out := &NAICSSearch{}
+	if err := c.get(ctx, "/naics", values("q", query, "limit", limit), nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TariffOptions configures Tariff. Omitted fields use API defaults.
 type TariffOptions struct {
 	_      [0]func()

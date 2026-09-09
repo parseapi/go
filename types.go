@@ -1193,3 +1193,29 @@ type MeasureUnit struct {
 type MeasureUnits struct {
 	Units []MeasureUnit `json:"units"`
 }
+
+// NAICSChild names a direct child industry code.
+type NAICSChild struct {
+	NAICS string `json:"naics"`
+	Name  string `json:"name"`
+}
+
+// NAICS is a US NAICS 2022 definition and its hierarchy.
+type NAICS struct {
+	NAICS       string       `json:"naics"`
+	Name        string       `json:"name"`
+	Description *string      `json:"description"`
+	Level       int          `json:"level"`
+	Parent      *string      `json:"parent"`
+	ParentName  *string      `json:"parent_name"`
+	Children    []NAICSChild `json:"children"`
+	Year        int          `json:"year"`
+	Country     string       `json:"country"`
+}
+
+type NAICSSearch struct {
+	Q       string  `json:"q"`
+	Year    int     `json:"year"`
+	Country string  `json:"country"`
+	Results []NAICS `json:"results"`
+}
