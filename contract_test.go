@@ -62,10 +62,11 @@ var _ func(*parseapi.Client, context.Context, string, ...parseapi.EmojiSearchOpt
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.AddressOptions) (*parseapi.Address, error) = (*parseapi.Client).Address
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.AddressSearchOptions) (*parseapi.AddressSearch, error) = (*parseapi.Client).AddressSearch
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.CompanyOptions) (*parseapi.Company, error) = (*parseapi.Client).Company
+
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.MeasureOptions) (*parseapi.Measure, error) = (*parseapi.Client).Measure
 var _ func(*parseapi.Client, context.Context, ...parseapi.MeasureUnitsOptions) (*parseapi.MeasureUnits, error) = (*parseapi.Client).MeasureUnits
 
-var _ func(*parseapi.Client, context.Context, string, ...parseapi.DNSOptions) (*parseapi.DNS, error) = (*parseapi.Client).DNS
-
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.NAICSOptions) (*parseapi.NAICS, error) = (*parseapi.Client).NAICS
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.NAICSSearchOptions) (*parseapi.NAICSSearch, error) = (*parseapi.Client).NAICSSearch
+
+var _ func(*parseapi.Client, context.Context, string, ...parseapi.DNSOptions) (*parseapi.DNS, error) = (*parseapi.Client).DNS

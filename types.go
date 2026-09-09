@@ -298,7 +298,7 @@ type VATDeep struct {
 	Name         *string     `json:"name"`
 	Address      *VATAddress `json:"address"`
 	Consultation *string     `json:"consultation"`
-	// ConsultedAt is the registry timestamp of this check, ISO.
+	// ConsultedAt is the registry-provided check time, or nil when unavailable.
 	ConsultedAt *string `json:"consulted_at"`
 }
 
@@ -1043,7 +1043,8 @@ type CompanyCountry struct {
 	_     [0]func()
 	Name  *string  `json:"name"`
 	Blocs []string `json:"blocs"`
-	Tax   *string  `json:"tax"`
+	// Levy name, such as VAT, GST or sales tax. Null when unknown or not applicable.
+	Tax *string `json:"tax"`
 }
 
 type CompanyDeep struct {
