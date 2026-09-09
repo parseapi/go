@@ -1207,6 +1207,27 @@ type NAICSChild struct {
 	Name  string `json:"name"`
 }
 
+// NAICSExclusion is a classification exclusion. Generic exclusions can have no linked codes.
+type NAICSExclusion struct {
+	Description string       `json:"description"`
+	Codes       []NAICSChild `json:"codes"`
+}
+
+// NAICSCorrection is a query token corrected only during typo fallback.
+type NAICSCorrection struct {
+	From string `json:"from"`
+	To   string `json:"to"`
+}
+
+// NAICSMatch identifies the actual title, activity term or code matching a search.
+type NAICSMatch struct {
+	// Field is currently name, term or naics. It remains an open string.
+	Field string `json:"field"`
+	Text  string `json:"text"`
+	// Corrections is empty for exact, plural and prefix matches.
+	Corrections []NAICSCorrection `json:"corrections"`
+}
+
 // NAICS is a US NAICS 2022 definition and its hierarchy.
 type NAICS struct {
 	NAICS       string       `json:"naics"`
@@ -1216,8 +1237,12 @@ type NAICS struct {
 	Parent      *string      `json:"parent"`
 	ParentName  *string      `json:"parent_name"`
 	Children    []NAICSChild `json:"children"`
-	Year        int          `json:"year"`
-	Country     string       `json:"country"`
+	// Exclusions is nil for omitted/null older responses and non-nil when supplied.
+	Exclusions []NAICSExclusion `json:"exclusions"`
+	// Match is search evidence, absent on direct lookup and older responses.
+	Match   *NAICSMatch `json:"match"`
+	Year    int         `json:"year"`
+	Country string      `json:"country"`
 }
 
 type NAICSSearch struct {
