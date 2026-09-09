@@ -1020,19 +1020,12 @@ type WeatherStation struct {
 	DistanceMi *float64 `json:"distance_mi"`
 }
 
-type WeatherSource struct {
-	_    [0]func()
-	ID   string  `json:"id"`
-	Name *string `json:"name"`
-}
-
 type Weather struct {
 	_         [0]func()
 	Latitude  float64         `json:"latitude"`
 	Longitude float64         `json:"longitude"`
 	Current   WeatherCurrent  `json:"current"`
 	Station   *WeatherStation `json:"station"`
-	Source    WeatherSource   `json:"source"`
 	Deep      *WeatherDeep    `json:"deep,omitempty"`
 }
 
