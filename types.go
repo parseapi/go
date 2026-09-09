@@ -598,15 +598,6 @@ type BIN struct {
 	Deep    map[string]any `json:"deep,omitempty"`
 }
 
-// SWIFT contains BIC syntax and available institution identity.
-type SWIFT struct {
-	_     [0]func()
-	SWIFT string `json:"swift"`
-	// Valid means syntax only, not registration or payment reachability.
-	Valid   bool    `json:"valid"`
-	Country *string `json:"country"`
-	Name    *string `json:"name"`
-}
 
 // DNSRecord preserves DNS presentation text, including TXT quoting.
 type DNSRecord struct {

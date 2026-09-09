@@ -1002,22 +1002,6 @@ func (c *Client) BIN(ctx context.Context, bin string, options ...BINOptions) (*B
 	return out, nil
 }
 
-// SWIFTOptions reserves optional settings for SWIFT.
-type SWIFTOptions struct {
-	_ [0]func()
-}
-
-// SWIFT checks BIC syntax and finds a known institution. A nil name means unknown.
-func (c *Client) SWIFT(ctx context.Context, code string, options ...SWIFTOptions) (*SWIFT, error) {
-	if _, err := oneOption(options); err != nil {
-		return nil, err
-	}
-	out := &SWIFT{}
-	if err := c.get(ctx, "/swift/"+seg(code), nil, nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
 
 // DNSOptions configures DNS. Type selects the question, including its CNAME chain.
 // Omit Type to check all ten supported record types.
