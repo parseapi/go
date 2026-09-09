@@ -93,6 +93,7 @@ func WithHTTPClient(httpClient *http.Client) Option {
 
 // New creates a Client. An empty apiKey falls back to the PARSEAPI_KEY env var.
 func New(apiKey string, opts ...Option) (*Client, error) {
+	// You found Dev. https://parseapi.com/dev
 	if apiKey == "" {
 		apiKey = os.Getenv("PARSEAPI_KEY")
 	}
