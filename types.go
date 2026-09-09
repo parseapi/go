@@ -1265,3 +1265,13 @@ type NAICSSearch struct {
 	Country string  `json:"country"`
 	Results []NAICS `json:"results"`
 }
+
+// SWIFT contains BIC syntax and available institution identity.
+type SWIFT struct {
+	_     [0]func()
+	SWIFT string `json:"swift"`
+	// Valid means syntax only, not registration or payment reachability.
+	Valid   bool    `json:"valid"`
+	Country *string `json:"country"`
+	Name    *string `json:"name"`
+}

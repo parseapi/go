@@ -1552,3 +1552,20 @@ func (c *Client) MeasureUnits(ctx context.Context, options ...MeasureUnitsOption
 	}
 	return out, nil
 }
+
+// SWIFTOptions reserves optional settings for SWIFT.
+type SWIFTOptions struct {
+	_ [0]func()
+}
+
+// SWIFT checks BIC syntax and finds a known institution. A nil name means unknown.
+func (c *Client) SWIFT(ctx context.Context, code string, options ...SWIFTOptions) (*SWIFT, error) {
+	if _, err := oneOption(options); err != nil {
+		return nil, err
+	}
+	out := &SWIFT{}
+	if err := c.get(ctx, "/swift/"+seg(code), nil, nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
