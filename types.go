@@ -79,7 +79,7 @@ type Country struct {
 	_              [0]func()
 	Country        string       `json:"country"`
 	Name           string       `json:"name"`
-	LocalName      *string      `json:"local_name"`
+	NameLocal      *string      `json:"name_local"`
 	Continent      string       `json:"continent"`
 	Currency       *string      `json:"currency"`
 	CurrencyName   *string      `json:"currency_name"`
@@ -108,7 +108,7 @@ type State struct {
 	_           [0]func()
 	State       string     `json:"state"`
 	Name        string     `json:"name"`
-	LocalName   *string    `json:"local_name"`
+	NameLocal   *string    `json:"name_local"`
 	Type        *string    `json:"type"`
 	Country     string     `json:"country"`
 	CountryName *string    `json:"country_name"`
@@ -156,7 +156,7 @@ type District struct {
 type City struct {
 	_            [0]func()
 	Name         string   `json:"name"`
-	LocalName    *string  `json:"local_name"`
+	NameLocal    *string  `json:"name_local"`
 	Type         *string  `json:"type"`
 	State        *string  `json:"state"`
 	StateName    *string  `json:"state_name"`
@@ -693,7 +693,7 @@ type Language struct {
 	_         [0]func()
 	Language  string        `json:"language"`
 	Name      string        `json:"name"`
-	LocalName *string       `json:"local_name"`
+	NameLocal *string       `json:"name_local"`
 	Script    *string       `json:"script"`
 	Direction string        `json:"direction"`
 	Deep      *LanguageDeep `json:"deep,omitempty"`
@@ -765,7 +765,7 @@ type Holiday struct {
 	_          [0]func()
 	Date       string   `json:"date"`
 	Name       string   `json:"name"`
-	LocalName  *string  `json:"local_name"`
+	NameLocal  *string  `json:"name_local"`
 	Type       string   `json:"type"`
 	Regions    []string `json:"regions"`
 	Substitute bool     `json:"substitute"`
@@ -1398,7 +1398,7 @@ type WeatherCurrentDeep struct {
 type PointCity struct {
 	_           [0]func()
 	Name        *string  `json:"name"`
-	LocalName   *string  `json:"local_name"`
+	NameLocal   *string  `json:"name_local"`
 	Type        *string  `json:"type"`
 	State       *string  `json:"state"`
 	StateName   *string  `json:"state_name"`
