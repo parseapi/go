@@ -246,6 +246,13 @@ func main() {
 		return ""
 	})
 
+	bin, err := parse.BIN(ctx, "00 0000", parseapi.BINOptions{Deep: true})
+	expectOk("bin", bin, err, func(r *parseapi.BIN) string {
+		if r.BIN != "000000" || r.Deep == nil || len(r.Deep) != 0 {
+			return "BIN echo or deep mismatch"
+		}
+		return ""
+	})
 	iban, err := parse.IBAN(ctx, "DE89370400440532013000")
 	expectOk("iban", iban, err, func(r *parseapi.IBAN) string {
 		if !r.Valid || str(r.Country) != "DE" || str(r.Bank) != "37040044" {

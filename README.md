@@ -59,6 +59,7 @@ parse.IP(ctx, "8.8.8.8", parseapi.IPOptions{Deep: true})
 parse.Email(ctx, "hello@example.com", parseapi.EmailOptions{Deep: true})
 parse.VAT(ctx, "DE136695976", parseapi.VATOptions{Deep: true})
 parse.IBAN(ctx, "DE89370400440532013000")
+parse.BIN(ctx, "424242")
 parse.NPI(ctx, "1881018208")
 parse.ASN(ctx, "AS13335")
 parse.MAC(ctx, "00:1B:63:84:45:E6")
@@ -154,3 +155,5 @@ parse, err := parseapi.New("your-api-key",
 Requires Go 1.21 or later. Standard library only.
 
 [Full endpoint and field reference](https://parseapi.com/docs)
+
+BIN lookup accepts 6-11 digits as a string, including leading zeros. Spaces and hyphens are accepted. `prefix` is the actual longest match and can be shorter than the input. Unknown reference fields are null. `deep` adds an empty object on every plan.

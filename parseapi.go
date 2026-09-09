@@ -901,6 +901,29 @@ func (c *Client) MAC(ctx context.Context, mac string, options ...MACOptions) (*M
 	return out, nil
 }
 
+// BINOptions configures BIN. Deep requests an empty object on every plan.
+type BINOptions struct {
+	_    [0]func()
+	Deep bool
+}
+
+// BIN looks up a 6-11 digit card prefix. Preserve leading zeros in the string.
+func (c *Client) BIN(ctx context.Context, bin string, options ...BINOptions) (*BIN, error) {
+	opts, err := oneOption(options)
+	if err != nil {
+		return nil, err
+	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
+	out := &BIN{}
+	if err := c.get(ctx, "/bin/"+seg(bin), values("deep", deep), nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DNSOptions configures DNS. Type selects the question, including its CNAME chain.
 // Omit Type to check all ten supported record types.
 type DNSOptions struct {

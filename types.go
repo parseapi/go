@@ -651,6 +651,20 @@ type MAC struct {
 	Multicast *bool   `json:"multicast"`
 }
 
+// BIN contains card-prefix reference data. Nil reference fields mean unknown.
+type BIN struct {
+	_   [0]func()
+	BIN string `json:"bin"`
+	// Prefix is the actual longest match and may be shorter than BIN.
+	Prefix  *string        `json:"prefix"`
+	Country *string        `json:"country"`
+	Issuer  *string        `json:"issuer"`
+	Brand   *string        `json:"brand"`
+	Type    *string        `json:"type"`
+	Prepaid *bool          `json:"prepaid"`
+	Deep    map[string]any `json:"deep,omitempty"`
+}
+
 // DNSRecord preserves DNS presentation text, including TXT quoting.
 type DNSRecord struct {
 	_     [0]func()
