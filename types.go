@@ -29,13 +29,15 @@ type IP struct {
 
 type Continent struct {
 	_          [0]func()
-	Continent  string   `json:"continent"`
-	Name       string   `json:"name"`
-	Region     string   `json:"region"`
-	Subregion  string   `json:"subregion"`
-	Population *int64   `json:"population"`
-	Area       *float64 `json:"area"`
-	Emoji      string   `json:"emoji"`
+	Continent  string `json:"continent"`
+	Name       string `json:"name"`
+	Region     string `json:"region"`
+	Subregion  string `json:"subregion"`
+	Population *int64 `json:"population"`
+	// Reporting year or period for population (YYYY or YYYY-YYYY). Null when unknown or unverifiable.
+	PopulationPeriod *string  `json:"population_period"`
+	Area             *float64 `json:"area"`
+	Emoji            string   `json:"emoji"`
 }
 
 type ContinentCountryItem struct {
@@ -529,9 +531,9 @@ type HLR struct {
 	Phone   *string `json:"phone"`
 	Valid   bool    `json:"valid"`
 	Country *string `json:"country"`
-	// Live reports whether the number is assigned to a subscriber.
+	// Live reports whether the number was assigned to a subscriber at the last check.
 	Live *bool `json:"live"`
-	// Connected reports whether the handset is reachable right now. Nil means unconfirmed, never no.
+	// Connected reports whether the handset was reachable at the last check. Nil means unconfirmed, never no.
 	Connected *bool    `json:"connected"`
 	Deep      *HLRDeep `json:"deep,omitempty"`
 }
@@ -1042,6 +1044,8 @@ type AddressSearch struct {
 	State     *string             `json:"state,omitempty"`
 	Country   *string             `json:"country,omitempty"`
 	Addresses []AddressSuggestion `json:"addresses"`
+	// Why suggestions are empty: more_input, missing_context or no_matches. Null with suggestions. Open to future values. Operational failures are errors.
+	Reason *string `json:"reason"`
 }
 
 type CompanyCountry struct {
@@ -1171,10 +1175,12 @@ type CountryDeep struct {
 	Region     *string  `json:"region"`
 	Subregion  *string  `json:"subregion"`
 	Population *int64   `json:"population"`
-	Area       *float64 `json:"area"`
-	TLD        *string  `json:"tld"`
-	Borders    []string `json:"borders"`
-	Blocs      []string `json:"blocs"`
+	// Reporting year or period for population (YYYY or YYYY-YYYY). Null when unknown or unverifiable.
+	PopulationPeriod *string  `json:"population_period"`
+	Area             *float64 `json:"area"`
+	TLD              *string  `json:"tld"`
+	Borders          []string `json:"borders"`
+	Blocs            []string `json:"blocs"`
 	// Levy name, such as VAT, GST or sales tax. Null when unknown or not applicable.
 	Tax *string `json:"tax"`
 	// Standard country reference rate in percent (19 means 19%). Null is unknown, zero is known zero.
@@ -1199,11 +1205,13 @@ type CountryDeep struct {
 
 type StateDeep struct {
 	_          [0]func()
-	Population *int64   `json:"population"`
-	Area       *float64 `json:"area"`
-	FIPS       *string  `json:"fips"`
-	Capital    *string  `json:"capital"`
-	AreaCodes  []string `json:"area_codes"`
+	Population *int64 `json:"population"`
+	// Reporting year or period for population (YYYY or YYYY-YYYY). Null when unknown or unverifiable.
+	PopulationPeriod *string  `json:"population_period"`
+	Area             *float64 `json:"area"`
+	FIPS             *string  `json:"fips"`
+	Capital          *string  `json:"capital"`
+	AreaCodes        []string `json:"area_codes"`
 	// Levy name, such as VAT, GST or sales tax. Null when unknown or not applicable.
 	Tax *string `json:"tax"`
 	// State or province reference rate in percent. Country, state and postal rates are alternative references, not additive.
@@ -1213,12 +1221,16 @@ type StateDeep struct {
 type DistrictDeep struct {
 	_          [0]func()
 	Population *int64 `json:"population"`
+	// Reporting year or period for population (YYYY or YYYY-YYYY). Null when unknown or unverifiable.
+	PopulationPeriod *string `json:"population_period"`
 	// Area is the total in km2 (land + water, or the official total).
 	Area *float64 `json:"area"`
 	// LandArea / WaterArea are the km2 split, null when the source publishes total only.
 	LandArea  *float64 `json:"land_area"`
 	WaterArea *float64 `json:"water_area"`
 	Seat      *string  `json:"seat"`
+	// Median annual property tax payable on owner-occupied homes in this statistical area. Null when unsupported, missing or censored.
+	PropertyTax *PropertyTax `json:"property_tax"`
 }
 
 type CityDeep struct {
@@ -1228,6 +1240,8 @@ type CityDeep struct {
 	Elevation   *float64 `json:"elevation"`
 	ElevationFt *float64 `json:"elevation_ft"`
 	Population  *int64   `json:"population"`
+	// Reporting year or period for population (YYYY or YYYY-YYYY). Null when unknown or unverifiable.
+	PopulationPeriod *string `json:"population_period"`
 	// Area is the total in km2 (land + water, or the official total).
 	Area *float64 `json:"area"`
 	// LandArea / WaterArea are the km2 split, null when the source publishes total only.
@@ -1240,6 +1254,8 @@ type PostalDeep struct {
 	Elevation   *float64 `json:"elevation"`
 	ElevationFt *float64 `json:"elevation_ft"`
 	Population  *int64   `json:"population"`
+	// Reporting year or period for population (YYYY or YYYY-YYYY). Null when unknown or unverifiable.
+	PopulationPeriod *string `json:"population_period"`
 	// Area is the total in km2, null when the source has no water split.
 	Area *float64 `json:"area"`
 	// LandArea / WaterArea are the km2 split where the source has them.
@@ -1261,6 +1277,8 @@ type PostalDeep struct {
 	TaxRateCity *float64 `json:"tax_rate_city"`
 	// Special component of the ZIP reference rate, in percent. Null when unknown.
 	TaxRateSpecial *float64 `json:"tax_rate_special"`
+	// Median annual property tax payable on owner-occupied homes in this statistical area. Null when unsupported, missing or censored.
+	PropertyTax *PropertyTax `json:"property_tax"`
 }
 
 type IBANDeep struct {
@@ -1290,12 +1308,12 @@ type CarrierDeep struct {
 
 type HLRDeep struct {
 	_ [0]func()
-	// The six network extras fill on live HLR dips only. Nil elsewhere (NANP, failover).
+	// Network diagnostics available from the last check. Nil when unconfirmed.
 	Roaming        *bool   `json:"roaming"`
 	RoamingNetwork *string `json:"roaming_network"`
 	// RoamingCountry is ISO2, uppercase.
 	RoamingCountry *string `json:"roaming_country"`
-	// Network is the current serving network name.
+	// Network is the serving network name at the last check.
 	Network         *string `json:"network"`
 	OriginalNetwork *string `json:"original_network"`
 	MCC             *string `json:"mcc"`
@@ -1411,6 +1429,8 @@ type PostalMetroDeep struct {
 type StateDistrictItemDeep struct {
 	_          [0]func()
 	Population *int64 `json:"population"`
+	// Reporting year or period for population (YYYY or YYYY-YYYY). Null when unknown or unverifiable.
+	PopulationPeriod *string `json:"population_period"`
 }
 
 type CountryEmergency struct {
@@ -1430,4 +1450,15 @@ type NAICSSearchResult struct {
 	// Match is search evidence, absent on direct lookup and older responses.
 	Match *NAICSMatch `json:"match"`
 	Deep  *NAICSDeep  `json:"deep,omitempty"`
+}
+
+// PropertyTax is an area estimate, not a specific property bill.
+type PropertyTax struct {
+	_ [0]func()
+	// Median annual tax payable, in currency units adjusted to the final year of period. Not a tax rate or an individual property bill.
+	AnnualMedian float64 `json:"annual_median"`
+	// ISO 4217 currency code, currently USD.
+	Currency string `json:"currency"`
+	// Reporting period, YYYY-YYYY. Monetary amounts use the final year of this period.
+	Period string `json:"period"`
 }

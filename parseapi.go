@@ -899,8 +899,9 @@ type HLROptions struct {
 	Deep    bool
 }
 
-// HLR requests a metered live-status lookup. Nil status means unconfirmed. No automatic retries by
-// default.
+// HLR looks up phone status at the last check. Live means assigned and connected means reachable at
+// that check. Cached results may be returned. Null means unconfirmed. Deep adds network
+// diagnostics within the same metered lookup. No automatic retries by default.
 func (c *Client) HLR(ctx context.Context, number string, options ...HLROptions) (*HLR, error) {
 	opts, err := oneOption(options)
 	if err != nil {
@@ -1154,12 +1155,17 @@ func (c *Client) NAICSSearch(ctx context.Context, query string, options ...NAICS
 
 // TariffOptions configures Tariff. Omitted fields use API defaults.
 type TariffOptions struct {
-	_      [0]func()
-	Deep   bool
+	_ [0]func()
+	// Add units and the special and other schedule columns on paid plans.
+	Deep bool
+	// ISO 3166-1 alpha-2 origin. With paid deep, resolves country-specific measures. Optional for schedule detail.
 	Origin string
 }
 
-// Tariff calls /tariff/{code}.
+// Tariff looks up the general US duty schedule line. Paid deep adds units and the special and other
+// schedule columns. Add origin with deep to resolve country-specific measures. Without origin,
+// schedule detail remains available and origin-dependent fields are null. A null effective rate is
+// not a zero rate.
 func (c *Client) Tariff(ctx context.Context, code string, options ...TariffOptions) (*Tariff, error) {
 	opts, err := oneOption(options)
 	if err != nil {
@@ -1501,11 +1507,14 @@ func (c *Client) Elevation(ctx context.Context, lat float64, lon float64, option
 
 // PointOptions configures Point. Omitted fields use API defaults.
 type PointOptions struct {
-	_    [0]func()
+	_ [0]func()
+	// Add terrain and compact nearest-city context on every plan. The timezone ID stays in core.
 	Deep bool
 }
 
-// Point calls /point.
+// Point resolves the country, state, district and timezone at coordinates. Deep adds terrain and compact
+// nearest-city context on every plan. The timezone ID stays in core. The nearest city is null when
+// none is within 200 km.
 func (c *Client) Point(ctx context.Context, lat float64, lon float64, options ...PointOptions) (*Point, error) {
 	opts, err := oneOption(options)
 	if err != nil {
@@ -1524,13 +1533,16 @@ func (c *Client) Point(ctx context.Context, lat float64, lon float64, options ..
 
 // WeatherOptions configures Weather. Omitted fields use API defaults.
 type WeatherOptions struct {
-	_    [0]func()
+	_ [0]func()
+	// Add specialist current measurements, forecasts and related detail on paid plans.
 	Deep bool
+	// Past UTC day (YYYY-MM-DD). Requires paid deep and adds deep.history alongside current conditions.
 	Date string
 }
 
-// Weather gets weather for a point. Both unit systems are returned. Pass known coordinates from a
-// postal, city, or location result.
+// Weather gets current conditions in metric and imperial units. Paid deep adds specialist current
+// measurements, forecasts and related detail. With deep, date selects a past UTC day (YYYY-MM-DD)
+// in deep.history alongside current conditions. Date alone does not request history.
 func (c *Client) Weather(ctx context.Context, lat float64, lon float64, options ...WeatherOptions) (*Weather, error) {
 	opts, err := oneOption(options)
 	if err != nil {
@@ -1632,7 +1644,10 @@ type AddressSearchOptions struct {
 	IP      string
 }
 
-// AddressSearch calls /address.
+// AddressSearch finds address suggestions using the context supplied. Prefer postal, or city and state, from the
+// form; ip is an optional end-user locality hint for server-side calls. An empty result has reason
+// more_input, missing_context or no_matches. Suggestions have reason null. Operational failures
+// are errors.
 func (c *Client) AddressSearch(ctx context.Context, query string, options ...AddressSearchOptions) (*AddressSearch, error) {
 	opts, err := oneOption(options)
 	if err != nil {
