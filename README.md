@@ -12,6 +12,14 @@ country, err := parse.Country(ctx, "US")
 
 Import `parseapi "github.com/parseapi/go"`. Every call takes a `context.Context` first and returns a typed result plus an error. Check the error before using the result. Get a key at [parseapi.com](https://parseapi.com). An empty key reads `PARSEAPI_KEY`.
 
+## API versions
+
+Choose your team's API version in [Dashboard → API version](https://parseapi.com/dashboard/versions). One setting applies to every key, including new and replacement keys. Existing teams keep `1.0.0`; new teams start on `2.0.0`. Keep the same keys and lookup URLs. Installing or upgrading the package does not change the team's setting.
+
+Published SDK `0.3.2` matches API `1.0.0`. The examples and response types in this source tree target API `2.0.0`, including changes that are not in `0.3.2`. Use a package release documented for your team's version. These types do not model every historical response; moving to `2.0.0` may require updating code that reads renamed, moved or removed fields.
+
+Test the target contract in a separate development team before changing your production team's version. A change applies to every integration in that team. See [API versions and migration](https://parseapi.com/docs/versioning).
+
 ## Weather from a postal code
 
 Start with the postal code, then pass its coordinates to weather. Reuse the client from the example above.
