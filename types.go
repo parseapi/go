@@ -276,7 +276,9 @@ type Email struct {
 	_           [0]func()
 	Email       string     `json:"email"`
 	Valid       bool       `json:"valid"`
+	Free        bool       `json:"free"`
 	Domain      *string    `json:"domain"`
+	DomainType  *string    `json:"domain_type"`
 	DomainValid *bool      `json:"domain_valid"`
 	Role        bool       `json:"role"`
 	Disposable  bool       `json:"disposable"`
