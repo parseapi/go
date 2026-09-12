@@ -7,12 +7,12 @@ import (
 )
 
 func TestNameCountryAndKnown(t *testing.T) {
-	client, call := newTestClient(t, okJSON(`{"name":"王","valid":true,"future":true,"deep":{"known":true,"countries":["CN","TW"],"gender":null}}`))
+	client, call := newTestClient(t, okJSON(`{"name":"王","valid":true,"future":true,"deep":{"known":true,"gender":null}}`))
 	result, err := client.Name(context.Background(), "王", NameOptions{Country: "CN", Deep: true})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if (result.Deep.Known == nil || !*result.Deep.Known) || len(result.Deep.Countries) != 2 || result.Deep.Gender != nil {
+	if (result.Deep.Known == nil || !*result.Deep.Known) || result.Deep.Gender != nil {
 		t.Fatalf("lost name facts: %#v", result)
 	}
 	if call.path != "/name/%E7%8E%8B" || call.rawQry != "country=CN&deep=true" {
@@ -28,7 +28,7 @@ func TestNameCountryAndKnown(t *testing.T) {
 	if err := json.Unmarshal([]byte(`{"name":"Andrea","valid":true,"deep":{"gender":null}}`), &old); err != nil {
 		t.Fatal(err)
 	}
-	if old.Deep.Known != nil || len(old.Deep.Countries) != 0 {
+	if old.Deep.Known != nil {
 		t.Fatal("unexpected legacy membership")
 	}
 }

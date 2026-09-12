@@ -31,7 +31,7 @@ func TestADPModelsPreserveCoreAndDeepTriad(t *testing.T) {
 		{"Company", `{"company":"01234567","valid":true,"name":"Example"}`, `{"activity":"6201","gst":false,"vat":null}`, &Company{}},
 		{"Currency", `{"currency":"USD","name":"US Dollar"}`, `{"numeric":840,"countries":[]}`, &Currency{}},
 		{"Language", `{"language":"en","name":"English","direction":"ltr"}`, `{"iso3":"eng","countries":[]}`, &Language{}},
-		{"Name", `{"name":"Andrea","valid":true,"first":"Andrea"}`, `{"known":false,"gender":null,"countries":[]}`, &Name{}},
+		{"Name", `{"name":"Andrea","valid":true,"first":"Andrea"}`, `{"known":false,"gender":null}`, &Name{}},
 		{"Timezone", `{"timezone":"UTC","unix":0,"at":"1970-01-01T00:00:00+00:00","offset":"+00:00","dst":false}`, `{"name":"UTC","offset_seconds":0,"offset_minutes":0,"next_dst":null}`, &Timezone{}},
 		{"DateInfo", `{"date":"1970-01-01","valid":true,"unix":0}`, `{"year":1970,"weekday":4,"leap":false}`, &DateInfo{}},
 		{"Emoji", `{"emoji":"😀","name":"grinning face","shortcodes":[]}`, `{"hex":"1F600","skins":[]}`, &Emoji{}},

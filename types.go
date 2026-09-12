@@ -1336,11 +1336,9 @@ type LanguageDeep struct {
 type NameDeep struct {
 	_ [0]func()
 	// Known is name membership, independent of gender.
-	Known *bool `json:"known"`
-	// Countries are name associations, not the person's nationality.
-	Countries  []string `json:"countries"`
-	Gender     *string  `json:"gender"`
-	Salutation *string  `json:"salutation"`
+	Known      *bool   `json:"known"`
+	Gender     *string `json:"gender"`
+	Salutation *string `json:"salutation"`
 }
 
 type TimezoneDeep struct {
