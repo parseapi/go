@@ -591,12 +591,13 @@ type BIN struct {
 	_   [0]func()
 	BIN string `json:"bin"`
 	// Prefix is the actual longest match and may be shorter than BIN.
-	Prefix  *string        `json:"prefix"`
-	Country *string        `json:"country"`
-	Issuer  *string        `json:"issuer"`
-	Brand   *string        `json:"brand"`
-	Type    *string        `json:"type"`
-	Prepaid *bool          `json:"prepaid"`
+	Prefix    *string        `json:"prefix"`
+	Country   *string        `json:"country"`
+	Issuer    *string        `json:"issuer"`
+	Brand     *string        `json:"brand"`
+	BrandName *string        `json:"brand_name"`
+	Type      *string        `json:"type"`
+	Prepaid   *bool          `json:"prepaid"`
 	Deep    map[string]any `json:"deep,omitempty"`
 }
 
