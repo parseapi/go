@@ -29,15 +29,13 @@ type IP struct {
 
 type Continent struct {
 	_          [0]func()
-	Continent  string `json:"continent"`
-	Name       string `json:"name"`
-	Region     string `json:"region"`
-	Subregion  string `json:"subregion"`
-	Population *int64 `json:"population"`
-	// Reporting year or period for population (YYYY or YYYY-YYYY). Null when unknown or unverifiable.
-	PopulationPeriod *string  `json:"population_period"`
-	Area             *float64 `json:"area"`
-	Emoji            string   `json:"emoji"`
+	Continent  string   `json:"continent"`
+	Name       string   `json:"name"`
+	Region     string   `json:"region"`
+	Subregion  string   `json:"subregion"`
+	Population *int64   `json:"population"`
+	Area       *float64 `json:"area"`
+	Emoji      string   `json:"emoji"`
 }
 
 type ContinentCountryItem struct {
@@ -1173,9 +1171,19 @@ type CountryDeep struct {
 	// Reporting year or period for population (YYYY or YYYY-YYYY). Null when unknown or unverifiable.
 	PopulationPeriod *string  `json:"population_period"`
 	Area             *float64 `json:"area"`
-	TLD              *string  `json:"tld"`
-	Borders          []string `json:"borders"`
-	Blocs            []string `json:"blocs"`
+	// Land area in km2.
+	LandArea *float64 `json:"land_area"`
+	// Water area in km2.
+	WaterArea *float64 `json:"water_area"`
+	// Coastline length in km. Zero is a known landlocked coastline.
+	Coastline *float64 `json:"coastline"`
+	// Mean elevation in metres above sea level.
+	Elevation    *float64               `json:"elevation"`
+	LowestPoint  *CountryElevationPoint `json:"lowest_point"`
+	HighestPoint *CountryElevationPoint `json:"highest_point"`
+	TLD          *string                `json:"tld"`
+	Borders      []string               `json:"borders"`
+	Blocs        []string               `json:"blocs"`
 	// Levy name, such as VAT, GST or sales tax. Null when unknown or not applicable.
 	Tax *string `json:"tax"`
 	// Standard country reference rate in percent (19 means 19%). Null is unknown, zero is known zero.
@@ -1196,6 +1204,13 @@ type CountryDeep struct {
 	IOC          *string           `json:"ioc"`
 	FIFA         *string           `json:"fifa"`
 	Plate        *string           `json:"plate"`
+}
+
+type CountryElevationPoint struct {
+	_    [0]func()
+	Name *string `json:"name"`
+	// Elevation in metres above sea level. Values below sea level are negative.
+	Elevation float64 `json:"elevation"`
 }
 
 type StateDeep struct {
