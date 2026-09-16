@@ -25,6 +25,9 @@ const (
 	retryAfterCapMs = 5000
 )
 
+// The response types' wire contract. Changes require a reviewed major SDK release.
+const apiVersion = "2.0.0"
+
 var retryStatus = map[int]bool{429: true, 500: true, 502: true, 503: true, 504: true}
 
 // Error is every non-2xx response from the API. Branch on Code, never on Message.
@@ -196,6 +199,7 @@ func (c *Client) get(ctx context.Context, path string, query url.Values, headers
 			return err
 		}
 		req.Header.Set("X-API-Key", c.apiKey)
+		req.Header.Set("Parse-Version", apiVersion)
 		req.Header.Set("User-Agent", "parseapi-go/"+version)
 		for name, value := range headers {
 			req.Header.Set(name, value)
