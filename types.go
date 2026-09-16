@@ -596,9 +596,8 @@ type BIN struct {
 	BrandName *string        `json:"brand_name"`
 	Type      *string        `json:"type"`
 	Prepaid   *bool          `json:"prepaid"`
-	Deep    map[string]any `json:"deep,omitempty"`
+	Deep      map[string]any `json:"deep,omitempty"`
 }
-
 
 // DNSRecord preserves DNS presentation text, including TXT quoting.
 type DNSRecord struct {
