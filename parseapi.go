@@ -1236,6 +1236,8 @@ type NameOptions struct {
 	_       [0]func()
 	Country string
 	Deep    bool
+	// NameLocale selects CLDR formatting rules, defaulting to en. Parsing stays unchanged.
+	NameLocale string
 }
 
 // Name calls /name/{name}.
@@ -1249,7 +1251,7 @@ func (c *Client) Name(ctx context.Context, name string, options ...NameOptions) 
 		deep = "true"
 	}
 	out := &Name{}
-	if err := c.get(ctx, "/name/"+seg(name), values("country", opts.Country, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/name/"+seg(name), values("country", opts.Country, "deep", deep, "name_locale", opts.NameLocale), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil

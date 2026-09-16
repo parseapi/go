@@ -48,6 +48,8 @@ Pass `country` when a postal code or national phone number needs disambiguation.
 
 Results are plain data. Pass a returned code or coordinate to another operation when the task needs it. Check nullable values before composing the next call.
 
+Name paid deep includes flat `short`, `directory`, and `initials` fields beside `gender` and `salutation`. `NameLocale` selects CLDR formatting rules and defaults to `en`. It changes formatting only. Country remains gender context, and unavailable formatting is null. Older responses may omit these fields.
+
 ## Calls
 
 Choose the operation and pass what you have. Related operations are separate direct calls, and results are plain data.
@@ -72,6 +74,7 @@ parse.NPI(ctx, "1881018208")
 parse.ASN(ctx, "AS13335")
 parse.MAC(ctx, "00:1B:63:84:45:E6")
 parse.Name(ctx, "Andrea", parseapi.NameOptions{Country: "IT"})
+parse.Name(ctx, "Robert James Smith", parseapi.NameOptions{Deep: true, NameLocale: "en"})
 parse.VIN(ctx, "1HGCM82633A004352")
 parse.Carrier(ctx, "+14155552671")
 parse.Caller(ctx, "+18004633339")

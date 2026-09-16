@@ -1352,11 +1352,12 @@ type LanguageDeep struct {
 }
 
 type NameDeep struct {
-	_ [0]func()
-	// Known is name membership, independent of gender.
-	Known      *bool   `json:"known"`
+	_          [0]func()
 	Gender     *string `json:"gender"`
 	Salutation *string `json:"salutation"`
+	Short      *string `json:"short"`
+	Directory  *string `json:"directory"`
+	Initials   *string `json:"initials"`
 }
 
 type TimezoneDeep struct {
