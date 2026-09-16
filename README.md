@@ -16,7 +16,7 @@ Import `parseapi "github.com/parseapi/go"`. Every call takes a `context.Context`
 
 Choose your team's API version in [Dashboard → API version](https://parseapi.com/dashboard/versions). One setting applies to every key, including new and replacement keys. Existing teams keep `1.0.0`; new teams start on `2.0.0`. Keep the same keys and lookup URLs. Installing or upgrading the package does not change the team's setting.
 
-Published SDK `0.3.2` matches API `1.0.0`. The examples and response types in this source tree target API `2.0.0`, including changes that are not in `0.3.2`. Use a package release documented for your team's version. These types do not model every historical response; moving to `2.0.0` may require updating code that reads renamed, moved or removed fields.
+SDK `0.3.2` targets API `1.0.0`. SDK `0.4.0` and the examples and response types in this source tree target API `2.0.0`. Use a package release documented for your team's version. These types do not model every historical response; moving to `2.0.0` may require updating code that reads renamed, moved or removed fields.
 
 Test the target contract in a separate development team before changing your production team's version. A change applies to every integration in that team. See [API versions and migration](https://parseapi.com/docs/versioning).
 
@@ -49,6 +49,25 @@ Pass `country` when a postal code or national phone number needs disambiguation.
 Results are plain data. Pass a returned code or coordinate to another operation when the task needs it. Check nullable values before composing the next call.
 
 Name paid deep includes flat `short`, `directory`, and `initials` fields beside `gender` and `salutation`. `NameLocale` selects CLDR formatting rules and defaults to `en`. It changes formatting only. Country remains gender context, and unavailable formatting is null. Older responses may omit these fields.
+
+## Display language
+
+This source candidate accepts an optional language for supported display fields.
+It requires the matching API localization release and data.
+
+```go
+country, err := parse.Country(ctx, "DE", parseapi.CountryOptions{Lang: "fr"})
+if err != nil {
+    return err
+}
+fmt.Println(country.Name) // Allemagne
+```
+
+`lang` applies to this request. The next call uses its usual default unless it
+also supplies a language. Codes, native names, numeric facts and response
+structure stay unchanged. Missing translations keep the API's documented
+fallback. Existing `deep` rules still apply; Date `format` and Measure input
+`locale` retain their parsing meanings.
 
 ## Calls
 

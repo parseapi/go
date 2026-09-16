@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	version         = "0.4.0"
+	version         = "0.5.0"
 	defaultBaseURL  = "https://api.parseapi.com"
 	defaultTimeout  = 10 * time.Second
 	defaultRetries  = 2
@@ -280,6 +280,8 @@ func oneOption[T any](options []T) (T, error) {
 
 // IPOptions configures IP. Omitted fields use API defaults.
 type IPOptions struct {
+	// Lang selects translated display names for this request.
+	Lang string
 	_    [0]func()
 	Deep bool
 }
@@ -295,7 +297,7 @@ func (c *Client) IP(ctx context.Context, ip string, options ...IPOptions) (*IP, 
 		deep = "true"
 	}
 	out := &IP{}
-	if err := c.get(ctx, "/ip/"+seg(ip), values("deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/ip/"+seg(ip), values("lang", opts.Lang, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -303,6 +305,8 @@ func (c *Client) IP(ctx context.Context, ip string, options ...IPOptions) (*IP, 
 
 // IPSelfOptions configures IPSelf. Omitted fields use API defaults.
 type IPSelfOptions struct {
+	// Lang selects translated display names for this request.
+	Lang string
 	_    [0]func()
 	Deep bool
 }
@@ -318,7 +322,7 @@ func (c *Client) IPSelf(ctx context.Context, options ...IPSelfOptions) (*IP, err
 		deep = "true"
 	}
 	out := &IP{}
-	if err := c.get(ctx, "/ip", values("deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/ip", values("lang", opts.Lang, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -326,17 +330,19 @@ func (c *Client) IPSelf(ctx context.Context, options ...IPSelfOptions) (*IP, err
 
 // ContinentOptions reserves optional settings for Continent.
 type ContinentOptions struct {
-	_ [0]func()
+	// Lang selects translated display names for this request.
+	Lang string
+	_    [0]func()
 }
 
 // Continent calls /continent/{code}.
 func (c *Client) Continent(ctx context.Context, code string, options ...ContinentOptions) (*Continent, error) {
-	_, err := oneOption(options)
+	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
 	}
 	out := &Continent{}
-	if err := c.get(ctx, "/continent/"+seg(code), nil, nil, out); err != nil {
+	if err := c.get(ctx, "/continent/"+seg(code), values("lang", opts.Lang), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -344,17 +350,19 @@ func (c *Client) Continent(ctx context.Context, code string, options ...Continen
 
 // ContinentCountriesOptions reserves optional settings for ContinentCountries.
 type ContinentCountriesOptions struct {
-	_ [0]func()
+	// Lang selects translated display names for this request.
+	Lang string
+	_    [0]func()
 }
 
 // ContinentCountries calls /continent/{code}/countries.
 func (c *Client) ContinentCountries(ctx context.Context, code string, options ...ContinentCountriesOptions) (*ContinentCountries, error) {
-	_, err := oneOption(options)
+	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
 	}
 	out := &ContinentCountries{}
-	if err := c.get(ctx, "/continent/"+seg(code)+"/countries", nil, nil, out); err != nil {
+	if err := c.get(ctx, "/continent/"+seg(code)+"/countries", values("lang", opts.Lang), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -380,17 +388,19 @@ func (c *Client) Bloc(ctx context.Context, code string, options ...BlocOptions) 
 
 // BlocCountriesOptions reserves optional settings for BlocCountries.
 type BlocCountriesOptions struct {
-	_ [0]func()
+	// Lang selects translated display names for this request.
+	Lang string
+	_    [0]func()
 }
 
 // BlocCountries calls /bloc/{code}/countries.
 func (c *Client) BlocCountries(ctx context.Context, code string, options ...BlocCountriesOptions) (*BlocCountries, error) {
-	_, err := oneOption(options)
+	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
 	}
 	out := &BlocCountries{}
-	if err := c.get(ctx, "/bloc/"+seg(code)+"/countries", nil, nil, out); err != nil {
+	if err := c.get(ctx, "/bloc/"+seg(code)+"/countries", values("lang", opts.Lang), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -398,6 +408,8 @@ func (c *Client) BlocCountries(ctx context.Context, code string, options ...Bloc
 
 // CountryOptions reserves optional settings for Country.
 type CountryOptions struct {
+	// Lang selects translated display names for this request.
+	Lang string
 	_    [0]func()
 	Deep bool
 }
@@ -413,7 +425,7 @@ func (c *Client) Country(ctx context.Context, code string, options ...CountryOpt
 		deep = "true"
 	}
 	out := &Country{}
-	if err := c.get(ctx, "/country/"+seg(code), values("deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/country/"+seg(code), values("lang", opts.Lang, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -421,17 +433,19 @@ func (c *Client) Country(ctx context.Context, code string, options ...CountryOpt
 
 // CountryStatesOptions reserves optional settings for CountryStates.
 type CountryStatesOptions struct {
-	_ [0]func()
+	// Lang selects translated display names for this request.
+	Lang string
+	_    [0]func()
 }
 
 // CountryStates calls /country/{code}/states.
 func (c *Client) CountryStates(ctx context.Context, code string, options ...CountryStatesOptions) (*CountryStates, error) {
-	_, err := oneOption(options)
+	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
 	}
 	out := &CountryStates{}
-	if err := c.get(ctx, "/country/"+seg(code)+"/states", nil, nil, out); err != nil {
+	if err := c.get(ctx, "/country/"+seg(code)+"/states", values("lang", opts.Lang), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -439,6 +453,8 @@ func (c *Client) CountryStates(ctx context.Context, code string, options ...Coun
 
 // StateOptions configures State. Omitted fields use API defaults.
 type StateOptions struct {
+	// Lang selects translated display names for this request.
+	Lang    string
 	_       [0]func()
 	Country string
 	Deep    bool
@@ -455,7 +471,7 @@ func (c *Client) State(ctx context.Context, code string, options ...StateOptions
 		deep = "true"
 	}
 	out := &State{}
-	if err := c.get(ctx, "/state/"+seg(code), values("country", opts.Country, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/state/"+seg(code), values("lang", opts.Lang, "country", opts.Country, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -463,6 +479,8 @@ func (c *Client) State(ctx context.Context, code string, options ...StateOptions
 
 // StateDistrictsOptions configures StateDistricts. Omitted fields use API defaults.
 type StateDistrictsOptions struct {
+	// Lang selects translated display names for this request.
+	Lang    string
 	_       [0]func()
 	Country string
 	Deep    bool
@@ -479,7 +497,7 @@ func (c *Client) StateDistricts(ctx context.Context, code string, options ...Sta
 		deep = "true"
 	}
 	out := &StateDistricts{}
-	if err := c.get(ctx, "/state/"+seg(code)+"/districts", values("country", opts.Country, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/state/"+seg(code)+"/districts", values("lang", opts.Lang, "country", opts.Country, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -487,6 +505,8 @@ func (c *Client) StateDistricts(ctx context.Context, code string, options ...Sta
 
 // DistrictOptions configures District. Omitted fields use API defaults.
 type DistrictOptions struct {
+	// Lang selects translated display names for this request.
+	Lang    string
 	_       [0]func()
 	Country string
 	State   string
@@ -504,7 +524,7 @@ func (c *Client) District(ctx context.Context, code string, options ...DistrictO
 		deep = "true"
 	}
 	out := &District{}
-	if err := c.get(ctx, "/district/"+seg(code), values("country", opts.Country, "state", opts.State, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/district/"+seg(code), values("lang", opts.Lang, "country", opts.Country, "state", opts.State, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -512,6 +532,8 @@ func (c *Client) District(ctx context.Context, code string, options ...DistrictO
 
 // CityOptions configures City. Omitted fields use API defaults.
 type CityOptions struct {
+	// Lang selects translated display names for this request.
+	Lang    string
 	_       [0]func()
 	Country string
 	State   string
@@ -529,7 +551,7 @@ func (c *Client) City(ctx context.Context, name string, options ...CityOptions) 
 		deep = "true"
 	}
 	out := &City{}
-	if err := c.get(ctx, "/city/"+seg(name), values("country", opts.Country, "state", opts.State, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/city/"+seg(name), values("lang", opts.Lang, "country", opts.Country, "state", opts.State, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -537,6 +559,8 @@ func (c *Client) City(ctx context.Context, name string, options ...CityOptions) 
 
 // CityIDOptions reserves optional settings for CityID.
 type CityIDOptions struct {
+	// Lang selects translated display names for this request.
+	Lang string
 	_    [0]func()
 	Deep bool
 }
@@ -552,7 +576,7 @@ func (c *Client) CityID(ctx context.Context, id string, options ...CityIDOptions
 		deep = "true"
 	}
 	out := &City{}
-	if err := c.get(ctx, "/city/id/"+seg(id), values("deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/city/id/"+seg(id), values("lang", opts.Lang, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -560,6 +584,8 @@ func (c *Client) CityID(ctx context.Context, id string, options ...CityIDOptions
 
 // CitySearchOptions configures CitySearch. Omitted fields use API defaults.
 type CitySearchOptions struct {
+	// Lang selects translated display names for this request.
+	Lang    string
 	_       [0]func()
 	Country string
 	State   string
@@ -582,7 +608,7 @@ func (c *Client) CitySearch(ctx context.Context, query string, options ...CitySe
 		deep = "true"
 	}
 	out := &CitySearch{}
-	if err := c.get(ctx, "/city", values("q", query, "country", opts.Country, "state", opts.State, "limit", limit, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/city", values("lang", opts.Lang, "q", query, "country", opts.Country, "state", opts.State, "limit", limit, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -590,6 +616,8 @@ func (c *Client) CitySearch(ctx context.Context, query string, options ...CitySe
 
 // CityNearestOptions reserves optional settings for CityNearest.
 type CityNearestOptions struct {
+	// Lang selects translated display names for this request.
+	Lang string
 	_    [0]func()
 	Deep bool
 }
@@ -605,7 +633,7 @@ func (c *Client) CityNearest(ctx context.Context, lat float64, lon float64, opti
 		deep = "true"
 	}
 	out := &CityNearest{}
-	if err := c.get(ctx, "/city", values("lat", f(lat), "lon", f(lon), "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/city", values("lang", opts.Lang, "lat", f(lat), "lon", f(lon), "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -613,6 +641,8 @@ func (c *Client) CityNearest(ctx context.Context, lat float64, lon float64, opti
 
 // CityNearbyOptions configures CityNearby. Omitted fields use API defaults.
 type CityNearbyOptions struct {
+	// Lang selects translated display names for this request.
+	Lang    string
 	_       [0]func()
 	Country string
 	State   string
@@ -641,7 +671,7 @@ func (c *Client) CityNearby(ctx context.Context, name string, options ...CityNea
 		deep = "true"
 	}
 	out := &CityNearby{}
-	if err := c.get(ctx, "/city/"+seg(name)+"/nearby", values("country", opts.Country, "state", opts.State, "radius", radius, "unit", opts.Unit, "limit", limit, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/city/"+seg(name)+"/nearby", values("lang", opts.Lang, "country", opts.Country, "state", opts.State, "radius", radius, "unit", opts.Unit, "limit", limit, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -649,6 +679,8 @@ func (c *Client) CityNearby(ctx context.Context, name string, options ...CityNea
 
 // PostalOptions configures Postal. Omitted fields use API defaults.
 type PostalOptions struct {
+	// Lang selects translated display names for this request.
+	Lang    string
 	_       [0]func()
 	Country string
 	Deep    bool
@@ -666,7 +698,7 @@ func (c *Client) Postal(ctx context.Context, code string, options ...PostalOptio
 		deep = "true"
 	}
 	out := &Postal{}
-	if err := c.get(ctx, "/postal/"+seg(code), values("country", opts.Country, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/postal/"+seg(code), values("lang", opts.Lang, "country", opts.Country, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -674,6 +706,8 @@ func (c *Client) Postal(ctx context.Context, code string, options ...PostalOptio
 
 // PostalNearbyOptions configures PostalNearby. Omitted fields use API defaults.
 type PostalNearbyOptions struct {
+	// Lang selects translated display names for this request.
+	Lang    string
 	_       [0]func()
 	Country string
 	Radius  float64
@@ -696,7 +730,7 @@ func (c *Client) PostalNearby(ctx context.Context, code string, options ...Posta
 		deep = "true"
 	}
 	out := &PostalNearby{}
-	if err := c.get(ctx, "/postal/"+seg(code)+"/nearby", values("country", opts.Country, "radius", radius, "unit", opts.Unit, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/postal/"+seg(code)+"/nearby", values("lang", opts.Lang, "country", opts.Country, "radius", radius, "unit", opts.Unit, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -704,6 +738,8 @@ func (c *Client) PostalNearby(ctx context.Context, code string, options ...Posta
 
 // PostalDistanceOptions configures PostalDistance. Omitted fields use API defaults.
 type PostalDistanceOptions struct {
+	// Lang selects translated display names for this request.
+	Lang    string
 	_       [0]func()
 	Country string
 	Deep    bool
@@ -720,7 +756,7 @@ func (c *Client) PostalDistance(ctx context.Context, code string, other string, 
 		deep = "true"
 	}
 	out := &PostalDistance{}
-	if err := c.get(ctx, "/postal/"+seg(code)+"/distance/"+seg(other), values("country", opts.Country, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/postal/"+seg(code)+"/distance/"+seg(other), values("lang", opts.Lang, "country", opts.Country, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -804,6 +840,8 @@ func (c *Client) IBAN(ctx context.Context, iban string, options ...IBANOptions) 
 
 // NPIOptions configures NPI. Omitted fields use API defaults.
 type NPIOptions struct {
+	// Lang selects translated display names for this request.
+	Lang string
 	_    [0]func()
 	Deep bool
 }
@@ -819,7 +857,7 @@ func (c *Client) NPI(ctx context.Context, npi string, options ...NPIOptions) (*N
 		deep = "true"
 	}
 	out := &NPI{}
-	if err := c.get(ctx, "/npi/"+seg(npi), values("deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/npi/"+seg(npi), values("lang", opts.Lang, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -945,17 +983,19 @@ func (c *Client) Domain(ctx context.Context, domain string, options ...DomainOpt
 
 // ASNOptions reserves optional settings for ASN.
 type ASNOptions struct {
-	_ [0]func()
+	// Lang selects translated display names for this request.
+	Lang string
+	_    [0]func()
 }
 
 // ASN calls /asn/{asn}.
 func (c *Client) ASN(ctx context.Context, asn string, options ...ASNOptions) (*ASN, error) {
-	_, err := oneOption(options)
+	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
 	}
 	out := &ASN{}
-	if err := c.get(ctx, "/asn/"+seg(asn), nil, nil, out); err != nil {
+	if err := c.get(ctx, "/asn/"+seg(asn), values("lang", opts.Lang), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1001,7 +1041,6 @@ func (c *Client) BIN(ctx context.Context, bin string, options ...BINOptions) (*B
 	}
 	return out, nil
 }
-
 
 // DNSOptions configures DNS. Type selects the question, including its CNAME chain.
 // Omit Type to check all ten supported record types.
@@ -1187,6 +1226,8 @@ func (c *Client) TariffSearch(ctx context.Context, query string, options ...Tari
 
 // CurrencyOptions reserves optional settings for Currency.
 type CurrencyOptions struct {
+	// Lang selects translated display names for this request.
+	Lang string
 	_    [0]func()
 	Deep bool
 }
@@ -1202,7 +1243,7 @@ func (c *Client) Currency(ctx context.Context, code string, options ...CurrencyO
 		deep = "true"
 	}
 	out := &Currency{}
-	if err := c.get(ctx, "/currency/"+seg(code), values("deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/currency/"+seg(code), values("lang", opts.Lang, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1210,6 +1251,8 @@ func (c *Client) Currency(ctx context.Context, code string, options ...CurrencyO
 
 // LanguageOptions reserves optional settings for Language.
 type LanguageOptions struct {
+	// Lang selects translated display names for this request.
+	Lang string
 	_    [0]func()
 	Deep bool
 }
@@ -1225,7 +1268,7 @@ func (c *Client) Language(ctx context.Context, code string, options ...LanguageO
 		deep = "true"
 	}
 	out := &Language{}
-	if err := c.get(ctx, "/language/"+seg(code), values("deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/language/"+seg(code), values("lang", opts.Lang, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1283,6 +1326,8 @@ func (c *Client) CurrencyRate(ctx context.Context, base string, quote string, op
 
 // TimeOptions configures Time. With To, offsetless At is source wall time.
 type TimeOptions struct {
+	// Lang selects translated display names for this request.
+	Lang string
 	_    [0]func()
 	At   string
 	To   string
@@ -1304,7 +1349,7 @@ func (c *Client) Time(ctx context.Context, timezone string, options ...TimeOptio
 		deep = "true"
 	}
 	out := &Time{}
-	if err := c.get(ctx, path, values("at", opts.At, "to", opts.To, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, path, values("lang", opts.Lang, "at", opts.At, "to", opts.To, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1312,6 +1357,8 @@ func (c *Client) Time(ctx context.Context, timezone string, options ...TimeOptio
 
 // TimeAtOptions configures TimeAt. Omitted fields use API defaults.
 type TimeAtOptions struct {
+	// Lang selects translated display names for this request.
+	Lang string
 	_    [0]func()
 	At   string
 	To   string
@@ -1329,7 +1376,7 @@ func (c *Client) TimeAt(ctx context.Context, lat float64, lon float64, options .
 		deep = "true"
 	}
 	out := &Time{}
-	if err := c.get(ctx, "/time", values("lat", f(lat), "lon", f(lon), "at", opts.At, "to", opts.To, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/time", values("lang", opts.Lang, "lat", f(lat), "lon", f(lon), "at", opts.At, "to", opts.To, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1337,6 +1384,8 @@ func (c *Client) TimeAt(ctx context.Context, lat float64, lon float64, options .
 
 // TimezoneOptions configures Timezone. Omitted fields use API defaults.
 type TimezoneOptions struct {
+	// Lang selects translated display names for this request.
+	Lang string
 	_    [0]func()
 	At   string
 	To   string
@@ -1354,7 +1403,7 @@ func (c *Client) Timezone(ctx context.Context, timezone string, options ...Timez
 		deep = "true"
 	}
 	out := &Timezone{}
-	if err := c.get(ctx, "/timezone/"+seg(timezone), values("at", opts.At, "to", opts.To, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/timezone/"+seg(timezone), values("lang", opts.Lang, "at", opts.At, "to", opts.To, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1362,6 +1411,8 @@ func (c *Client) Timezone(ctx context.Context, timezone string, options ...Timez
 
 // TimezoneAtOptions configures TimezoneAt. Omitted fields use API defaults.
 type TimezoneAtOptions struct {
+	// Lang selects translated display names for this request.
+	Lang string
 	_    [0]func()
 	At   string
 	Deep bool
@@ -1378,7 +1429,7 @@ func (c *Client) TimezoneAt(ctx context.Context, lat float64, lon float64, optio
 		deep = "true"
 	}
 	out := &Timezone{}
-	if err := c.get(ctx, "/timezone", values("lat", f(lat), "lon", f(lon), "at", opts.At, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/timezone", values("lang", opts.Lang, "lat", f(lat), "lon", f(lon), "at", opts.At, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1386,6 +1437,8 @@ func (c *Client) TimezoneAt(ctx context.Context, lat float64, lon float64, optio
 
 // DateOptions configures Date. Omitted fields use API defaults.
 type DateOptions struct {
+	// Lang selects translated display names for this request.
+	Lang   string
 	_      [0]func()
 	Format string
 	To     string
@@ -1403,7 +1456,7 @@ func (c *Client) Date(ctx context.Context, date string, options ...DateOptions) 
 		deep = "true"
 	}
 	out := &DateInfo{}
-	if err := c.get(ctx, "/date/"+seg(date), values("format", opts.Format, "to", opts.To, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/date/"+seg(date), values("lang", opts.Lang, "format", opts.Format, "to", opts.To, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1411,6 +1464,8 @@ func (c *Client) Date(ctx context.Context, date string, options ...DateOptions) 
 
 // DateTodayOptions configures DateToday. Omitted fields use API defaults.
 type DateTodayOptions struct {
+	// Lang selects translated display names for this request.
+	Lang string
 	_    [0]func()
 	To   string
 	Deep bool
@@ -1427,7 +1482,7 @@ func (c *Client) DateToday(ctx context.Context, options ...DateTodayOptions) (*D
 		deep = "true"
 	}
 	out := &DateInfo{}
-	if err := c.get(ctx, "/date", values("to", opts.To, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/date", values("lang", opts.Lang, "to", opts.To, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1494,7 +1549,9 @@ func (c *Client) Elevation(ctx context.Context, lat float64, lon float64, option
 
 // PointOptions configures Point. Omitted fields use API defaults.
 type PointOptions struct {
-	_ [0]func()
+	// Lang selects translated display names for this request.
+	Lang string
+	_    [0]func()
 	// Add terrain and compact nearest-city context on every plan. The timezone ID stays in core.
 	Deep bool
 }
@@ -1512,7 +1569,7 @@ func (c *Client) Point(ctx context.Context, lat float64, lon float64, options ..
 		deep = "true"
 	}
 	out := &Point{}
-	if err := c.get(ctx, "/point", values("lat", f(lat), "lon", f(lon), "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/point", values("lang", opts.Lang, "lat", f(lat), "lon", f(lon), "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1548,6 +1605,8 @@ func (c *Client) Weather(ctx context.Context, lat float64, lon float64, options 
 
 // EmojiOptions reserves optional settings for Emoji.
 type EmojiOptions struct {
+	// Lang selects translated display names for this request.
+	Lang string
 	_    [0]func()
 	Deep bool
 }
@@ -1563,7 +1622,7 @@ func (c *Client) Emoji(ctx context.Context, emoji string, options ...EmojiOption
 		deep = "true"
 	}
 	out := &Emoji{}
-	if err := c.get(ctx, "/emoji/"+seg(emoji), values("deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/emoji/"+seg(emoji), values("lang", opts.Lang, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1571,6 +1630,8 @@ func (c *Client) Emoji(ctx context.Context, emoji string, options ...EmojiOption
 
 // EmojiSearchOptions configures EmojiSearch. Omitted fields use API defaults.
 type EmojiSearchOptions struct {
+	// Lang selects translated display names for this request.
+	Lang  string
 	_     [0]func()
 	Limit int
 	Deep  bool
@@ -1591,7 +1652,7 @@ func (c *Client) EmojiSearch(ctx context.Context, query string, options ...Emoji
 		deep = "true"
 	}
 	out := &EmojiSearch{}
-	if err := c.get(ctx, "/emoji", values("q", query, "limit", limit, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/emoji", values("lang", opts.Lang, "q", query, "limit", limit, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1649,6 +1710,8 @@ func (c *Client) AddressSearch(ctx context.Context, query string, options ...Add
 
 // CompanyOptions configures Company. Omitted fields use API defaults.
 type CompanyOptions struct {
+	// Lang selects translated display names for this request.
+	Lang    string
 	_       [0]func()
 	Country string
 	Deep    bool
@@ -1665,7 +1728,7 @@ func (c *Client) Company(ctx context.Context, number string, options ...CompanyO
 		deep = "true"
 	}
 	out := &Company{}
-	if err := c.get(ctx, "/company/"+seg(number), values("country", opts.Country, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/company/"+seg(number), values("lang", opts.Lang, "country", opts.Country, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1695,6 +1758,8 @@ func (c *Client) Measure(ctx context.Context, measure string, options ...Measure
 
 // MeasureUnitsOptions filters the reviewed unit catalog. Unit selects compatible targets.
 type MeasureUnitsOptions struct {
+	// Lang selects translated display names for this request.
+	Lang  string
 	_     [0]func()
 	Query string
 	Type  string
@@ -1708,7 +1773,7 @@ func (c *Client) MeasureUnits(ctx context.Context, options ...MeasureUnitsOption
 		return nil, err
 	}
 	out := &MeasureUnits{}
-	if err := c.get(ctx, "/measure/units", values("q", opts.Query, "type", opts.Type, "unit", opts.Unit), nil, out); err != nil {
+	if err := c.get(ctx, "/measure/units", values("lang", opts.Lang, "q", opts.Query, "type", opts.Type, "unit", opts.Unit), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
