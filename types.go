@@ -265,9 +265,16 @@ type PostalDistance struct {
 }
 
 type EmailDeep struct {
-	_           [0]func()
-	Deliverable *bool `json:"deliverable"`
-	Catchall    *bool `json:"catchall"`
+	// FirstName is a suggested first name, not a verified identity.
+	FirstName    *string `json:"first_name"`
+	NoReply      *bool   `json:"no_reply"`
+	Tag          *string `json:"tag"`
+	MailProvider *string `json:"mail_provider"`
+	_            [0]func()
+	Deliverable  *bool   `json:"deliverable"`
+	Catchall     *bool   `json:"catchall"`
+	Status       *string `json:"status"` // Mailbox status: deliverable, undeliverable or risky. Null when unavailable.
+	Reason       *string `json:"reason"` // Why the address received this result, such as mailbox_full or mailbox_not_found. Null when unavailable.
 }
 
 type Email struct {
