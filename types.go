@@ -551,6 +551,33 @@ type MXRecord struct {
 	Host     string `json:"host"`
 }
 
+type StackTechnology struct {
+	_          [0]func()
+	Technology string  `json:"technology"`
+	Name       string  `json:"name"`
+	Version    *string `json:"version"`
+}
+
+type Stack struct {
+	_         [0]func()
+	Domain    string  `json:"domain"`
+	URL       string  `json:"url"`
+	CheckedAt *string `json:"checked_at"`
+	Scope     string  `json:"scope"`
+	Pages     int     `json:"pages"`
+	Partial   *bool   `json:"partial"`
+	// Nil collections mean the check did not complete. Empty slices mean no matches.
+	CMS        []StackTechnology `json:"cms"`
+	Servers    []StackTechnology `json:"servers"`
+	Frameworks []StackTechnology `json:"frameworks"`
+	Ecommerce  []StackTechnology `json:"ecommerce"`
+	Analytics  []StackTechnology `json:"analytics"`
+	Chat       []StackTechnology `json:"chat"`
+	Payments   []StackTechnology `json:"payments"`
+	Hosting    []StackTechnology `json:"hosting"`
+	Deep       map[string]any    `json:"deep,omitempty"`
+}
+
 type DomainRegistration struct {
 	_          [0]func()
 	Registered bool     `json:"registered"`

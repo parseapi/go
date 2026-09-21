@@ -50,6 +50,7 @@ type Client struct {
 	baseURL    string
 	retries    int
 	retriesSet bool
+	timeoutSet bool
 	httpClient *http.Client
 }
 
@@ -61,9 +62,10 @@ func WithBaseURL(baseURL string) Option {
 	return func(c *Client) { c.baseURL = strings.TrimRight(baseURL, "/") }
 }
 
-// WithTimeout sets the per-attempt timeout. Default 10s.
+// WithTimeout sets the per-attempt timeout for every operation. Defaults are 35s for Stack and 10s otherwise.
 func WithTimeout(timeout time.Duration) Option {
 	return func(c *Client) {
+		c.timeoutSet = true
 		if c.httpClient != nil {
 			// Options must not mutate an HTTP client shared by the caller.
 			configured := *c.httpClient
@@ -84,6 +86,7 @@ func WithRetries(retries int) Option {
 // The client is copied and redirects remain disabled so API keys stay on the requested origin.
 func WithHTTPClient(httpClient *http.Client) Option {
 	return func(c *Client) {
+		c.timeoutSet = true
 		if httpClient == nil {
 			c.httpClient = nil
 			return
@@ -184,6 +187,13 @@ func meteredRequest(path string, query url.Values) bool {
 }
 
 func (c *Client) get(ctx context.Context, path string, query url.Values, headers map[string]string, out any) error {
+	// A request-local copy preserves concurrent lookups and caller-owned clients.
+	httpClient := c.httpClient
+	if !c.timeoutSet && strings.HasPrefix(path, "/stack/") {
+		stackClient := *httpClient
+		stackClient.Timeout = 35 * time.Second
+		httpClient = &stackClient
+	}
 	retries := c.retries
 	if !c.retriesSet && meteredRequest(path, query) {
 		retries = 0
@@ -205,7 +215,7 @@ func (c *Client) get(ctx context.Context, path string, query url.Values, headers
 			req.Header.Set(name, value)
 		}
 
-		res, err := c.httpClient.Do(req)
+		res, err := httpClient.Do(req)
 		if err != nil {
 			if attempt < retries && ctx.Err() == nil {
 				if err := waitRetry(ctx, retryDelay(attempt, "")); err != nil {
@@ -956,6 +966,34 @@ func (c *Client) HLR(ctx context.Context, number string, options ...HLROptions) 
 	}
 	out := &HLR{}
 	if err := c.get(ctx, "/hlr/"+seg(number), values("country", opts.Country, "deep", deep), nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// StackOptions configures website technology observation.
+type StackOptions struct {
+	_      [0]func()
+	Deep   bool
+	Pretty bool
+}
+
+// Stack observes technologies on a public hostname without a scheme or path.
+// Nil collections mean the check did not complete.
+func (c *Client) Stack(ctx context.Context, domain string, options ...StackOptions) (*Stack, error) {
+	opts, err := oneOption(options)
+	if err != nil {
+		return nil, err
+	}
+	deep, pretty := "", ""
+	if opts.Deep {
+		deep = "true"
+	}
+	if opts.Pretty {
+		pretty = "true"
+	}
+	out := &Stack{}
+	if err := c.get(ctx, "/stack/"+seg(domain), values("deep", deep, "pretty", pretty), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
