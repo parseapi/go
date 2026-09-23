@@ -208,23 +208,33 @@ type PostalMetro struct {
 	OtherShare       *float64 `json:"other_share"`
 }
 
+// PostalLocality is a supported Australian postcode suburb choice, independent of the scalar city.
+type PostalLocality struct {
+	_         [0]func()
+	City      string `json:"city"`
+	State     string `json:"state"`
+	StateName string `json:"state_name"`
+}
+
 type Postal struct {
-	_                 [0]func()
-	Postal            string      `json:"postal"`
-	City              *string     `json:"city"`
-	CityLocal         *string     `json:"city_local"`
-	District          *string     `json:"district"`
-	DistrictName      *string     `json:"district_name"`
-	DistrictNameLocal *string     `json:"district_name_local"`
-	State             *string     `json:"state"`
-	StateName         *string     `json:"state_name"`
-	StateNameLocal    *string     `json:"state_name_local"`
-	Country           string      `json:"country"`
-	CountryName       *string     `json:"country_name"`
-	Latitude          *float64    `json:"latitude"`
-	Longitude         *float64    `json:"longitude"`
-	Timezone          *string     `json:"timezone"`
-	Deep              *PostalDeep `json:"deep,omitempty"`
+	_         [0]func()
+	Postal    string  `json:"postal"`
+	City      *string `json:"city"`
+	CityLocal *string `json:"city_local"`
+	// Nil is unknown. An empty slice has no eligible choices. One choice does not imply City.
+	Localities        []PostalLocality `json:"localities"`
+	District          *string          `json:"district"`
+	DistrictName      *string          `json:"district_name"`
+	DistrictNameLocal *string          `json:"district_name_local"`
+	State             *string          `json:"state"`
+	StateName         *string          `json:"state_name"`
+	StateNameLocal    *string          `json:"state_name_local"`
+	Country           string           `json:"country"`
+	CountryName       *string          `json:"country_name"`
+	Latitude          *float64         `json:"latitude"`
+	Longitude         *float64         `json:"longitude"`
+	Timezone          *string          `json:"timezone"`
+	Deep              *PostalDeep      `json:"deep,omitempty"`
 }
 
 type PostalNearbyItem struct {
