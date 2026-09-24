@@ -20,7 +20,7 @@ func TestADPModelsPreserveCoreAndDeepTriad(t *testing.T) {
 		{"District", `{"district":"37081","name":"Guilford","country":"US"}`, `{"population":0,"water_area":0.25}`, &District{}},
 		{"City", `{"name":"Charlotte","country":"US","id":"city_123"}`, `{"population":0,"area":0.25}`, &City{}},
 		{"Postal", `{"postal":"28202","country":"US"}`, `{"metros":[],"water_area":0.25,"tax_rate":0}`, &Postal{}},
-		{"IBAN", `{"iban":"DE89370400440532013000","valid":true}`, `{"checksum":"89","branch":null,"account":"0532013000"}`, &IBAN{}},
+		{"Bank", `{"iban":"DE89370400440532013000","valid":true}`, `{"checksum":"89","branch":null,"account":"0532013000"}`, &Bank{}},
 		{"NPI", `{"npi":"1881018208","valid":true,"excluded":true,"credential":"MD","state_name":"Minnesota"}`, `{"deactivated_at":"2026-09-01","enrollments":[]}`, &NPI{}},
 		{"VIN", `{"vin":"1HGCM82633A004352","valid":true,"make":"Honda"}`, `{"horsepower":240.5,"recalls":[]}`, &VIN{}},
 		{"Phone", `{"phone":"+14155552671","valid":true}`, `{"state":"CA","timezone":"America/Los_Angeles"}`, &Phone{}},
@@ -99,7 +99,7 @@ func TestADPOptionsSendOneExplicitDisclosure(t *testing.T) {
 			return err
 		},
 		func(c *Client) error {
-			_, err := c.IBAN(ctx, "DE89370400440532013000", IBANOptions{Deep: true})
+			_, err := c.Bank(ctx, "DE89370400440532013000", BankOptions{Deep: true})
 			return err
 		},
 		func(c *Client) error {
@@ -131,6 +131,13 @@ func TestADPOptionsSendOneExplicitDisclosure(t *testing.T) {
 		client, got := newTestClient(t, okJSON(`{}`))
 		if err := call(client); err != nil {
 			t.Fatal(err)
+		}
+		if got.path == "/bank" {
+			var body map[string]any
+			if json.Unmarshal(got.body, &body) != nil || body["deep"] != true {
+				t.Fatal("missing Bank body deep")
+			}
+			continue
 		}
 		if got.rawQry != "deep=true" && !strings.Contains(got.rawQry, "deep=true&") && !strings.Contains(got.rawQry, "&deep=true") {
 			t.Fatalf("missing explicit disclosure: %s", got.rawQry)

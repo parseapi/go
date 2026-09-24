@@ -29,7 +29,7 @@ var _ func(*parseapi.Client, context.Context, string, ...parseapi.PostalNearbyOp
 var _ func(*parseapi.Client, context.Context, string, string, ...parseapi.PostalDistanceOptions) (*parseapi.PostalDistance, error) = (*parseapi.Client).PostalDistance
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.EmailOptions) (*parseapi.Email, error) = (*parseapi.Client).Email
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.VATOptions) (*parseapi.VAT, error) = (*parseapi.Client).VAT
-var _ func(*parseapi.Client, context.Context, string, ...parseapi.IBANOptions) (*parseapi.IBAN, error) = (*parseapi.Client).IBAN
+var _ func(*parseapi.Client, context.Context, string, ...parseapi.BankOptions) (*parseapi.Bank, error) = (*parseapi.Client).Bank
 var _ func(*parseapi.Client, context.Context, string) (*parseapi.Card, error) = (*parseapi.Client).Card
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.NPIOptions) (*parseapi.NPI, error) = (*parseapi.Client).NPI
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.PhoneOptions) (*parseapi.Phone, error) = (*parseapi.Client).Phone
@@ -70,3 +70,6 @@ var _ func(*parseapi.Client, context.Context, string, ...parseapi.NAICSOptions) 
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.NAICSSearchOptions) (*parseapi.NAICSSearch, error) = (*parseapi.Client).NAICSSearch
 
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.DNSOptions) (*parseapi.DNS, error) = (*parseapi.Client).DNS
+
+var _ func(*parseapi.Client, context.Context, parseapi.BankUSACHInput) (*parseapi.BankUSACH, error) = (*parseapi.Client).BankUSACH
+var _ func(*parseapi.Client, context.Context, string, ...parseapi.BankRequirementsOptions) (*parseapi.BankRequirements, error) = (*parseapi.Client).BankRequirements

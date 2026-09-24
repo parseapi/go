@@ -253,16 +253,16 @@ func main() {
 		}
 		return ""
 	})
-	iban, err := parse.IBAN(ctx, "DE89370400440532013000")
-	expectOk("iban", iban, err, func(r *parseapi.IBAN) string {
+	iban, err := parse.Bank(ctx, "DE89370400440532013000")
+	expectOk("bank", iban, err, func(r *parseapi.Bank) string {
 		if !r.Valid || str(r.Country) != "DE" || str(r.Bank) != "37040044" {
 			return "not valid DE"
 		}
 		return ""
 	})
 
-	ibanJunk, err := parse.IBAN(ctx, "hello")
-	expectOk("iban junk", ibanJunk, err, func(r *parseapi.IBAN) string {
+	ibanJunk, err := parse.Bank(ctx, "hello")
+	expectOk("bank junk", ibanJunk, err, func(r *parseapi.Bank) string {
 		if r.Valid {
 			return "expected invalid"
 		}

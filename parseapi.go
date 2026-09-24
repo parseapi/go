@@ -3,6 +3,7 @@
 package parseapi
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -208,6 +209,18 @@ func meteredRequest(path string, query url.Values) bool {
 }
 
 func (c *Client) get(ctx context.Context, path string, query url.Values, headers map[string]string, out any) error {
+	return c.request(ctx, http.MethodGet, path, query, headers, nil, out)
+}
+
+func (c *Client) post(ctx context.Context, path string, input any, out any) error {
+	body, err := json.Marshal(input)
+	if err != nil {
+		return err
+	}
+	return c.request(ctx, http.MethodPost, path, nil, nil, body, out)
+}
+
+func (c *Client) request(ctx context.Context, method, path string, query url.Values, headers map[string]string, body []byte, out any) error {
 	// A request-local copy preserves concurrent lookups and caller-owned clients.
 	httpClient := c.httpClient
 	if !c.timeoutSet && strings.HasPrefix(path, "/stack/") {
@@ -225,9 +238,12 @@ func (c *Client) get(ctx context.Context, path string, query url.Values, headers
 	}
 
 	for attempt := 0; ; attempt++ {
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, target, nil)
+		req, err := http.NewRequestWithContext(ctx, method, target, bytes.NewReader(body))
 		if err != nil {
 			return err
+		}
+		if body != nil {
+			req.Header.Set("Content-Type", "application/json")
 		}
 		req.Header.Set("X-API-Key", c.apiKey)
 		req.Header.Set("Parse-Version", apiVersion)
@@ -855,25 +871,53 @@ func (c *Client) VAT(ctx context.Context, number string, options ...VATOptions) 
 	return out, nil
 }
 
-// IBANOptions configures IBAN. Omitted fields use API defaults.
-type IBANOptions struct {
+// BankOptions configures Bank. Omitted fields use API defaults.
+type BankOptions struct {
 	_       [0]func()
 	Country string
 	Deep    bool
 }
 
-// IBAN calls /iban/{iban}.
-func (c *Client) IBAN(ctx context.Context, iban string, options ...IBANOptions) (*IBAN, error) {
+// Bank sends the original IBAN in a JSON body to POST /bank.
+func (c *Client) Bank(ctx context.Context, iban string, options ...BankOptions) (*Bank, error) {
 	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
 	}
-	deep := ""
-	if opts.Deep {
-		deep = "true"
+	input := map[string]any{"iban": iban}
+	if opts.Country != "" {
+		input["country"] = opts.Country
 	}
-	out := &IBAN{}
-	if err := c.get(ctx, "/iban/"+seg(iban), values("country", opts.Country, "deep", deep), nil, out); err != nil {
+	if opts.Deep {
+		input["deep"] = true
+	}
+	out := &Bank{}
+	if err := c.post(ctx, "/bank", input, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// BankUSACH sends US routing and account strings in a JSON request body.
+func (c *Client) BankUSACH(ctx context.Context, input BankUSACHInput) (*BankUSACH, error) {
+	out := &BankUSACH{}
+	if err := c.post(ctx, "/bank", map[string]string{"format": "us_ach", "country": "US", "routing": input.Routing, "account": input.Account}, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// BankRequirementsOptions selects an input format; omitted format defaults to IBAN.
+type BankRequirementsOptions struct{ Format string }
+
+// BankRequirements describes accepted fields and validation scope, not directory completeness.
+func (c *Client) BankRequirements(ctx context.Context, country string, options ...BankRequirementsOptions) (*BankRequirements, error) {
+	opts, err := oneOption(options)
+	if err != nil {
+		return nil, err
+	}
+	out := &BankRequirements{}
+	if err := c.get(ctx, "/bank/requirements", values("country", country, "format", opts.Format), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil

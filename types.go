@@ -328,7 +328,26 @@ type VAT struct {
 	Deep    *VATDeep `json:"deep,omitempty"`
 }
 
-type IBAN struct {
+// BankChecks reports ordered IBAN checks. States remain open strings.
+type BankChecks struct {
+	_         [0]func()
+	Input     string `json:"input"`
+	Country   string `json:"country"`
+	Length    string `json:"length"`
+	Structure string `json:"structure"`
+	Checksum  string `json:"checksum"`
+	National  string `json:"national"`
+}
+
+// BankIssue is a validation issue. Fields and codes remain open strings.
+type BankIssue struct {
+	_       [0]func()
+	Field   string `json:"field"`
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+type Bank struct {
 	_       [0]func()
 	IBAN    *string `json:"iban"`
 	Valid   bool    `json:"valid"`
@@ -336,10 +355,13 @@ type IBAN struct {
 	// Formatted is the print form in groups of four, for display. Nil when invalid.
 	Formatted *string `json:"formatted"`
 	// Bank is the identifier parsed from the number, not a name.
-	Bank     *string   `json:"bank"`
-	BankName *string   `json:"bank_name"`
-	Bic      *string   `json:"bic"`
-	Deep     *IBANDeep `json:"deep,omitempty"`
+	Bank     *string `json:"bank"`
+	BankName *string `json:"bank_name"`
+	Bic      *string `json:"bic"`
+	// Checks and Issues are optional on older responses.
+	Checks *BankChecks `json:"checks,omitempty"`
+	Issues []BankIssue `json:"issues,omitempty"`
+	Deep   *BankDeep   `json:"deep,omitempty"`
 }
 
 // NPI is a US healthcare provider record in the healthcare provider registry.
@@ -1335,9 +1357,10 @@ type PostalDeep struct {
 	PropertyTax *PropertyTax `json:"property_tax"`
 }
 
-type IBANDeep struct {
-	_        [0]func()
-	Checksum *string `json:"checksum"`
+type BankDeep struct {
+	Directory *BankDirectory `json:"directory,omitempty"`
+	_         [0]func()
+	Checksum  *string `json:"checksum"`
 	// Branch is the identifier when that country has one.
 	Branch  *string `json:"branch"`
 	Account *string `json:"account"`
@@ -1514,4 +1537,62 @@ type PropertyTax struct {
 	Currency string `json:"currency"`
 	// Reporting period, YYYY-YYYY. Monetary amounts use the final year of this period.
 	Period string `json:"period"`
+}
+
+// BankUSACHInput preserves routing and account identifiers as strings.
+type BankUSACHInput struct {
+	Routing string `json:"routing"`
+	Account string `json:"account"`
+}
+
+// BankUSACHChecks contains open check-status strings.
+type BankUSACHChecks struct {
+	RoutingFormat   string `json:"routing_format"`
+	RoutingChecksum string `json:"routing_checksum"`
+	AccountFormat   string `json:"account_format"`
+	AccountChecksum string `json:"account_checksum"`
+}
+
+// BankUSACH checks syntax only; it does not verify an account or ACH eligibility.
+type BankUSACH struct {
+	Format   string          `json:"format"`
+	Country  string          `json:"country"`
+	Routing  *string         `json:"routing"`
+	Account  *string         `json:"account"`
+	Valid    bool            `json:"valid"`
+	BankName *string         `json:"bank_name"`
+	Checks   BankUSACHChecks `json:"checks"`
+	Issues   []BankIssue     `json:"issues"`
+}
+
+// BankDirectory describes the edition and actual match grain, not country completeness.
+type BankDirectory struct {
+	Edition string `json:"edition"`
+	Country string `json:"country"`
+	Match   string `json:"match"`
+}
+
+// BankRequirementField describes one accepted input field.
+type BankRequirementField struct {
+	Key            string  `json:"key"`
+	Label          string  `json:"label"`
+	Required       bool    `json:"required"`
+	Type           string  `json:"type"`
+	Length         *int    `json:"length,omitempty"`
+	MinLength      *int    `json:"min_length,omitempty"`
+	MaxLength      *int    `json:"max_length,omitempty"`
+	MaxInputLength *int    `json:"max_input_length,omitempty"`
+	LengthUnit     *string `json:"length_unit,omitempty"`
+	Pattern        *string `json:"pattern,omitempty"`
+	Normalization  *string `json:"normalization,omitempty"`
+}
+
+// BankRequirements describes input rules and check scope for one country and format.
+type BankRequirements struct {
+	Country     string                 `json:"country"`
+	Format      string                 `json:"format"`
+	Supported   bool                   `json:"supported"`
+	Fields      []BankRequirementField `json:"fields"`
+	Checks      map[string]string      `json:"checks"`
+	Limitations []string               `json:"limitations"`
 }

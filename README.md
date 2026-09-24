@@ -89,7 +89,7 @@ Optional query inputs use one options value. Omit it to use defaults. Use named 
 parse.IP(ctx, "8.8.8.8", parseapi.IPOptions{Deep: true})
 parse.Email(ctx, "hello@example.com", parseapi.EmailOptions{Deep: true})
 parse.VAT(ctx, "DE136695976", parseapi.VATOptions{Deep: true})
-parse.IBAN(ctx, "DE89370400440532013000")
+parse.Bank(ctx, "DE89370400440532013000")
 parse.Card(ctx, "424242")
 parse.NPI(ctx, "1881018208")
 parse.ASN(ctx, "AS13335")
@@ -178,6 +178,17 @@ Address search uses context from the form: prefer postal, or city and state. An 
 
 HLR reports status at the last check. `live` means assigned and `connected` means reachable at that check. Cached results may be returned. Null means unconfirmed. Deep diagnostics stay within the same metered lookup.
 
+Bank returns core `checks` for input, country, length, structure, checksum and national rules, plus an `issues` list. States are `passed`, `failed`, `not_checked` or `not_supported`. Unsupported national checking is not a failure. `valid` covers the implemented format and checksum rules, not account existence, ownership or payment reachability. Directory names and BICs may be null independently. Older responses may omit `checks` and `issues`, and future states and issue codes remain strings. Pass the original input unchanged so the API can report invalid characters. Deep `account` remains the BBAN remainder.
+
+Bank inputs use `POST /bank` JSON bodies, keeping IBAN and account values out of request URLs. Pass original strings; the server owns normalization and validation. Avoid logging request bodies. IBAN deep can include `directory` with the immutable `edition`, resolved `country` and actual `match` grain (`bank`, `branch`, `prefix` or `none`); it is absent if no directory lookup ran. A match does not prove complete country coverage or payment reachability.
+
+Use country requirements to build supported input fields. US ACH has an explicit helper with no deep option. It checks the routing format/ABA checksum and account-field syntax; `account_checksum` is `not_supported`. It preserves account characters and leading zeros. A nullable bank name is routing-directory identity, not account existence, ownership or ACH eligibility. The examples below are synthetic test inputs, not payment instructions.
+
+```go
+parse.BankRequirements(ctx, "US", parseapi.BankRequirementsOptions{Format: "us_ach"})
+parse.BankUSACH(ctx, parseapi.BankUSACHInput{Routing: "011000015", Account: "0001234567"})
+```
+
 ## NPI provider lookup
 
 ```go
@@ -206,7 +217,7 @@ The default call returns the common answer. Request more detail with `parse.Coun
 | VIN, NAICS, Company | Paid technical or registration profiles. NPI exclusion status and NAICS hierarchy stay core. |
 | Tariff | Paid schedule columns and units; add origin for applicable measures. |
 | Name, Weather | Paid name context or weather detail; parsing and current conditions stay core. |
-| Phone, IBAN | Numbering-plan or bank structure detail in the same pooled request on every plan. |
+| Phone, Bank | Numbering-plan or bank structure detail in the same pooled request on every plan. |
 | Time, Date, Currency, Language, Emoji, Point | Optional reference detail in the same pooled request on every plan. |
 | Carrier, HLR | Available place or network detail from the same metered core unit, including Free included units. |
 
