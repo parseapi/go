@@ -565,8 +565,8 @@ func TestMeteredRetryDefaultsAndExplicitOverride(t *testing.T) {
 }
 
 func TestRetryAfterSupportsHTTPDates(t *testing.T) {
-	if delay := retryDelay(0, time.Now().Add(time.Hour).UTC().Format(http.TimeFormat)); delay != 5*time.Second {
-		t.Fatalf("cap: %v", delay)
+	if delay := retryDelay(0, time.Now().Add(time.Hour).UTC().Format(http.TimeFormat)); delay != -1 {
+		t.Fatalf("budget: %v", delay)
 	}
 	if delay := retryDelay(0, time.Now().Add(-time.Hour).UTC().Format(http.TimeFormat)); delay != 0 {
 		t.Fatalf("past: %v", delay)

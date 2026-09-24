@@ -38,6 +38,8 @@ type Error struct {
 	Message   string
 	Docs      string
 	RequestID string
+	// RetryAfter is the original HTTP Retry-After header, or nil when absent.
+	RetryAfter *string
 }
 
 func (e *Error) Error() string {
@@ -139,23 +141,42 @@ func New(apiKey string, opts ...Option) (*Client, error) {
 	return c, nil
 }
 
+// A negative delay declines an automatic retry that would exceed its wait budget.
 func retryDelay(attempt int, retryAfter string) time.Duration {
 	if retryAfter != "" {
-		if seconds, err := strconv.ParseFloat(retryAfter, 64); err == nil && seconds >= 0 {
-			return time.Duration(math.Min(seconds*1000, retryAfterCapMs)) * time.Millisecond
+		value := strings.TrimSpace(retryAfter)
+		numeric := value != ""
+		dots := 0
+		for i, ch := range value {
+			if ch == '.' && i > 0 && i < len(value)-1 && dots == 0 {
+				dots++
+				continue
+			}
+			if ch < '0' || ch > '9' {
+				numeric = false
+				break
+			}
 		}
-		if at, err := http.ParseTime(retryAfter); err == nil {
+		if numeric {
+			seconds, _ := strconv.ParseFloat(value, 64)
+			// Compare before converting, including positive float overflow.
+			if seconds > float64(retryAfterCapMs)/1000 {
+				return -1
+			}
+			return time.Duration(seconds * float64(time.Second))
+		}
+		if at, err := http.ParseTime(value); err == nil {
 			delay := time.Until(at)
 			if delay < 0 {
 				return 0
 			}
 			if delay > 5*time.Second {
-				return 5 * time.Second
+				return -1
 			}
 			return delay
 		}
 	}
-	return time.Duration(rand.Float64()*250*math.Pow(2, float64(attempt))) * time.Millisecond
+	return time.Duration(rand.Float64()*math.Min(250*math.Pow(2, math.Min(float64(attempt), 16)), retryAfterCapMs)) * time.Millisecond
 }
 
 func waitRetry(ctx context.Context, delay time.Duration) error {
@@ -233,17 +254,23 @@ func (c *Client) get(ctx context.Context, path string, query url.Values, headers
 
 		if retryStatus[res.StatusCode] && attempt < retries {
 			retryAfter := res.Header.Get("Retry-After")
-			res.Body.Close()
-			if err := waitRetry(ctx, retryDelay(attempt, retryAfter)); err != nil {
-				return err
+			if delay := retryDelay(attempt, retryAfter); delay >= 0 {
+				res.Body.Close()
+				if err := waitRetry(ctx, delay); err != nil {
+					return err
+				}
+				continue
 			}
-			continue
 		}
 
 		apiErr := &Error{
 			Status:  res.StatusCode,
 			Code:    "unknown_error",
 			Message: fmt.Sprintf("Request failed with status %d", res.StatusCode),
+		}
+		if values, present := res.Header[http.CanonicalHeaderKey("Retry-After")]; present && len(values) > 0 {
+			value := values[0]
+			apiErr.RetryAfter = &value
 		}
 		var body struct {
 			Code      string `json:"code"`
@@ -1061,24 +1088,22 @@ func (c *Client) MAC(ctx context.Context, mac string, options ...MACOptions) (*M
 	return out, nil
 }
 
-// BINOptions configures BIN. Deep requests an empty object on every plan.
-type BINOptions struct {
-	_    [0]func()
-	Deep bool
-}
-
-// BIN looks up a 6-11 digit card prefix. Preserve leading zeros in the string.
-func (c *Client) BIN(ctx context.Context, bin string, options ...BINOptions) (*BIN, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
+// Card looks up a 6-11 digit card prefix. Preserve leading zeros in the string.
+func (c *Client) Card(ctx context.Context, bin string) (*Card, error) {
+	digits := 0
+	valid := len(bin) <= 64
+	for _, ch := range bin {
+		if ch >= '0' && ch <= '9' {
+			digits++
+		} else if ch != ' ' && ch != '\t' && ch != '\r' && ch != '\n' && ch != '-' {
+			valid = false
+		}
 	}
-	deep := ""
-	if opts.Deep {
-		deep = "true"
+	if !valid || digits < 6 || digits > 11 {
+		return nil, errors.New("parseapi: Card requires a string containing 6 to 11 digits. Send a prefix only.")
 	}
-	out := &BIN{}
-	if err := c.get(ctx, "/bin/"+seg(bin), values("deep", deep), nil, out); err != nil {
+	out := &Card{}
+	if err := c.get(ctx, "/card/"+seg(bin), nil, nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil

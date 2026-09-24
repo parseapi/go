@@ -246,10 +246,10 @@ func main() {
 		return ""
 	})
 
-	bin, err := parse.BIN(ctx, "00 0000", parseapi.BINOptions{Deep: true})
-	expectOk("bin", bin, err, func(r *parseapi.BIN) string {
-		if r.BIN != "000000" || r.Deep == nil || len(r.Deep) != 0 {
-			return "BIN echo or deep mismatch"
+	bin, err := parse.Card(ctx, "00 0000")
+	expectOk("card", bin, err, func(r *parseapi.Card) string {
+		if r.BIN != "000000" || r.Prefix != nil {
+			return "BIN echo or prefix mismatch"
 		}
 		return ""
 	})

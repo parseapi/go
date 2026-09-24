@@ -90,7 +90,7 @@ parse.IP(ctx, "8.8.8.8", parseapi.IPOptions{Deep: true})
 parse.Email(ctx, "hello@example.com", parseapi.EmailOptions{Deep: true})
 parse.VAT(ctx, "DE136695976", parseapi.VATOptions{Deep: true})
 parse.IBAN(ctx, "DE89370400440532013000")
-parse.BIN(ctx, "424242")
+parse.Card(ctx, "424242")
 parse.NPI(ctx, "1881018208")
 parse.ASN(ctx, "AS13335")
 parse.MAC(ctx, "00:1B:63:84:45:E6")
@@ -231,13 +231,42 @@ parse, err := parseapi.New("your-api-key",
 )
 ```
 
-`WithRetries(0)` disables all automatic retries. Both numeric and HTTP-date `Retry-After` values are honored, capped at five seconds. Built-in requests do not follow redirects. `WithHTTPClient` copies your client and keeps redirects disabled. Custom transports must also keep credentials on the requested origin.
+`WithRetries(0)` disables all automatic retries. Numeric and HTTP-date `Retry-After` values within five seconds are honored. Longer waits return the original API error immediately. `RetryAfter` carries the original header, or nil when absent. Built-in requests do not follow redirects. `WithHTTPClient` copies your client and keeps redirects disabled. Custom transports must also keep credentials on the requested origin.
 
 Requires Go 1.21 or later. Standard library only.
 
 [Full endpoint and field reference](https://parseapi.com/docs)
 
-BIN lookup accepts 6-11 digits as a string, including leading zeros. Spaces and hyphens are accepted. `prefix` is the actual longest match and can be shorter than the input. Unknown reference fields are null. `deep` adds an empty object on every plan.
+## Card
+
+Card looks up issuer, network and type from a BIN/IIN. It accepts 6-11 digits as a string, including leading zeros. Spaces and hyphens are accepted. `prefix` is the actual longest match and can be shorter than the input. Unknown reference fields are null. The client rejects malformed or full card numbers before sending a request. Valid input is forwarded unchanged.
+
+Compare `prefix` with the normalized response `BIN`. A matched row can still have all metadata unknown. Keep unknown prepaid status separate from true and false. Import `fmt` and place the example inside a function returning `error`.
+
+```go
+card, err := parse.Card(ctx, "4242 42-99")
+if err != nil {
+    return err
+}
+var match string
+switch {
+case card.Prefix == nil:
+    match = "No reference match"
+case *card.Prefix == card.BIN:
+    match = "Exact prefix match"
+default:
+    match = "Broader prefix match"
+}
+prepaid := "Unknown prepaid status"
+if card.Prepaid != nil {
+    if *card.Prepaid {
+        prepaid = "Prepaid"
+    } else {
+        prepaid = "Not prepaid"
+    }
+}
+fmt.Println(match, prepaid)
+```
 
 ## Stack
 
