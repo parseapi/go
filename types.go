@@ -421,14 +421,15 @@ type TariffMeasure struct {
 }
 
 type TariffDeep struct {
-	_ [0]func()
+	// Reason is an open-string explanation when EffectiveRate is nil.
+	Reason *string `json:"reason"`
+	_      [0]func()
 	// Origin is the country the measures were resolved for.
 	Origin *string `json:"origin"`
-	// EffectiveRate is the composed ad valorem percent. Nil when the
-	// components do not compose cleanly.
+	// EffectiveRate is the composed ad valorem percent for matched stored measures
+	// only, not complete duty or landed cost. Nil when the components do not compose cleanly.
 	EffectiveRate *float64 `json:"effective_rate"`
-	// Measures is every Chapter 99 tariff measure that applies to this code
-	// from this origin.
+	// Measures is the matching stored Chapter 99 schedule measures for this code and goods origin.
 	Measures []TariffMeasure `json:"measures"`
 	// Units is the units of quantity (No., kg).
 	Units []string `json:"units"`
@@ -439,7 +440,10 @@ type TariffDeep struct {
 }
 
 type Tariff struct {
-	_ [0]func()
+	// Edition and Date are absent on older servers. Date is nil for an undated edition query.
+	Edition *string `json:"edition"`
+	Date    *string `json:"date"`
+	_       [0]func()
 	// HTS is the normalized code with dots (8471.30.01.00).
 	HTS string `json:"hts"`
 	// Description is the schedule line verbatim.
@@ -458,9 +462,14 @@ type TariffSearchHit struct {
 	HTS         string  `json:"hts"`
 	Description string  `json:"description"`
 	General     *string `json:"general"`
+	// Lineage is the parent descriptions, outermost first. Older responses may omit this context.
+	Lineage []string `json:"lineage"`
 }
 
 type TariffSearch struct {
+	// Edition and Date are absent on older servers. Date is nil for an undated edition query.
+	Edition  *string `json:"edition"`
+	Date     *string `json:"date"`
 	_        [0]func()
 	Q        string `json:"q"`
 	Revision string `json:"revision"`

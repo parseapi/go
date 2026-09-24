@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	version         = "1.6.0"
+	version         = "1.7.0"
 	defaultBaseURL  = "https://api.parseapi.com"
 	defaultTimeout  = 10 * time.Second
 	defaultRetries  = 2
@@ -1219,9 +1219,22 @@ func (c *Client) NAICSSearch(ctx context.Context, query string, options ...NAICS
 	return out, nil
 }
 
+func tariffSelection(edition, date string, gotEdition, gotDate *string) error {
+	if edition == "" && date == "" {
+		return nil
+	}
+	if gotEdition == nil || len(*gotEdition) != 64 || strings.Trim(*gotEdition, "0123456789abcdef") != "" || (edition != "" && *gotEdition != edition) || (date != "" && (gotDate == nil || *gotDate != date)) || (date == "" && gotDate != nil) {
+		return &Error{Status: 0, Code: "tariff_selection_mismatch", Message: "Tariff response did not confirm the requested edition/date. The server may not support this selection."}
+	}
+	return nil
+}
+
 // TariffOptions configures Tariff. Omitted fields use API defaults.
 type TariffOptions struct {
-	_ [0]func()
+	// Edition pins an immutable source fingerprint. Date requires verified source coverage.
+	Edition string
+	Date    string
+	_       [0]func()
 	// Add units and the special and other schedule columns on paid plans.
 	Deep bool
 	// ISO 3166-1 alpha-2 origin. With paid deep, resolves country-specific measures. Optional for schedule detail.
@@ -1242,7 +1255,10 @@ func (c *Client) Tariff(ctx context.Context, code string, options ...TariffOptio
 		deep = "true"
 	}
 	out := &Tariff{}
-	if err := c.get(ctx, "/tariff/"+seg(code), values("deep", deep, "origin", opts.Origin), nil, out); err != nil {
+	if err := c.get(ctx, "/tariff/"+seg(code), values("deep", deep, "origin", opts.Origin, "edition", opts.Edition, "date", opts.Date), nil, out); err != nil {
+		return nil, err
+	}
+	if err := tariffSelection(opts.Edition, opts.Date, out.Edition, out.Date); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1250,17 +1266,22 @@ func (c *Client) Tariff(ctx context.Context, code string, options ...TariffOptio
 
 // TariffSearchOptions reserves optional settings for TariffSearch.
 type TariffSearchOptions struct {
-	_ [0]func()
+	_       [0]func()
+	Edition string
+	Date    string
 }
 
 // TariffSearch calls /tariff.
 func (c *Client) TariffSearch(ctx context.Context, query string, options ...TariffSearchOptions) (*TariffSearch, error) {
-	_, err := oneOption(options)
+	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
 	}
 	out := &TariffSearch{}
-	if err := c.get(ctx, "/tariff", values("q", query), nil, out); err != nil {
+	if err := c.get(ctx, "/tariff", values("q", query, "edition", opts.Edition, "date", opts.Date), nil, out); err != nil {
+		return nil, err
+	}
+	if err := tariffSelection(opts.Edition, opts.Date, out.Edition, out.Date); err != nil {
 		return nil, err
 	}
 	return out, nil
