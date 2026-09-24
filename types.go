@@ -345,13 +345,15 @@ type IBAN struct {
 // NPI is a US healthcare provider record in the healthcare provider registry.
 type NPI struct {
 	_ [0]func()
-	// NPI is the normalized 10-digit NPI. Invalid input still echoes the fold.
-	NPI   *string `json:"npi"`
-	Valid bool    `json:"valid"`
-	// Registered reports whether the NPI exists in the registry.
+	// NPI is input with accepted separators removed; nil when empty. Invalid values remain visible.
+	NPI *string `json:"npi"`
+	// Valid checks format and NPI checksum only, not a provider or credentials.
+	Valid bool `json:"valid"`
+	// Registered reports a match in the stored NPPES snapshot; nil for invalid input.
 	Registered *bool `json:"registered"`
-	Active     *bool `json:"active"`
-	// Excluded reports the OIG exclusion flag.
+	// Active is recorded NPI activation status; nil when unknown, not licensure or practice status.
+	Active *bool `json:"active"`
+	// Excluded is an NPI-only match in the stored OIG LEIE file. False is not complete exclusion clearance.
 	Excluded *bool `json:"excluded"`
 	// Type is individual or organization.
 	Type       *string `json:"type"`
@@ -384,13 +386,13 @@ type NPIEnrollment struct {
 // NPIDeep is Medicare enrollment on paid plans.
 type NPIDeep struct {
 	_ [0]func()
-	// Medicare is whether the NPI is in the published FFS enrollment extract.
+	// Medicare reports presence in the stored FFS enrollment extract, not payment eligibility.
 	Medicare *bool `json:"medicare"`
-	// OptOut is whether the NPI has a Medicare opt-out affidavit.
+	// OptOut is an NPI-only match in the stored CMS opt-out affidavit list; nil when unavailable.
 	OptOut *bool `json:"opt_out"`
-	// Enrollments is type, specialty, and state. Empty when Medicare is false.
+	// Enrollments contains stored type, specialty, and state. Nil means unavailable; empty means no rows are returned.
 	Enrollments []NPIEnrollment `json:"enrollments"`
-	// DeactivatedAt is the ISO date the NPI was deactivated.
+	// DeactivatedAt is the recorded ISO deactivation date; nil when active or unavailable.
 	DeactivatedAt *string `json:"deactivated_at"`
 }
 
