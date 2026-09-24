@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	version         = "1.4.0"
+	version         = "1.6.0"
 	defaultBaseURL  = "https://api.parseapi.com"
 	defaultTimeout  = 10 * time.Second
 	defaultRetries  = 2
@@ -1368,18 +1368,37 @@ func (c *Client) CurrencyRate(ctx context.Context, base string, quote string, op
 
 // TimeOptions configures Time. With To, offsetless At is source wall time.
 type TimeOptions struct {
+	IP       string
+	City     string
+	Country  string
+	State    string
+	IATA     string
+	ICAO     string
+	UNLOCODE string
+	Address  string
+
 	// Lang selects translated display names for this request.
 	Lang string
 	_    [0]func()
 	At   string
 	To   string
 	Deep bool
+	// Disambiguation selects compatible (default), earlier, later, or reject for offsetless conversion at clock changes.
+	Disambiguation string
+	// Targets converts to 1-10 zones, preserving order and duplicates. Mutually exclusive with To.
+	Targets []string
 }
 
 // Time returns local time and timezone facts. An empty timezone selects UTC.
 func (c *Client) Time(ctx context.Context, timezone string, options ...TimeOptions) (*Time, error) {
+	if source := strings.ToLower(strings.TrimSpace(timezone)); source == "zones" || source == "help" {
+		return nil, errors.New("Time source must be an IANA timezone ID. Use timezone discovery to list IDs.")
+	}
 	opts, err := oneOption(options)
 	if err != nil {
+		return nil, err
+	}
+	if err := timeSource(timezone, opts); err != nil {
 		return nil, err
 	}
 	path := "/time"
@@ -1390,8 +1409,12 @@ func (c *Client) Time(ctx context.Context, timezone string, options ...TimeOptio
 	if opts.Deep {
 		deep = "true"
 	}
+	targets, err := timeTargets(opts.Targets, opts.To)
+	if err != nil {
+		return nil, err
+	}
 	out := &Time{}
-	if err := c.get(ctx, path, values("lang", opts.Lang, "at", opts.At, "to", opts.To, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, path, values("ip", opts.IP, "city", opts.City, "country", opts.Country, "state", opts.State, "iata", opts.IATA, "icao", opts.ICAO, "unlocode", opts.UNLOCODE, "address", opts.Address, "lang", opts.Lang, "at", opts.At, "to", opts.To, "targets", targets, "disambiguation", opts.Disambiguation, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1405,6 +1428,10 @@ type TimeAtOptions struct {
 	At   string
 	To   string
 	Deep bool
+	// Disambiguation selects compatible (default), earlier, later, or reject for offsetless conversion at clock changes.
+	Disambiguation string
+	// Targets converts to 1-10 zones, preserving order and duplicates. Mutually exclusive with To.
+	Targets []string
 }
 
 // TimeAt returns local time at the coordinates, optionally converted with To.
@@ -1417,11 +1444,87 @@ func (c *Client) TimeAt(ctx context.Context, lat float64, lon float64, options .
 	if opts.Deep {
 		deep = "true"
 	}
+	targets, err := timeTargets(opts.Targets, opts.To)
+	if err != nil {
+		return nil, err
+	}
 	out := &Time{}
-	if err := c.get(ctx, "/time", values("lang", opts.Lang, "lat", f(lat), "lon", f(lon), "at", opts.At, "to", opts.To, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/time", values("lang", opts.Lang, "lat", f(lat), "lon", f(lon), "at", opts.At, "to", opts.To, "targets", targets, "disambiguation", opts.Disambiguation, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
+}
+
+// TimeZonesOptions configures TimeZones.
+type TimeZonesOptions struct {
+	_            [0]func()
+	Country      string
+	Area         string
+	Offset       string
+	Abbreviation string
+	DST          *bool
+	ObservesDST  *bool
+	At           string
+	Details      bool
+	Sort         string
+}
+
+// TimeZones searches serving timezone IDs. An empty query lists all.
+func (c *Client) TimeZones(ctx context.Context, query string, options ...TimeZonesOptions) (*TimeZones, error) {
+	opts, err := oneOption(options)
+	if err != nil {
+		return nil, err
+	}
+	dst, observesDST, details := "", "", ""
+	if opts.DST != nil {
+		dst = strconv.FormatBool(*opts.DST)
+	}
+	if opts.ObservesDST != nil {
+		observesDST = strconv.FormatBool(*opts.ObservesDST)
+	}
+	if opts.Details {
+		details = "true"
+	}
+	out := &TimeZones{}
+	if err := c.get(ctx, "/time/zones", values("q", query, "country", opts.Country, "area", opts.Area, "offset", opts.Offset, "abbreviation", opts.Abbreviation, "dst", dst, "observes_dst", observesDST, "at", opts.At, "details", details, "sort", opts.Sort), nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func timeSource(timezone string, opts TimeOptions) error {
+	primary := 0
+	for _, value := range []string{opts.IP, opts.City, opts.IATA, opts.ICAO, opts.UNLOCODE, opts.Address} {
+		if value != "" {
+			primary++
+		}
+	}
+	for _, value := range []string{opts.IP, opts.City, opts.Country, opts.State, opts.IATA, opts.ICAO, opts.UNLOCODE, opts.Address} {
+		if value != "" && strings.TrimSpace(value) == "" {
+			return errors.New("Pass one Time source, using country only with city or address and state only with city or address and country.")
+		}
+	}
+	if (timezone != "" && (primary > 0 || opts.Country != "" || opts.State != "")) || primary > 1 ||
+		(opts.Country != "" && primary > 0 && opts.City == "" && opts.Address == "") ||
+		(opts.State != "" && ((opts.City == "" && opts.Address == "") || opts.Country == "")) || (opts.Address != "" && opts.Country == "") {
+		return errors.New("Pass one Time source, using country only with city or address and state only with city or address and country.")
+	}
+	return nil
+}
+
+func timeTargets(targets []string, to string) (string, error) {
+	if targets == nil {
+		return "", nil
+	}
+	if to != "" || len(targets) < 1 || len(targets) > 10 {
+		return "", fmt.Errorf("parseapi: Time targets requires 1 to 10 timezone IDs and cannot be combined with to")
+	}
+	for _, zone := range targets {
+		if strings.TrimSpace(zone) == "" || strings.Contains(zone, ",") {
+			return "", fmt.Errorf("parseapi: Time targets requires 1 to 10 timezone IDs and cannot be combined with to")
+		}
+	}
+	return strings.Join(targets, ","), nil
 }
 
 // TimezoneOptions configures Timezone. Omitted fields use API defaults.
