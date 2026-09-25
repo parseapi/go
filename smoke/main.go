@@ -246,39 +246,39 @@ func main() {
 		return ""
 	})
 
-	bin, err := parse.BIN(ctx, "00 0000", parseapi.BINOptions{Deep: true})
-	expectOk("bin", bin, err, func(r *parseapi.BIN) string {
-		if r.BIN != "000000" || r.Deep == nil || len(r.Deep) != 0 {
-			return "BIN echo or deep mismatch"
+	bin, err := parse.Card(ctx, "00 0000")
+	expectOk("card", bin, err, func(r *parseapi.Card) string {
+		if r.BIN != "000000" || r.Brand != nil || r.Logo != "https://cdn.parseapi.com/card/generic.svg" {
+			return "BIN echo or prefix mismatch"
 		}
 		return ""
 	})
-	iban, err := parse.IBAN(ctx, "DE89370400440532013000")
-	expectOk("iban", iban, err, func(r *parseapi.IBAN) string {
+	iban, err := parse.Bank(ctx, "DE89370400440532013000")
+	expectOk("bank", iban, err, func(r *parseapi.Bank) string {
 		if !r.Valid || str(r.Country) != "DE" || str(r.Bank) != "37040044" {
 			return "not valid DE"
 		}
 		return ""
 	})
 
-	ibanJunk, err := parse.IBAN(ctx, "hello")
-	expectOk("iban junk", ibanJunk, err, func(r *parseapi.IBAN) string {
+	ibanJunk, err := parse.Bank(ctx, "hello")
+	expectOk("bank junk", ibanJunk, err, func(r *parseapi.Bank) string {
 		if r.Valid {
 			return "expected invalid"
 		}
 		return ""
 	})
 
-	npi, err := parse.NPI(ctx, "1881018208")
-	expectOk("npi", npi, err, func(r *parseapi.NPI) string {
+	npi, err := parse.Provider(ctx, "1881018208")
+	expectOk("npi", npi, err, func(r *parseapi.Provider) string {
 		if !r.Valid || r.Registered == nil || !*r.Registered {
 			return "not registered"
 		}
 		return ""
 	})
 
-	npiJunk, err := parse.NPI(ctx, "hello")
-	expectOk("npi junk", npiJunk, err, func(r *parseapi.NPI) string {
+	npiJunk, err := parse.Provider(ctx, "hello")
+	expectOk("npi junk", npiJunk, err, func(r *parseapi.Provider) string {
 		if r.Valid {
 			return "expected invalid"
 		}

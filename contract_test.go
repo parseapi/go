@@ -29,9 +29,9 @@ var _ func(*parseapi.Client, context.Context, string, ...parseapi.PostalNearbyOp
 var _ func(*parseapi.Client, context.Context, string, string, ...parseapi.PostalDistanceOptions) (*parseapi.PostalDistance, error) = (*parseapi.Client).PostalDistance
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.EmailOptions) (*parseapi.Email, error) = (*parseapi.Client).Email
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.VATOptions) (*parseapi.VAT, error) = (*parseapi.Client).VAT
-var _ func(*parseapi.Client, context.Context, string, ...parseapi.IBANOptions) (*parseapi.IBAN, error) = (*parseapi.Client).IBAN
-var _ func(*parseapi.Client, context.Context, string, ...parseapi.BINOptions) (*parseapi.BIN, error) = (*parseapi.Client).BIN
-var _ func(*parseapi.Client, context.Context, string, ...parseapi.NPIOptions) (*parseapi.NPI, error) = (*parseapi.Client).NPI
+var _ func(*parseapi.Client, context.Context, string, ...parseapi.BankOptions) (*parseapi.Bank, error) = (*parseapi.Client).Bank
+var _ func(*parseapi.Client, context.Context, string) (*parseapi.Card, error) = (*parseapi.Client).Card
+var _ func(*parseapi.Client, context.Context, string, ...parseapi.ProviderOptions) (*parseapi.Provider, error) = (*parseapi.Client).Provider
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.PhoneOptions) (*parseapi.Phone, error) = (*parseapi.Client).Phone
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.CarrierOptions) (*parseapi.Carrier, error) = (*parseapi.Client).Carrier
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.CallerOptions) (*parseapi.Caller, error) = (*parseapi.Client).Caller
@@ -66,7 +66,10 @@ var _ func(*parseapi.Client, context.Context, string, ...parseapi.CompanyOptions
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.MeasureOptions) (*parseapi.Measure, error) = (*parseapi.Client).Measure
 var _ func(*parseapi.Client, context.Context, ...parseapi.MeasureUnitsOptions) (*parseapi.MeasureUnits, error) = (*parseapi.Client).MeasureUnits
 
-var _ func(*parseapi.Client, context.Context, string, ...parseapi.NAICSOptions) (*parseapi.NAICS, error) = (*parseapi.Client).NAICS
-var _ func(*parseapi.Client, context.Context, string, ...parseapi.NAICSSearchOptions) (*parseapi.NAICSSearch, error) = (*parseapi.Client).NAICSSearch
+var _ func(*parseapi.Client, context.Context, string, ...parseapi.IndustryOptions) (*parseapi.Industry, error) = (*parseapi.Client).Industry
+var _ func(*parseapi.Client, context.Context, string, ...parseapi.IndustrySearchOptions) (*parseapi.IndustrySearch, error) = (*parseapi.Client).IndustrySearch
 
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.DNSOptions) (*parseapi.DNS, error) = (*parseapi.Client).DNS
+
+var _ func(*parseapi.Client, context.Context, parseapi.BankUSACHInput) (*parseapi.BankUSACH, error) = (*parseapi.Client).BankUSACH
+var _ func(*parseapi.Client, context.Context, string, ...parseapi.BankRequirementsOptions) (*parseapi.BankRequirements, error) = (*parseapi.Client).BankRequirements

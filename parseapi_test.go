@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -15,6 +16,8 @@ import (
 )
 
 type capture struct {
+	method string
+	body   []byte
 	path   string
 	rawQry string
 	header http.Header
@@ -24,6 +27,9 @@ func newTestClient(t *testing.T, handler http.HandlerFunc, opts ...Option) (*Cli
 	t.Helper()
 	captured := &capture{}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		captured.method = r.Method
+		captured.body, _ = io.ReadAll(r.Body)
+		r.Body = io.NopCloser(strings.NewReader(string(captured.body)))
 		captured.path = r.URL.EscapedPath()
 		captured.rawQry = r.URL.RawQuery
 		captured.header = r.Header.Clone()
@@ -91,13 +97,13 @@ func TestURLMapping(t *testing.T) {
 		}, "/postal/28202/distance/10001", "country=US"},
 		{"email", func(c *Client) error { _, err := c.Email(ctx, "a@b.com"); return err }, "/email/a@b.com", ""},
 		{"vat", func(c *Client) error { _, err := c.VAT(ctx, "DE136695976"); return err }, "/vat/DE136695976", ""},
-		{"iban", func(c *Client) error { _, err := c.IBAN(ctx, "DE89370400440532013000"); return err }, "/iban/DE89370400440532013000", ""},
-		{"iban country", func(c *Client) error {
-			_, err := c.IBAN(ctx, "89370400440532013000", IBANOptions{Country: "DE"})
+		{"bank", func(c *Client) error { _, err := c.Bank(ctx, "DE89370400440532013000"); return err }, "/bank", ""},
+		{"bank country", func(c *Client) error {
+			_, err := c.Bank(ctx, "89370400440532013000", BankOptions{Country: "DE"})
 			return err
-		}, "/iban/89370400440532013000", "country=DE"},
-		{"npi", func(c *Client) error { _, err := c.NPI(ctx, "1881018208"); return err }, "/npi/1881018208", ""},
-		{"npi deep", func(c *Client) error { _, err := c.NPI(ctx, "1881018208", NPIOptions{Deep: true}); return err }, "/npi/1881018208", "deep=true"},
+		}, "/bank", ""},
+		{"npi", func(c *Client) error { _, err := c.Provider(ctx, "1881018208"); return err }, "/provider/1881018208", ""},
+		{"npi deep", func(c *Client) error { _, err := c.Provider(ctx, "1881018208", ProviderOptions{Deep: true}); return err }, "/provider/1881018208", "deep=true"},
 		{"vat from deep", func(c *Client) error {
 			_, err := c.VAT(ctx, "DE136695976", VATOptions{From: "IE6388047V", Deep: true})
 			return err
@@ -114,6 +120,11 @@ func TestURLMapping(t *testing.T) {
 		{"mac", func(c *Client) error { _, err := c.MAC(ctx, "00:1B:63:84:45:E6"); return err }, "/mac/00:1B:63:84:45:E6", ""},
 		{"mx", func(c *Client) error { _, err := c.MX(ctx, "example.com"); return err }, "/mx/example.com", ""},
 		{"useragent", func(c *Client) error { _, err := c.UserAgent(ctx, "TestUA/1.0"); return err }, "/useragent", ""},
+		{"vehicle", func(c *Client) error { _, err := c.Vehicle(ctx, "1HGCM82633A004352"); return err }, "/vehicle/1HGCM82633A004352", ""},
+		{"vehicle deep", func(c *Client) error {
+			_, err := c.Vehicle(ctx, "1HGCM82633A004352", VehicleOptions{Deep: true})
+			return err
+		}, "/vehicle/1HGCM82633A004352", "deep=true"},
 		{"vin", func(c *Client) error { _, err := c.VIN(ctx, "1HGCM82633A004352"); return err }, "/vin/1HGCM82633A004352", ""},
 		{"vin deep", func(c *Client) error {
 			_, err := c.VIN(ctx, "1HGCM82633A004352", VINOptions{Deep: true})
@@ -607,8 +618,8 @@ func TestMeteredRetryDefaultsAndExplicitOverride(t *testing.T) {
 }
 
 func TestRetryAfterSupportsHTTPDates(t *testing.T) {
-	if delay := retryDelay(0, time.Now().Add(time.Hour).UTC().Format(http.TimeFormat)); delay != 5*time.Second {
-		t.Fatalf("cap: %v", delay)
+	if delay := retryDelay(0, time.Now().Add(time.Hour).UTC().Format(http.TimeFormat)); delay != -1 {
+		t.Fatalf("budget: %v", delay)
 	}
 	if delay := retryDelay(0, time.Now().Add(-time.Hour).UTC().Format(http.TimeFormat)); delay != 0 {
 		t.Fatalf("past: %v", delay)

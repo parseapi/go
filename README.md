@@ -89,22 +89,22 @@ Optional query inputs use one options value. Omit it to use defaults. Use named 
 parse.IP(ctx, "8.8.8.8", parseapi.IPOptions{Deep: true})
 parse.Email(ctx, "hello@example.com", parseapi.EmailOptions{Deep: true})
 parse.VAT(ctx, "DE136695976", parseapi.VATOptions{Deep: true})
-parse.IBAN(ctx, "DE89370400440532013000")
-parse.BIN(ctx, "424242")
-parse.NPI(ctx, "1881018208")
+parse.Bank(ctx, "DE89370400440532013000")
+parse.Card(ctx, "424242")
+parse.Provider(ctx, "1881018208")
 parse.ASN(ctx, "AS13335")
 parse.MAC(ctx, "00:1B:63:84:45:E6")
 parse.Name(ctx, "Andrea", parseapi.NameOptions{Country: "IT"})
 parse.Name(ctx, "Robert James Smith", parseapi.NameOptions{Deep: true, NameLocale: "en"})
-parse.VIN(ctx, "1HGCM82633A004352")
+parse.Vehicle(ctx, "1HGCM82633A004352")
 parse.Carrier(ctx, "+14155552671")
 parse.Caller(ctx, "+18004633339")
 parse.HLR(ctx, "+447712345678")
 parse.UserAgent(ctx, "Mozilla/5.0")
 parse.DNS(ctx, "example.com")
 parse.DNS(ctx, "_dmarc.example.com", parseapi.DNSOptions{Type: "TXT"})
-parse.NAICS(ctx, "541511")
-parse.NAICSSearch(ctx, "coffee shop", parseapi.NAICSSearchOptions{Limit: 5})
+parse.Industry(ctx, "541511")
+parse.IndustrySearch(ctx, "coffee shop", parseapi.IndustrySearchOptions{Limit: 5})
 parse.Tariff(ctx, "8471.30.01.00", parseapi.TariffOptions{Origin: "DE", Deep: true})
 parse.Address(ctx, "123 Main St", parseapi.AddressOptions{Country: "US"})
 parse.AddressSearch(ctx, "123 Main", parseapi.AddressSearchOptions{Country: "US", State: "NC"})
@@ -117,7 +117,7 @@ parse.TimeAt(ctx, 40.7128, -74.006)
 parse.Weather(ctx, 40.7128, -74.006, parseapi.WeatherOptions{Deep: true, Date: "2026-09-01"})
 ```
 
-Paid NAICS `deep` includes full definitions, child categories and classification `exclusions`, each with a description and linked codes. Generic exclusions can have no linked codes. Omitted or null exclusions in older responses remain unknown. Search results keep `country` and `year` on the envelope and optional depth on each result. They also include core `match`: the matched `field` (`name`, `term` or `naics`) and `text`, plus `corrections` with `from` and `to` tokens for typo fallback. Corrections are empty for exact, plural and prefix matches. Direct code lookups omit `match`. Older responses may omit it.
+Paid Industry `deep` includes full definitions, child categories and classification `exclusions`, each with a description and linked codes. Generic exclusions can have no linked codes. Omitted or null exclusions in older responses remain unknown. Search results keep `country` and `year` on the envelope and optional depth on each result. They also include core `match`: the matched `field` (`name`, `term` or `naics`) and `text`, plus `corrections` with `from` and `to` tokens for typo fallback. Corrections are empty for exact, plural and prefix matches. Direct code lookups omit `match`. Older responses may omit it.
 
 Use named fields when constructing response values for fixtures too. Response and options structs reserve room for future fields and cannot be compared with `==`. Nullable values are pointers. Unknown JSON fields are accepted. An omitted `deep` is nil, a requested empty `deep` is a non-nil object, and unknown fields within it stay nil. Nullable arrays use nil slices.
 
@@ -234,6 +234,32 @@ Address search uses context from the form: prefer postal, or city and state. An 
 
 HLR reports status at the last check. `live` means assigned and `connected` means reachable at that check. Cached results may be returned. Null means unconfirmed. Deep diagnostics stay within the same metered lookup.
 
+Bank returns core `checks` for input, country, length, structure, checksum and national rules, plus an `issues` list. States are `passed`, `failed`, `not_checked` or `not_supported`. Unsupported national checking is not a failure. `valid` covers the implemented format and checksum rules, not account existence, ownership or payment reachability. Directory names and BICs may be null independently. Older responses may omit `checks` and `issues`, and future states and issue codes remain strings. Pass the original input unchanged so the API can report invalid characters. Deep `account` remains the BBAN remainder.
+
+Bank inputs use `POST /bank` JSON bodies, keeping IBAN and account values out of request URLs. Pass original strings; the server owns normalization and validation. Avoid logging request bodies. IBAN deep can include `directory` with the immutable `edition`, resolved `country` and actual `match` grain (`bank`, `branch`, `prefix` or `none`); it is absent if no directory lookup ran. A match does not prove complete country coverage or payment reachability.
+
+Use country requirements to build supported input fields. US ACH has an explicit helper with no deep option. It checks the routing format/ABA checksum and account-field syntax; `account_checksum` is `not_supported`. It preserves account characters and leading zeros. A nullable bank name is routing-directory identity, not account existence, ownership or ACH eligibility. The examples below are synthetic test inputs, not payment instructions.
+
+```go
+parse.BankRequirements(ctx, "US", parseapi.BankRequirementsOptions{Format: "us_ach"})
+parse.BankUSACH(ctx, parseapi.BankUSACHInput{Routing: "011000015", Account: "0001234567"})
+```
+
+## Provider lookup
+
+```go
+provider, err := parse.Provider(ctx, "1881018208")
+profile, err := parse.Provider(ctx, "1881018208", parseapi.ProviderOptions{Deep: true})
+```
+
+Pass the original NPI as a string. `valid` checks its format and checksum; `registered` means a match in the stored NPPES snapshot. `active` reflects recorded NPI deactivation, not licensure. `excluded` is an NPI-only OIG LEIE match; `false` is not a complete exclusion clearance. These directory facts do not verify credentials, current practice contact or payment eligibility.
+
+Invalid input returns `valid: false` with unknown provider fields. A checksum-valid number missing from the snapshot returns `registered: false`; unavailable storage remains an API error. Preserve `null` as unknown.
+
+The default pooled lookup includes provider identity, specialty and practice contact where held. Paid `deep` adds `deactivated_at`, `medicare`, `opt_out` and `enrollments` from stored source files, with no separate check meter or live verification. `enrollments: null` means unavailable; `[]` means no enrollment rows are returned. The API omits unrequested `deep` and returns `{}` when requested on Free.
+
+Paid Deep also returns `taxonomies` in published order, with taxonomy code, specialty label, primary flag and provider-reported license number/state, plus `enumerated_at`, `updated_at` and `reactivated_at` record dates. Reported licenses are not verified licenses. Null lists mean unavailable; empty lists mean the edition contains no entries. Core `sources` is available on every plan: NPPES, LEIE, PECOS and opt-out each have nullable edition metadata (`edition`, `published_at`, `through`, `imported_at`). Provider record dates are separate from source publication and completed import dates. Older responses may omit these additions. Edition details remain null until a verified source is served.
+
 ## Deep
 
 The default call returns the common answer. Request more detail with `parse.Country(ctx, "US", parseapi.CountryOptions{Deep: true})`. Read those fields from the optional deep member; this does not change the core answer.
@@ -245,10 +271,11 @@ The default call returns the common answer. Request more detail with `parse.Coun
 | Email | A metered mailbox check with deliverability, catch-all, status, reason and address hints, using included email checks or enabled on-demand usage. |
 | VAT | A metered registry check where supported, using included VAT checks or enabled on-demand usage. |
 | Country, State, City, District, Postal | Reference profiles included with a paid plan; place identity and coordinates stay core. |
-| VIN, NPI, NAICS, Company | Paid technical or registration profiles. NPI exclusion status and NAICS hierarchy stay core. |
+| NPI | Deactivation date, Medicare enrollment, opt-out and enrollment rows from stored sources on paid plans. Exclusion evidence stays core. |
+| VIN, Industry, Company | Paid technical or registration profiles. NPI exclusion status and Industry hierarchy stay core. |
 | Tariff | Paid schedule columns and units; add origin for applicable measures. |
 | Name, Weather | Paid name context or weather detail; parsing and current conditions stay core. |
-| Phone, IBAN | Numbering-plan or bank structure detail in the same pooled request on every plan. |
+| Phone, Bank | Numbering-plan or bank structure detail in the same pooled request on every plan. |
 | Time, Date, Currency, Language, Emoji, Point | Optional reference detail in the same pooled request on every plan. |
 | Carrier, HLR | Available place or network detail from the same metered core unit, including Free included units. |
 
@@ -287,13 +314,38 @@ parse, err := parseapi.New("your-api-key",
 )
 ```
 
-`WithRetries(0)` disables all automatic retries. Both numeric and HTTP-date `Retry-After` values are honored, capped at five seconds. Built-in requests do not follow redirects. `WithHTTPClient` copies your client and keeps redirects disabled. Custom transports must also keep credentials on the requested origin.
+`WithRetries(0)` disables all automatic retries. Numeric and HTTP-date `Retry-After` values within five seconds are honored. Longer waits return the original API error immediately. `RetryAfter` carries the original header, or nil when absent. Built-in requests do not follow redirects. `WithHTTPClient` copies your client and keeps redirects disabled. Custom transports must also keep credentials on the requested origin.
 
 Requires Go 1.21 or later. Standard library only.
 
 [Full endpoint and field reference](https://parseapi.com/docs)
 
-BIN lookup accepts 6-11 digits as a string, including leading zeros. Spaces and hyphens are accepted. `prefix` is the actual longest match and can be shorter than the input. Unknown reference fields are null. `deep` adds an empty object on every plan.
+## Card
+
+Send 2–11 leading digits as a string. Core returns `bin`, `brand`, `brand_name`
+and a CDN SVG `logo`. Brand detection uses reviewed network rules independently
+of issuer records. Unknown or ambiguous prefixes return null brand fields and a
+generic logo; a known network without reviewed artwork also uses the generic logo.
+
+Optional Deep adds `prefix`, `issuer`, `country`, `type` and `prepaid`, included
+in the same pooled request on every plan. Six or more digits enable directory
+matching. Fewer digits return all-null Deep fields. Compare `deep.prefix` with
+`bin`: equal is an exact recorded match; shorter is broader; null is no match.
+The longest row wins, including null fields. `prepaid: null` means unknown, not
+false. This is partial reference data, not card validity or payment acceptance.
+
+```go
+card, err := parse.Card(ctx, "51")
+if err != nil { return err }
+fmt.Println(card.Logo)
+details, err := parse.CardWithOptions(ctx, "43737400", parseapi.CardOptions{Deep: true})
+if err != nil { return err }
+if details.Deep != nil { fmt.Println(details.Deep.Prefix) }
+```
+
+Leading zeros are preserved. Only ASCII spaces, tabs, CR, LF and hyphens are
+removed; raw input is limited to 64 characters. Invalid prefixes are rejected
+before dispatch, accepted input is forwarded unchanged. Never send a full card number.
 
 ## Stack
 
@@ -311,3 +363,5 @@ Pass a public hostname without a scheme, path, port or IP address. Stack returns
 The complete technology result is included in the core response. The generic `deep=true` option adds only an empty object and is unnecessary for Stack. Successful checks may be reused for up to 24 hours. `pretty` optionally formats the wire JSON. Each lookup uses one request and API version 2.0.0 selected by this client.
 
 Stack defaults to 35 seconds per attempt so a first scan has time to finish. Other lookups retain their 10-second default. An explicit client timeout takes precedence.
+
+Vehicle lookups use `vin` as the input and response field. Existing VIN methods remain available for compatibility.

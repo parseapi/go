@@ -20,14 +20,14 @@ func TestADPModelsPreserveCoreAndDeepTriad(t *testing.T) {
 		{"District", `{"district":"37081","name":"Guilford","country":"US"}`, `{"population":0,"water_area":0.25}`, &District{}},
 		{"City", `{"name":"Charlotte","country":"US","id":"city_123"}`, `{"population":0,"area":0.25}`, &City{}},
 		{"Postal", `{"postal":"28202","country":"US"}`, `{"metros":[],"water_area":0.25,"tax_rate":0}`, &Postal{}},
-		{"IBAN", `{"iban":"DE89370400440532013000","valid":true}`, `{"checksum":"89","branch":null,"account":"0532013000"}`, &IBAN{}},
-		{"NPI", `{"npi":"1881018208","valid":true,"excluded":true,"credential":"MD","state_name":"Minnesota"}`, `{"deactivated_at":"2026-09-01","enrollments":[]}`, &NPI{}},
+		{"Bank", `{"iban":"DE89370400440532013000","valid":true}`, `{"checksum":"89","branch":null,"account":"0532013000"}`, &Bank{}},
+		{"NPI", `{"npi":"1881018208","valid":true,"excluded":true,"credential":"MD","state_name":"Minnesota"}`, `{"deactivated_at":"2026-09-01","enrollments":[]}`, &Provider{}},
 		{"VIN", `{"vin":"1HGCM82633A004352","valid":true,"make":"Honda"}`, `{"horsepower":240.5,"recalls":[]}`, &VIN{}},
 		{"Phone", `{"phone":"+14155552671","valid":true}`, `{"state":"CA","timezone":"America/Los_Angeles"}`, &Phone{}},
 		{"Carrier", `{"phone":"+14155552671","valid":true,"carrier":"Example"}`, `{"city":"San Francisco","state":"CA"}`, &Carrier{}},
 		{"HLR", `{"phone":"+14155552671","valid":true,"live":true,"connected":false}`, `{"roaming":false,"mcc":"310","mnc":"01"}`, &HLR{}},
 		{"Tariff", `{"hts":"8471.30.01.00","description":"Portable computers","revision":"2026"}`, `{"units":[],"special":"Free","origin":null,"effective_rate":null,"measures":null}`, &Tariff{}},
-		{"NAICS", `{"naics":"541511","name":"Programming","level":6,"parent":"54151","year":2022,"country":"US"}`, `{"description":"Definition","children":[],"exclusions":[]}`, &NAICS{}},
+		{"Industry", `{"naics":"541511","name":"Programming","level":6,"parent":"54151","year":2022,"country":"US"}`, `{"description":"Definition","children":[],"exclusions":[]}`, &Industry{}},
 		{"Company", `{"company":"01234567","valid":true,"name":"Example"}`, `{"activity":"6201","gst":false,"vat":null}`, &Company{}},
 		{"Currency", `{"currency":"USD","name":"US Dollar"}`, `{"numeric":840,"countries":[]}`, &Currency{}},
 		{"Language", `{"language":"en","name":"English","direction":"ltr"}`, `{"iso3":"eng","countries":[]}`, &Language{}},
@@ -99,7 +99,7 @@ func TestADPOptionsSendOneExplicitDisclosure(t *testing.T) {
 			return err
 		},
 		func(c *Client) error {
-			_, err := c.IBAN(ctx, "DE89370400440532013000", IBANOptions{Deep: true})
+			_, err := c.Bank(ctx, "DE89370400440532013000", BankOptions{Deep: true})
 			return err
 		},
 		func(c *Client) error {
@@ -107,9 +107,9 @@ func TestADPOptionsSendOneExplicitDisclosure(t *testing.T) {
 			return err
 		},
 		func(c *Client) error { _, err := c.HLR(ctx, "+14155552671", HLROptions{Deep: true}); return err },
-		func(c *Client) error { _, err := c.NAICS(ctx, "541511", NAICSOptions{Deep: true}); return err },
+		func(c *Client) error { _, err := c.Industry(ctx, "541511", IndustryOptions{Deep: true}); return err },
 		func(c *Client) error {
-			_, err := c.NAICSSearch(ctx, "software", NAICSSearchOptions{Deep: true})
+			_, err := c.IndustrySearch(ctx, "software", IndustrySearchOptions{Deep: true})
 			return err
 		},
 		func(c *Client) error { _, err := c.Currency(ctx, "USD", CurrencyOptions{Deep: true}); return err },
@@ -131,6 +131,13 @@ func TestADPOptionsSendOneExplicitDisclosure(t *testing.T) {
 		client, got := newTestClient(t, okJSON(`{}`))
 		if err := call(client); err != nil {
 			t.Fatal(err)
+		}
+		if got.path == "/bank" {
+			var body map[string]any
+			if json.Unmarshal(got.body, &body) != nil || body["deep"] != true {
+				t.Fatal("missing Bank body deep")
+			}
+			continue
 		}
 		if got.rawQry != "deep=true" && !strings.Contains(got.rawQry, "deep=true&") && !strings.Contains(got.rawQry, "&deep=true") {
 			t.Fatalf("missing explicit disclosure: %s", got.rawQry)

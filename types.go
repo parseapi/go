@@ -328,7 +328,26 @@ type VAT struct {
 	Deep    *VATDeep `json:"deep,omitempty"`
 }
 
-type IBAN struct {
+// BankChecks reports ordered IBAN checks. States remain open strings.
+type BankChecks struct {
+	_         [0]func()
+	Input     string `json:"input"`
+	Country   string `json:"country"`
+	Length    string `json:"length"`
+	Structure string `json:"structure"`
+	Checksum  string `json:"checksum"`
+	National  string `json:"national"`
+}
+
+// BankIssue is a validation issue. Fields and codes remain open strings.
+type BankIssue struct {
+	_       [0]func()
+	Field   string `json:"field"`
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+type Bank struct {
 	_       [0]func()
 	IBAN    *string `json:"iban"`
 	Valid   bool    `json:"valid"`
@@ -336,22 +355,54 @@ type IBAN struct {
 	// Formatted is the print form in groups of four, for display. Nil when invalid.
 	Formatted *string `json:"formatted"`
 	// Bank is the identifier parsed from the number, not a name.
-	Bank     *string   `json:"bank"`
-	BankName *string   `json:"bank_name"`
-	Bic      *string   `json:"bic"`
-	Deep     *IBANDeep `json:"deep,omitempty"`
+	Bank     *string `json:"bank"`
+	BankName *string `json:"bank_name"`
+	Bic      *string `json:"bic"`
+	// Checks and Issues are optional on older responses.
+	Checks *BankChecks `json:"checks,omitempty"`
+	Issues []BankIssue `json:"issues,omitempty"`
+	Deep   *BankDeep   `json:"deep,omitempty"`
 }
 
 // NPI is a US healthcare provider record in the healthcare provider registry.
-type NPI struct {
+type ProviderTaxonomy struct {
 	_ [0]func()
-	// NPI is the normalized 10-digit NPI. Invalid input still echoes the fold.
-	NPI   *string `json:"npi"`
-	Valid bool    `json:"valid"`
-	// Registered reports whether the NPI exists in the registry.
+	Taxonomy *string `json:"taxonomy"`
+	Specialty *string `json:"specialty"`
+	Primary *bool `json:"primary"`
+	License *string `json:"license"`
+	State *string `json:"state"`
+}
+
+type ProviderSource struct {
+	_ [0]func()
+	Edition *string `json:"edition"`
+	PublishedAt *string `json:"published_at"`
+	Through *string `json:"through"`
+	ImportedAt *string `json:"imported_at"`
+}
+
+type ProviderSources struct {
+	_ [0]func()
+	Nppes *ProviderSource `json:"nppes"`
+	Leie *ProviderSource `json:"leie"`
+	Pecos *ProviderSource `json:"pecos"`
+	Optout *ProviderSource `json:"optout"`
+}
+
+// Provider is a US healthcare provider record in the healthcare provider registry.
+type Provider struct {
+	Sources *ProviderSources `json:"sources"`
+	_ [0]func()
+	// NPI is input with accepted separators removed; nil when empty. Invalid values remain visible.
+	NPI *string `json:"npi"`
+	// Valid checks format and NPI checksum only, not a provider or credentials.
+	Valid bool `json:"valid"`
+	// Registered reports a match in the stored NPPES snapshot; nil for invalid input.
 	Registered *bool `json:"registered"`
-	Active     *bool `json:"active"`
-	// Excluded reports the OIG exclusion flag.
+	// Active is recorded NPI activation status; nil when unknown, not licensure or practice status.
+	Active *bool `json:"active"`
+	// Excluded is an NPI-only match in the stored OIG LEIE file. False is not complete exclusion clearance.
 	Excluded *bool `json:"excluded"`
 	// Type is individual or organization.
 	Type       *string `json:"type"`
@@ -369,11 +420,11 @@ type NPI struct {
 	Postal    *string  `json:"postal"`
 	Country   *string  `json:"country"`
 	Phone     *string  `json:"phone"`
-	Deep      *NPIDeep `json:"deep,omitempty"`
+	Deep      *ProviderDeep `json:"deep,omitempty"`
 }
 
-// NPIEnrollment is one Medicare FFS enrollment row.
-type NPIEnrollment struct {
+// ProviderEnrollment is one Medicare FFS enrollment row.
+type ProviderEnrollment struct {
 	_ [0]func()
 	// Type is part_a, part_b, practitioner, dme, order_refer, or mdpp.
 	Type      *string `json:"type"`
@@ -381,16 +432,20 @@ type NPIEnrollment struct {
 	State     *string `json:"state"`
 }
 
-// NPIDeep is Medicare enrollment on paid plans.
-type NPIDeep struct {
+// ProviderDeep is Medicare enrollment on paid plans.
+type ProviderDeep struct {
+	EnumeratedAt *string `json:"enumerated_at"`
+	UpdatedAt *string `json:"updated_at"`
+	ReactivatedAt *string `json:"reactivated_at"`
+	Taxonomies []ProviderTaxonomy `json:"taxonomies"`
 	_ [0]func()
-	// Medicare is whether the NPI is in the published FFS enrollment extract.
+	// Medicare reports presence in the stored FFS enrollment extract, not payment eligibility.
 	Medicare *bool `json:"medicare"`
-	// OptOut is whether the NPI has a Medicare opt-out affidavit.
+	// OptOut is an NPI-only match in the stored CMS opt-out affidavit list; nil when unavailable.
 	OptOut *bool `json:"opt_out"`
-	// Enrollments is type, specialty, and state. Empty when Medicare is false.
-	Enrollments []NPIEnrollment `json:"enrollments"`
-	// DeactivatedAt is the ISO date the NPI was deactivated.
+	// Enrollments contains stored type, specialty, and state. Nil means unavailable; empty means no rows are returned.
+	Enrollments []ProviderEnrollment `json:"enrollments"`
+	// DeactivatedAt is the recorded ISO deactivation date; nil when active or unavailable.
 	DeactivatedAt *string `json:"deactivated_at"`
 }
 
@@ -637,19 +692,24 @@ type MAC struct {
 	Multicast *bool   `json:"multicast"`
 }
 
-// BIN contains card-prefix reference data. Nil reference fields mean unknown.
-type BIN struct {
-	_   [0]func()
-	BIN string `json:"bin"`
-	// Prefix is the actual longest match and may be shorter than BIN.
-	Prefix    *string        `json:"prefix"`
-	Country   *string        `json:"country"`
-	Issuer    *string        `json:"issuer"`
-	Brand     *string        `json:"brand"`
-	BrandName *string        `json:"brand_name"`
-	Type      *string        `json:"type"`
-	Prepaid   *bool          `json:"prepaid"`
-	Deep      map[string]any `json:"deep,omitempty"`
+// Card contains network identity; nil brand means unknown or ambiguous.
+type Card struct {
+	_         [0]func()
+	BIN       string    `json:"bin"`
+	Brand     *string   `json:"brand"`
+	BrandName *string   `json:"brand_name"`
+	Logo      string    `json:"logo"`
+	Deep      *CardDeep `json:"deep,omitempty"`
+}
+
+// CardDeep is optional, partial recorded issuer data. Nil fields mean unknown.
+type CardDeep struct {
+	_       [0]func()
+	Prefix  *string `json:"prefix"`
+	Issuer  *string `json:"issuer"`
+	Country *string `json:"country"`
+	Type    *string `json:"type"`
+	Prepaid *bool   `json:"prepaid"`
 }
 
 // DNSRecord preserves DNS presentation text, including TXT quoting.
@@ -1354,9 +1414,10 @@ type PostalDeep struct {
 	PropertyTax *PropertyTax `json:"property_tax"`
 }
 
-type IBANDeep struct {
-	_        [0]func()
-	Checksum *string `json:"checksum"`
+type BankDeep struct {
+	Directory *BankDirectory `json:"directory,omitempty"`
+	_         [0]func()
+	Checksum  *string `json:"checksum"`
 	// Branch is the identifier when that country has one.
 	Branch  *string `json:"branch"`
 	Account *string `json:"account"`
@@ -1611,4 +1672,167 @@ type TimeLocation struct {
 	Candidates []TimeLocationCandidate `json:"candidates"`
 	Truncated  bool                    `json:"truncated"`
 	Source     string                  `json:"source"`
+}
+
+// BankUSACHInput preserves routing and account identifiers as strings.
+type BankUSACHInput struct {
+	Routing string `json:"routing"`
+	Account string `json:"account"`
+}
+
+// BankUSACHChecks contains open check-status strings.
+type BankUSACHChecks struct {
+	RoutingFormat   string `json:"routing_format"`
+	RoutingChecksum string `json:"routing_checksum"`
+	AccountFormat   string `json:"account_format"`
+	AccountChecksum string `json:"account_checksum"`
+}
+
+// BankUSACH checks syntax only; it does not verify an account or ACH eligibility.
+type BankUSACH struct {
+	Format   string          `json:"format"`
+	Country  string          `json:"country"`
+	Routing  *string         `json:"routing"`
+	Account  *string         `json:"account"`
+	Valid    bool            `json:"valid"`
+	BankName *string         `json:"bank_name"`
+	Checks   BankUSACHChecks `json:"checks"`
+	Issues   []BankIssue     `json:"issues"`
+}
+
+// BankDirectory describes the edition and actual match grain, not country completeness.
+type BankDirectory struct {
+	Edition string `json:"edition"`
+	Country string `json:"country"`
+	Match   string `json:"match"`
+}
+
+// BankRequirementField describes one accepted input field.
+type BankRequirementField struct {
+	Key            string  `json:"key"`
+	Label          string  `json:"label"`
+	Required       bool    `json:"required"`
+	Type           string  `json:"type"`
+	Length         *int    `json:"length,omitempty"`
+	MinLength      *int    `json:"min_length,omitempty"`
+	MaxLength      *int    `json:"max_length,omitempty"`
+	MaxInputLength *int    `json:"max_input_length,omitempty"`
+	LengthUnit     *string `json:"length_unit,omitempty"`
+	Pattern        *string `json:"pattern,omitempty"`
+	Normalization  *string `json:"normalization,omitempty"`
+}
+
+// BankRequirements describes input rules and check scope for one country and format.
+type BankRequirements struct {
+	Country     string                 `json:"country"`
+	Format      string                 `json:"format"`
+	Supported   bool                   `json:"supported"`
+	Fields      []BankRequirementField `json:"fields"`
+	Checks      map[string]string      `json:"checks"`
+	Limitations []string               `json:"limitations"`
+}
+
+// Industry names for the existing US NAICS response contract.
+type Industry = NAICS
+type IndustryChild = NAICSChild
+type IndustryCorrection = NAICSCorrection
+type IndustryDeep = NAICSDeep
+type IndustryExclusion = NAICSExclusion
+type IndustryMatch = NAICSMatch
+type IndustrySearch = NAICSSearch
+type IndustrySearchResult = NAICSSearchResult
+
+type Vehicle = VIN
+type VehicleDeep = VINDeep
+type VehicleRecall = VINRecall
+
+// Published compatibility API.
+type IBAN struct {
+	_       [0]func()
+	IBAN    *string `json:"iban"`
+	Valid   bool    `json:"valid"`
+	Country *string `json:"country"`
+	// Formatted is the print form in groups of four, for display. Nil when invalid.
+	Formatted *string `json:"formatted"`
+	// Bank is the identifier parsed from the number, not a name.
+	Bank     *string   `json:"bank"`
+	BankName *string   `json:"bank_name"`
+	Bic      *string   `json:"bic"`
+	Deep     *IBANDeep `json:"deep,omitempty"`
+}
+
+
+type NPI struct {
+	_ [0]func()
+	// NPI is the normalized 10-digit NPI. Invalid input still echoes the fold.
+	NPI   *string `json:"npi"`
+	Valid bool    `json:"valid"`
+	// Registered reports whether the NPI exists in the registry.
+	Registered *bool `json:"registered"`
+	Active     *bool `json:"active"`
+	// Excluded reports the OIG exclusion flag.
+	Excluded *bool `json:"excluded"`
+	// Type is individual or organization.
+	Type       *string `json:"type"`
+	Name       *string `json:"name"`
+	First      *string `json:"first"`
+	Last       *string `json:"last"`
+	Credential *string `json:"credential"`
+	Specialty  *string `json:"specialty"`
+	// Taxonomy is the NUCC taxonomy code.
+	Taxonomy  *string  `json:"taxonomy"`
+	Address   *string  `json:"address"`
+	City      *string  `json:"city"`
+	State     *string  `json:"state"`
+	StateName *string  `json:"state_name"`
+	Postal    *string  `json:"postal"`
+	Country   *string  `json:"country"`
+	Phone     *string  `json:"phone"`
+	Deep      *NPIDeep `json:"deep,omitempty"`
+}
+
+
+type NPIEnrollment struct {
+	_ [0]func()
+	// Type is part_a, part_b, practitioner, dme, order_refer, or mdpp.
+	Type      *string `json:"type"`
+	Specialty *string `json:"specialty"`
+	State     *string `json:"state"`
+}
+
+
+type NPIDeep struct {
+	_ [0]func()
+	// Medicare is whether the NPI is in the published FFS enrollment extract.
+	Medicare *bool `json:"medicare"`
+	// OptOut is whether the NPI has a Medicare opt-out affidavit.
+	OptOut *bool `json:"opt_out"`
+	// Enrollments is type, specialty, and state. Empty when Medicare is false.
+	Enrollments []NPIEnrollment `json:"enrollments"`
+	// DeactivatedAt is the ISO date the NPI was deactivated.
+	DeactivatedAt *string `json:"deactivated_at"`
+}
+
+
+type BIN struct {
+	_   [0]func()
+	BIN string `json:"bin"`
+	// Prefix is the actual longest match and may be shorter than BIN.
+	Prefix    *string        `json:"prefix"`
+	Country   *string        `json:"country"`
+	Issuer    *string        `json:"issuer"`
+	Brand     *string        `json:"brand"`
+	BrandName *string        `json:"brand_name"`
+	Type      *string        `json:"type"`
+	Prepaid   *bool          `json:"prepaid"`
+	Deep      map[string]any `json:"deep,omitempty"`
+}
+
+
+type IBANDeep struct {
+	_        [0]func()
+	Checksum *string `json:"checksum"`
+	// Branch is the identifier when that country has one.
+	Branch  *string `json:"branch"`
+	Account *string `json:"account"`
 }

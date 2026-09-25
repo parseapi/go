@@ -3,6 +3,7 @@
 package parseapi
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -18,7 +19,7 @@ import (
 )
 
 const (
-	version         = "1.7.0"
+	version         = "1.8.0"
 	defaultBaseURL  = "https://api.parseapi.com"
 	defaultTimeout  = 10 * time.Second
 	defaultRetries  = 2
@@ -38,6 +39,8 @@ type Error struct {
 	Message   string
 	Docs      string
 	RequestID string
+	// RetryAfter is the original HTTP Retry-After header, or nil when absent.
+	RetryAfter *string
 }
 
 func (e *Error) Error() string {
@@ -139,23 +142,42 @@ func New(apiKey string, opts ...Option) (*Client, error) {
 	return c, nil
 }
 
+// A negative delay declines an automatic retry that would exceed its wait budget.
 func retryDelay(attempt int, retryAfter string) time.Duration {
 	if retryAfter != "" {
-		if seconds, err := strconv.ParseFloat(retryAfter, 64); err == nil && seconds >= 0 {
-			return time.Duration(math.Min(seconds*1000, retryAfterCapMs)) * time.Millisecond
+		value := strings.TrimSpace(retryAfter)
+		numeric := value != ""
+		dots := 0
+		for i, ch := range value {
+			if ch == '.' && i > 0 && i < len(value)-1 && dots == 0 {
+				dots++
+				continue
+			}
+			if ch < '0' || ch > '9' {
+				numeric = false
+				break
+			}
 		}
-		if at, err := http.ParseTime(retryAfter); err == nil {
+		if numeric {
+			seconds, _ := strconv.ParseFloat(value, 64)
+			// Compare before converting, including positive float overflow.
+			if seconds > float64(retryAfterCapMs)/1000 {
+				return -1
+			}
+			return time.Duration(seconds * float64(time.Second))
+		}
+		if at, err := http.ParseTime(value); err == nil {
 			delay := time.Until(at)
 			if delay < 0 {
 				return 0
 			}
 			if delay > 5*time.Second {
-				return 5 * time.Second
+				return -1
 			}
 			return delay
 		}
 	}
-	return time.Duration(rand.Float64()*250*math.Pow(2, float64(attempt))) * time.Millisecond
+	return time.Duration(rand.Float64()*math.Min(250*math.Pow(2, math.Min(float64(attempt), 16)), retryAfterCapMs)) * time.Millisecond
 }
 
 func waitRetry(ctx context.Context, delay time.Duration) error {
@@ -187,6 +209,18 @@ func meteredRequest(path string, query url.Values) bool {
 }
 
 func (c *Client) get(ctx context.Context, path string, query url.Values, headers map[string]string, out any) error {
+	return c.request(ctx, http.MethodGet, path, query, headers, nil, out)
+}
+
+func (c *Client) post(ctx context.Context, path string, input any, out any) error {
+	body, err := json.Marshal(input)
+	if err != nil {
+		return err
+	}
+	return c.request(ctx, http.MethodPost, path, nil, nil, body, out)
+}
+
+func (c *Client) request(ctx context.Context, method, path string, query url.Values, headers map[string]string, body []byte, out any) error {
 	// A request-local copy preserves concurrent lookups and caller-owned clients.
 	httpClient := c.httpClient
 	if !c.timeoutSet && strings.HasPrefix(path, "/stack/") {
@@ -204,9 +238,12 @@ func (c *Client) get(ctx context.Context, path string, query url.Values, headers
 	}
 
 	for attempt := 0; ; attempt++ {
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, target, nil)
+		req, err := http.NewRequestWithContext(ctx, method, target, bytes.NewReader(body))
 		if err != nil {
 			return err
+		}
+		if body != nil {
+			req.Header.Set("Content-Type", "application/json")
 		}
 		req.Header.Set("X-API-Key", c.apiKey)
 		req.Header.Set("Parse-Version", apiVersion)
@@ -233,17 +270,23 @@ func (c *Client) get(ctx context.Context, path string, query url.Values, headers
 
 		if retryStatus[res.StatusCode] && attempt < retries {
 			retryAfter := res.Header.Get("Retry-After")
-			res.Body.Close()
-			if err := waitRetry(ctx, retryDelay(attempt, retryAfter)); err != nil {
-				return err
+			if delay := retryDelay(attempt, retryAfter); delay >= 0 {
+				res.Body.Close()
+				if err := waitRetry(ctx, delay); err != nil {
+					return err
+				}
+				continue
 			}
-			continue
 		}
 
 		apiErr := &Error{
 			Status:  res.StatusCode,
 			Code:    "unknown_error",
 			Message: fmt.Sprintf("Request failed with status %d", res.StatusCode),
+		}
+		if values, present := res.Header[http.CanonicalHeaderKey("Retry-After")]; present && len(values) > 0 {
+			value := values[0]
+			apiErr.RetryAfter = &value
 		}
 		var body struct {
 			Code      string `json:"code"`
@@ -828,40 +871,68 @@ func (c *Client) VAT(ctx context.Context, number string, options ...VATOptions) 
 	return out, nil
 }
 
-// IBANOptions configures IBAN. Omitted fields use API defaults.
-type IBANOptions struct {
+// BankOptions configures Bank. Omitted fields use API defaults.
+type BankOptions struct {
 	_       [0]func()
 	Country string
 	Deep    bool
 }
 
-// IBAN calls /iban/{iban}.
-func (c *Client) IBAN(ctx context.Context, iban string, options ...IBANOptions) (*IBAN, error) {
+// Bank sends the original IBAN in a JSON body to POST /bank.
+func (c *Client) Bank(ctx context.Context, iban string, options ...BankOptions) (*Bank, error) {
 	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
 	}
-	deep := ""
-	if opts.Deep {
-		deep = "true"
+	input := map[string]any{"iban": iban}
+	if opts.Country != "" {
+		input["country"] = opts.Country
 	}
-	out := &IBAN{}
-	if err := c.get(ctx, "/iban/"+seg(iban), values("country", opts.Country, "deep", deep), nil, out); err != nil {
+	if opts.Deep {
+		input["deep"] = true
+	}
+	out := &Bank{}
+	if err := c.post(ctx, "/bank", input, out); err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// NPIOptions configures NPI. Omitted fields use API defaults.
-type NPIOptions struct {
+// BankUSACH sends US routing and account strings in a JSON request body.
+func (c *Client) BankUSACH(ctx context.Context, input BankUSACHInput) (*BankUSACH, error) {
+	out := &BankUSACH{}
+	if err := c.post(ctx, "/bank", map[string]string{"format": "us_ach", "country": "US", "routing": input.Routing, "account": input.Account}, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// BankRequirementsOptions selects an input format; omitted format defaults to IBAN.
+type BankRequirementsOptions struct{ Format string }
+
+// BankRequirements describes accepted fields and validation scope, not directory completeness.
+func (c *Client) BankRequirements(ctx context.Context, country string, options ...BankRequirementsOptions) (*BankRequirements, error) {
+	opts, err := oneOption(options)
+	if err != nil {
+		return nil, err
+	}
+	out := &BankRequirements{}
+	if err := c.get(ctx, "/bank/requirements", values("country", country, "format", opts.Format), nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ProviderOptions configures NPI. Omitted fields use API defaults.
+type ProviderOptions struct {
 	// Lang selects translated display names for this request.
 	Lang string
 	_    [0]func()
 	Deep bool
 }
 
-// NPI calls /npi/{npi}.
-func (c *Client) NPI(ctx context.Context, npi string, options ...NPIOptions) (*NPI, error) {
+// NPI calls /provider/{npi}.
+func (c *Client) Provider(ctx context.Context, npi string, options ...ProviderOptions) (*Provider, error) {
 	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
@@ -870,8 +941,8 @@ func (c *Client) NPI(ctx context.Context, npi string, options ...NPIOptions) (*N
 	if opts.Deep {
 		deep = "true"
 	}
-	out := &NPI{}
-	if err := c.get(ctx, "/npi/"+seg(npi), values("lang", opts.Lang, "deep", deep), nil, out); err != nil {
+	out := &Provider{}
+	if err := c.get(ctx, "/provider/"+seg(npi), values("lang", opts.Lang, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1061,24 +1132,37 @@ func (c *Client) MAC(ctx context.Context, mac string, options ...MACOptions) (*M
 	return out, nil
 }
 
-// BINOptions configures BIN. Deep requests an empty object on every plan.
-type BINOptions struct {
+// Card looks up a 2-11 digit card prefix. Preserve leading zeros in the string.
+func (c *Client) Card(ctx context.Context, bin string) (*Card, error) {
+	return c.CardWithOptions(ctx, bin, CardOptions{})
+}
+
+// CardOptions requests optional recorded issuer details, included on every plan.
+type CardOptions struct {
 	_    [0]func()
 	Deep bool
 }
 
-// BIN looks up a 6-11 digit card prefix. Preserve leading zeros in the string.
-func (c *Client) BIN(ctx context.Context, bin string, options ...BINOptions) (*BIN, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
+// CardWithOptions adds recorded issuer details without changing core identity.
+func (c *Client) CardWithOptions(ctx context.Context, bin string, opts CardOptions) (*Card, error) {
+	digits := 0
+	valid := len(bin) <= 64
+	for _, ch := range bin {
+		if ch >= '0' && ch <= '9' {
+			digits++
+		} else if ch != ' ' && ch != '\t' && ch != '\r' && ch != '\n' && ch != '-' {
+			valid = false
+		}
 	}
-	deep := ""
+	if !valid || digits < 2 || digits > 11 {
+		return nil, errors.New("parseapi: Card requires a string containing 2 to 11 digits. Send a prefix only.")
+	}
+	out := &Card{}
+	query := url.Values{}
 	if opts.Deep {
-		deep = "true"
+		query.Set("deep", "true")
 	}
-	out := &BIN{}
-	if err := c.get(ctx, "/bin/"+seg(bin), values("deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/card/"+seg(bin), query, nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1151,6 +1235,23 @@ type VINOptions struct {
 	Deep bool
 }
 
+// Vehicle identifies a vehicle by VIN.
+func (c *Client) Vehicle(ctx context.Context, vin string, options ...VehicleOptions) (*Vehicle, error) {
+	opts, err := oneOption(options)
+	if err != nil {
+		return nil, err
+	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
+	out := &Vehicle{}
+	if err := c.get(ctx, "/vehicle/"+seg(vin), values("deep", deep), nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VIN calls /vin/{vin}.
 func (c *Client) VIN(ctx context.Context, vin string, options ...VINOptions) (*VIN, error) {
 	opts, err := oneOption(options)
@@ -1168,14 +1269,14 @@ func (c *Client) VIN(ctx context.Context, vin string, options ...VINOptions) (*V
 	return out, nil
 }
 
-// NAICSOptions reserves optional settings for NAICS.
+// NAICSOptions reserves optional settings for Industry.
 type NAICSOptions struct {
 	_    [0]func()
 	Deep bool
 }
 
-// NAICS looks up a US NAICS 2022 code and its hierarchy.
-func (c *Client) NAICS(ctx context.Context, code string, options ...NAICSOptions) (*NAICS, error) {
+// Industry looks up a US NAICS 2022 code and its hierarchy.
+func (c *Client) Industry(ctx context.Context, code string, options ...NAICSOptions) (*Industry, error) {
 	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
@@ -1184,8 +1285,8 @@ func (c *Client) NAICS(ctx context.Context, code string, options ...NAICSOptions
 	if opts.Deep {
 		deep = "true"
 	}
-	out := &NAICS{}
-	if err := c.get(ctx, "/naics/"+seg(code), values("deep", deep), nil, out); err != nil {
+	out := &Industry{}
+	if err := c.get(ctx, "/industry/"+seg(code), values("deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1198,8 +1299,8 @@ type NAICSSearchOptions struct {
 	Deep  bool
 }
 
-// NAICSSearch searches US NAICS 2022 industry names and activity terms.
-func (c *Client) NAICSSearch(ctx context.Context, query string, options ...NAICSSearchOptions) (*NAICSSearch, error) {
+// IndustrySearch searches US NAICS 2022 industry names and activity terms.
+func (c *Client) IndustrySearch(ctx context.Context, query string, options ...NAICSSearchOptions) (*IndustrySearch, error) {
 	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
@@ -1212,8 +1313,8 @@ func (c *Client) NAICSSearch(ctx context.Context, query string, options ...NAICS
 	if opts.Deep {
 		deep = "true"
 	}
-	out := &NAICSSearch{}
-	if err := c.get(ctx, "/naics", values("q", query, "limit", limit, "deep", deep), nil, out); err != nil {
+	out := &IndustrySearch{}
+	if err := c.get(ctx, "/industry", values("q", query, "limit", limit, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1940,6 +2041,93 @@ func (c *Client) MeasureUnits(ctx context.Context, options ...MeasureUnitsOption
 	}
 	out := &MeasureUnits{}
 	if err := c.get(ctx, "/measure/units", values("lang", opts.Lang, "q", opts.Query, "type", opts.Type, "unit", opts.Unit), nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+type IndustryOptions = NAICSOptions
+type IndustrySearchOptions = NAICSSearchOptions
+
+// NAICS is the compatibility name for Industry.
+func (c *Client) NAICS(ctx context.Context, code string, options ...NAICSOptions) (*NAICS, error) {
+ return c.Industry(ctx, code, options...)
+}
+// NAICSSearch is the compatibility name for IndustrySearch.
+func (c *Client) NAICSSearch(ctx context.Context, query string, options ...NAICSSearchOptions) (*NAICSSearch, error) {
+ return c.IndustrySearch(ctx, query, options...)
+}
+
+// VehicleOptions preserves the existing VIN request options.
+type VehicleOptions = VINOptions
+
+// Published compatibility API.
+type IBANOptions struct {
+	_       [0]func()
+	Country string
+	Deep    bool
+}
+
+
+type NPIOptions struct {
+	// Lang selects translated display names for this request.
+	Lang string
+	_    [0]func()
+	Deep bool
+}
+
+
+type BINOptions struct {
+	_    [0]func()
+	Deep bool
+}
+
+
+func (c *Client) IBAN(ctx context.Context, iban string, options ...IBANOptions) (*IBAN, error) {
+	opts, err := oneOption(options)
+	if err != nil {
+		return nil, err
+	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
+	out := &IBAN{}
+	if err := c.get(ctx, "/iban/"+seg(iban), values("country", opts.Country, "deep", deep), nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+
+func (c *Client) NPI(ctx context.Context, npi string, options ...NPIOptions) (*NPI, error) {
+	opts, err := oneOption(options)
+	if err != nil {
+		return nil, err
+	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
+	out := &NPI{}
+	if err := c.get(ctx, "/npi/"+seg(npi), values("lang", opts.Lang, "deep", deep), nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+
+func (c *Client) BIN(ctx context.Context, bin string, options ...BINOptions) (*BIN, error) {
+	opts, err := oneOption(options)
+	if err != nil {
+		return nil, err
+	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
+	out := &BIN{}
+	if err := c.get(ctx, "/bin/"+seg(bin), values("deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
