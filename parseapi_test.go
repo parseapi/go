@@ -139,6 +139,48 @@ func TestURLMapping(t *testing.T) {
 		}, "/currency/USD/JPY", "amount=100&date=2026-08-28"},
 		{"language", func(c *Client) error { _, err := c.Language(ctx, "en"); return err }, "/language/en", ""},
 		{"name encodes spaces", func(c *Client) error { _, err := c.Name(ctx, "Smith, John"); return err }, "/name/Smith%2C%20John", ""},
+		{"time compatible", func(c *Client) error {
+			_, err := c.Time(ctx, "America/New_York", TimeOptions{At: "2026-11-01T01:30:00", To: "UTC", Disambiguation: "compatible"})
+			return err
+		}, "/time/America%2FNew_York", "at=2026-11-01T01%3A30%3A00&disambiguation=compatible&to=UTC"},
+		{"time coordinates compatible", func(c *Client) error {
+			_, err := c.TimeAt(ctx, 40.71, -74.01, TimeAtOptions{At: "2026-11-01T01:30:00", To: "UTC", Disambiguation: "compatible"})
+			return err
+		}, "/time", "at=2026-11-01T01%3A30%3A00&disambiguation=compatible&lat=40.71&lon=-74.01&to=UTC"},
+		{"time earlier", func(c *Client) error {
+			_, err := c.Time(ctx, "America/New_York", TimeOptions{At: "2026-11-01T01:30:00", To: "UTC", Disambiguation: "earlier"})
+			return err
+		}, "/time/America%2FNew_York", "at=2026-11-01T01%3A30%3A00&disambiguation=earlier&to=UTC"},
+		{"time coordinates earlier", func(c *Client) error {
+			_, err := c.TimeAt(ctx, 40.71, -74.01, TimeAtOptions{At: "2026-11-01T01:30:00", To: "UTC", Disambiguation: "earlier"})
+			return err
+		}, "/time", "at=2026-11-01T01%3A30%3A00&disambiguation=earlier&lat=40.71&lon=-74.01&to=UTC"},
+		{"time later", func(c *Client) error {
+			_, err := c.Time(ctx, "America/New_York", TimeOptions{At: "2026-11-01T01:30:00", To: "UTC", Disambiguation: "later"})
+			return err
+		}, "/time/America%2FNew_York", "at=2026-11-01T01%3A30%3A00&disambiguation=later&to=UTC"},
+		{"time coordinates later", func(c *Client) error {
+			_, err := c.TimeAt(ctx, 40.71, -74.01, TimeAtOptions{At: "2026-11-01T01:30:00", To: "UTC", Disambiguation: "later"})
+			return err
+		}, "/time", "at=2026-11-01T01%3A30%3A00&disambiguation=later&lat=40.71&lon=-74.01&to=UTC"},
+		{"time reject", func(c *Client) error {
+			_, err := c.Time(ctx, "America/New_York", TimeOptions{At: "2026-11-01T01:30:00", To: "UTC", Disambiguation: "reject"})
+			return err
+		}, "/time/America%2FNew_York", "at=2026-11-01T01%3A30%3A00&disambiguation=reject&to=UTC"},
+		{"time coordinates reject", func(c *Client) error {
+			_, err := c.TimeAt(ctx, 40.71, -74.01, TimeAtOptions{At: "2026-11-01T01:30:00", To: "UTC", Disambiguation: "reject"})
+			return err
+		}, "/time", "at=2026-11-01T01%3A30%3A00&disambiguation=reject&lat=40.71&lon=-74.01&to=UTC"},
+		{"time zones all", func(c *Client) error { _, err := c.TimeZones(ctx, ""); return err }, "/time/zones", ""},
+		{"time zones search", func(c *Client) error { _, err := c.TimeZones(ctx, "Europe"); return err }, "/time/zones", "q=Europe"},
+		{"time targets", func(c *Client) error {
+			_, err := c.Time(ctx, "UTC", TimeOptions{Targets: []string{"UTC", "Asia/Tokyo", "UTC"}})
+			return err
+		}, "/time/UTC", "targets=UTC%2CAsia%2FTokyo%2CUTC"},
+		{"time coordinate targets", func(c *Client) error {
+			_, err := c.TimeAt(ctx, 0, 0, TimeAtOptions{Targets: []string{"UTC", "Asia/Tokyo", "UTC"}})
+			return err
+		}, "/time", "lat=0&lon=0&targets=UTC%2CAsia%2FTokyo%2CUTC"},
 		{"time UTC", func(c *Client) error { _, err := c.Time(ctx, ""); return err }, "/time", ""},
 		{"time conversion", func(c *Client) error {
 			_, err := c.Time(ctx, "America/New_York", TimeOptions{At: "2026-09-05T15:00:00", To: "Asia/Tokyo"})

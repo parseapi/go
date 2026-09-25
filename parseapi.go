@@ -923,7 +923,7 @@ func (c *Client) BankRequirements(ctx context.Context, country string, options .
 	return out, nil
 }
 
-// ProviderOptions configures NPI. Omitted fields use API defaults.
+// ProviderOptions configures Provider. Omitted fields use API defaults.
 type ProviderOptions struct {
 	// Lang selects translated display names for this request.
 	Lang string
@@ -931,7 +931,7 @@ type ProviderOptions struct {
 	Deep bool
 }
 
-// NPI calls /provider/{npi}.
+// Provider calls /provider/{npi}.
 func (c *Client) Provider(ctx context.Context, npi string, options ...ProviderOptions) (*Provider, error) {
 	opts, err := oneOption(options)
 	if err != nil {
@@ -1320,9 +1320,22 @@ func (c *Client) IndustrySearch(ctx context.Context, query string, options ...NA
 	return out, nil
 }
 
+func tariffSelection(edition, date string, gotEdition, gotDate *string) error {
+	if edition == "" && date == "" {
+		return nil
+	}
+	if gotEdition == nil || len(*gotEdition) != 64 || strings.Trim(*gotEdition, "0123456789abcdef") != "" || (edition != "" && *gotEdition != edition) || (date != "" && (gotDate == nil || *gotDate != date)) || (date == "" && gotDate != nil) {
+		return &Error{Status: 0, Code: "tariff_selection_mismatch", Message: "Tariff response did not confirm the requested edition/date. The server may not support this selection."}
+	}
+	return nil
+}
+
 // TariffOptions configures Tariff. Omitted fields use API defaults.
 type TariffOptions struct {
-	_ [0]func()
+	// Edition pins an immutable source fingerprint. Date requires verified source coverage.
+	Edition string
+	Date    string
+	_       [0]func()
 	// Add units and the special and other schedule columns on paid plans.
 	Deep bool
 	// ISO 3166-1 alpha-2 origin. With paid deep, resolves country-specific measures. Optional for schedule detail.
@@ -1343,7 +1356,10 @@ func (c *Client) Tariff(ctx context.Context, code string, options ...TariffOptio
 		deep = "true"
 	}
 	out := &Tariff{}
-	if err := c.get(ctx, "/tariff/"+seg(code), values("deep", deep, "origin", opts.Origin), nil, out); err != nil {
+	if err := c.get(ctx, "/tariff/"+seg(code), values("deep", deep, "origin", opts.Origin, "edition", opts.Edition, "date", opts.Date), nil, out); err != nil {
+		return nil, err
+	}
+	if err := tariffSelection(opts.Edition, opts.Date, out.Edition, out.Date); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1351,17 +1367,22 @@ func (c *Client) Tariff(ctx context.Context, code string, options ...TariffOptio
 
 // TariffSearchOptions reserves optional settings for TariffSearch.
 type TariffSearchOptions struct {
-	_ [0]func()
+	_       [0]func()
+	Edition string
+	Date    string
 }
 
 // TariffSearch calls /tariff.
 func (c *Client) TariffSearch(ctx context.Context, query string, options ...TariffSearchOptions) (*TariffSearch, error) {
-	_, err := oneOption(options)
+	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
 	}
 	out := &TariffSearch{}
-	if err := c.get(ctx, "/tariff", values("q", query), nil, out); err != nil {
+	if err := c.get(ctx, "/tariff", values("q", query, "edition", opts.Edition, "date", opts.Date), nil, out); err != nil {
+		return nil, err
+	}
+	if err := tariffSelection(opts.Edition, opts.Date, out.Edition, out.Date); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1469,18 +1490,37 @@ func (c *Client) CurrencyRate(ctx context.Context, base string, quote string, op
 
 // TimeOptions configures Time. With To, offsetless At is source wall time.
 type TimeOptions struct {
+	IP       string
+	City     string
+	Country  string
+	State    string
+	IATA     string
+	ICAO     string
+	UNLOCODE string
+	Address  string
+
 	// Lang selects translated display names for this request.
 	Lang string
 	_    [0]func()
 	At   string
 	To   string
 	Deep bool
+	// Disambiguation selects compatible (default), earlier, later, or reject for offsetless conversion at clock changes.
+	Disambiguation string
+	// Targets converts to 1-10 zones, preserving order and duplicates. Mutually exclusive with To.
+	Targets []string
 }
 
 // Time returns local time and timezone facts. An empty timezone selects UTC.
 func (c *Client) Time(ctx context.Context, timezone string, options ...TimeOptions) (*Time, error) {
+	if source := strings.ToLower(strings.TrimSpace(timezone)); source == "zones" || source == "help" {
+		return nil, errors.New("Time source must be an IANA timezone ID. Use timezone discovery to list IDs.")
+	}
 	opts, err := oneOption(options)
 	if err != nil {
+		return nil, err
+	}
+	if err := timeSource(timezone, opts); err != nil {
 		return nil, err
 	}
 	path := "/time"
@@ -1491,8 +1531,12 @@ func (c *Client) Time(ctx context.Context, timezone string, options ...TimeOptio
 	if opts.Deep {
 		deep = "true"
 	}
+	targets, err := timeTargets(opts.Targets, opts.To)
+	if err != nil {
+		return nil, err
+	}
 	out := &Time{}
-	if err := c.get(ctx, path, values("lang", opts.Lang, "at", opts.At, "to", opts.To, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, path, values("ip", opts.IP, "city", opts.City, "country", opts.Country, "state", opts.State, "iata", opts.IATA, "icao", opts.ICAO, "unlocode", opts.UNLOCODE, "address", opts.Address, "lang", opts.Lang, "at", opts.At, "to", opts.To, "targets", targets, "disambiguation", opts.Disambiguation, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1506,6 +1550,10 @@ type TimeAtOptions struct {
 	At   string
 	To   string
 	Deep bool
+	// Disambiguation selects compatible (default), earlier, later, or reject for offsetless conversion at clock changes.
+	Disambiguation string
+	// Targets converts to 1-10 zones, preserving order and duplicates. Mutually exclusive with To.
+	Targets []string
 }
 
 // TimeAt returns local time at the coordinates, optionally converted with To.
@@ -1518,11 +1566,87 @@ func (c *Client) TimeAt(ctx context.Context, lat float64, lon float64, options .
 	if opts.Deep {
 		deep = "true"
 	}
+	targets, err := timeTargets(opts.Targets, opts.To)
+	if err != nil {
+		return nil, err
+	}
 	out := &Time{}
-	if err := c.get(ctx, "/time", values("lang", opts.Lang, "lat", f(lat), "lon", f(lon), "at", opts.At, "to", opts.To, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/time", values("lang", opts.Lang, "lat", f(lat), "lon", f(lon), "at", opts.At, "to", opts.To, "targets", targets, "disambiguation", opts.Disambiguation, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
+}
+
+// TimeZonesOptions configures TimeZones.
+type TimeZonesOptions struct {
+	_            [0]func()
+	Country      string
+	Area         string
+	Offset       string
+	Abbreviation string
+	DST          *bool
+	ObservesDST  *bool
+	At           string
+	Details      bool
+	Sort         string
+}
+
+// TimeZones searches serving timezone IDs. An empty query lists all.
+func (c *Client) TimeZones(ctx context.Context, query string, options ...TimeZonesOptions) (*TimeZones, error) {
+	opts, err := oneOption(options)
+	if err != nil {
+		return nil, err
+	}
+	dst, observesDST, details := "", "", ""
+	if opts.DST != nil {
+		dst = strconv.FormatBool(*opts.DST)
+	}
+	if opts.ObservesDST != nil {
+		observesDST = strconv.FormatBool(*opts.ObservesDST)
+	}
+	if opts.Details {
+		details = "true"
+	}
+	out := &TimeZones{}
+	if err := c.get(ctx, "/time/zones", values("q", query, "country", opts.Country, "area", opts.Area, "offset", opts.Offset, "abbreviation", opts.Abbreviation, "dst", dst, "observes_dst", observesDST, "at", opts.At, "details", details, "sort", opts.Sort), nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func timeSource(timezone string, opts TimeOptions) error {
+	primary := 0
+	for _, value := range []string{opts.IP, opts.City, opts.IATA, opts.ICAO, opts.UNLOCODE, opts.Address} {
+		if value != "" {
+			primary++
+		}
+	}
+	for _, value := range []string{opts.IP, opts.City, opts.Country, opts.State, opts.IATA, opts.ICAO, opts.UNLOCODE, opts.Address} {
+		if value != "" && strings.TrimSpace(value) == "" {
+			return errors.New("Pass one Time source, using country only with city or address and state only with city or address and country.")
+		}
+	}
+	if (timezone != "" && (primary > 0 || opts.Country != "" || opts.State != "")) || primary > 1 ||
+		(opts.Country != "" && primary > 0 && opts.City == "" && opts.Address == "") ||
+		(opts.State != "" && ((opts.City == "" && opts.Address == "") || opts.Country == "")) || (opts.Address != "" && opts.Country == "") {
+		return errors.New("Pass one Time source, using country only with city or address and state only with city or address and country.")
+	}
+	return nil
+}
+
+func timeTargets(targets []string, to string) (string, error) {
+	if targets == nil {
+		return "", nil
+	}
+	if to != "" || len(targets) < 1 || len(targets) > 10 {
+		return "", fmt.Errorf("parseapi: Time targets requires 1 to 10 timezone IDs and cannot be combined with to")
+	}
+	for _, zone := range targets {
+		if strings.TrimSpace(zone) == "" || strings.Contains(zone, ",") {
+			return "", fmt.Errorf("parseapi: Time targets requires 1 to 10 timezone IDs and cannot be combined with to")
+		}
+	}
+	return strings.Join(targets, ","), nil
 }
 
 // TimezoneOptions configures Timezone. Omitted fields use API defaults.

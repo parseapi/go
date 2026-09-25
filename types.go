@@ -364,7 +364,6 @@ type Bank struct {
 	Deep   *BankDeep   `json:"deep,omitempty"`
 }
 
-// NPI is a US healthcare provider record in the healthcare provider registry.
 type ProviderTaxonomy struct {
 	_ [0]func()
 	Taxonomy *string `json:"taxonomy"`
@@ -476,14 +475,15 @@ type TariffMeasure struct {
 }
 
 type TariffDeep struct {
-	_ [0]func()
+	// Reason is an open-string explanation when EffectiveRate is nil.
+	Reason *string `json:"reason"`
+	_      [0]func()
 	// Origin is the country the measures were resolved for.
 	Origin *string `json:"origin"`
-	// EffectiveRate is the composed ad valorem percent. Nil when the
-	// components do not compose cleanly.
+	// EffectiveRate is the composed ad valorem percent for matched stored measures
+	// only, not complete duty or landed cost. Nil when the components do not compose cleanly.
 	EffectiveRate *float64 `json:"effective_rate"`
-	// Measures is every Chapter 99 tariff measure that applies to this code
-	// from this origin.
+	// Measures is the matching stored Chapter 99 schedule measures for this code and goods origin.
 	Measures []TariffMeasure `json:"measures"`
 	// Units is the units of quantity (No., kg).
 	Units []string `json:"units"`
@@ -494,7 +494,10 @@ type TariffDeep struct {
 }
 
 type Tariff struct {
-	_ [0]func()
+	// Edition and Date are absent on older servers. Date is nil for an undated edition query.
+	Edition *string `json:"edition"`
+	Date    *string `json:"date"`
+	_       [0]func()
 	// HTS is the normalized code with dots (8471.30.01.00).
 	HTS string `json:"hts"`
 	// Description is the schedule line verbatim.
@@ -513,9 +516,14 @@ type TariffSearchHit struct {
 	HTS         string  `json:"hts"`
 	Description string  `json:"description"`
 	General     *string `json:"general"`
+	// Lineage is the parent descriptions, outermost first. Older responses may omit this context.
+	Lineage []string `json:"lineage"`
 }
 
 type TariffSearch struct {
+	// Edition and Date are absent on older servers. Date is nil for an undated edition query.
+	Edition  *string `json:"edition"`
+	Date     *string `json:"date"`
 	_        [0]func()
 	Q        string `json:"q"`
 	Revision string `json:"revision"`
@@ -839,18 +847,29 @@ type TimezoneNextDST struct {
 // Time contains the local clock and timezone facts. Nil clock fields mean no resolved zone.
 type Time = Timezone
 
+// TimeZones lists the serving timezone IDs and pinned rule edition.
+type TimeZones struct {
+	_                       [0]func()
+	TimezoneDatabaseVersion string          `json:"timezone_database_version"`
+	Timezones               []string        `json:"timezones"`
+	At                      *string         `json:"at,omitempty"`
+	Zones                   []TimeZoneEntry `json:"zones,omitempty"`
+}
+
 type Timezone struct {
+	Location     *TimeLocation `json:"location,omitempty"`
 	_            [0]func()
-	Timezone     *string                   `json:"timezone"`
-	Abbreviation *string                   `json:"abbreviation"`
-	Offset       *string                   `json:"offset"`
-	DST          *bool                     `json:"dst"`
-	Latitude     *float64                  `json:"latitude,omitempty"`
-	Longitude    *float64                  `json:"longitude,omitempty"`
-	At           *string                   `json:"at,omitempty"`
-	Unix         *int64                    `json:"unix,omitempty"`
-	To           *TimezoneConversionTarget `json:"to,omitempty"`
-	Deep         *TimezoneDeep             `json:"deep,omitempty"`
+	Timezone     *string                    `json:"timezone"`
+	Abbreviation *string                    `json:"abbreviation"`
+	Offset       *string                    `json:"offset"`
+	DST          *bool                      `json:"dst"`
+	Latitude     *float64                   `json:"latitude,omitempty"`
+	Longitude    *float64                   `json:"longitude,omitempty"`
+	At           *string                    `json:"at,omitempty"`
+	Unix         *int64                     `json:"unix,omitempty"`
+	To           *TimezoneConversionTarget  `json:"to,omitempty"`
+	Targets      []TimezoneConversionTarget `json:"targets,omitempty"`
+	Deep         *TimezoneDeep              `json:"deep,omitempty"`
 }
 
 // DateInfo contains calendar facts for a date. Calendar fields are nil
@@ -1464,12 +1483,33 @@ type NameDeep struct {
 	Initials   *string `json:"initials"`
 }
 
+type TimeResolutionAlternative struct {
+	_      [0]func()
+	At     *string `json:"at"`
+	Unix   *int64  `json:"unix"`
+	Offset *string `json:"offset"`
+}
+
+type TimeResolution struct {
+	_                 [0]func()
+	Kind              *string                     `json:"kind"`
+	Policy            *string                     `json:"policy"`
+	AdjustmentSeconds *int                        `json:"adjustment_seconds"`
+	Alternatives      []TimeResolutionAlternative `json:"alternatives"`
+}
+
 type TimezoneDeep struct {
-	_             [0]func()
-	Name          *string          `json:"name"`
-	OffsetSeconds *int             `json:"offset_seconds,omitempty"`
-	OffsetMinutes *int             `json:"offset_minutes"`
-	NextDST       *TimezoneNextDST `json:"next_dst"`
+	StandardOffset          *string         `json:"standard_offset"`
+	StandardOffsetSeconds   *int            `json:"standard_offset_seconds"`
+	DSTOffsetSeconds        *int            `json:"dst_offset_seconds"`
+	Season                  *TimeSeason     `json:"season"`
+	TimezoneDatabaseVersion *string         `json:"timezone_database_version"`
+	Resolution              *TimeResolution `json:"resolution"`
+	_                       [0]func()
+	Name                    *string          `json:"name"`
+	OffsetSeconds           *int             `json:"offset_seconds,omitempty"`
+	OffsetMinutes           *int             `json:"offset_minutes"`
+	NextDST                 *TimezoneNextDST `json:"next_dst"`
 }
 
 type TimezoneConversionTargetDeep struct {
@@ -1632,6 +1672,63 @@ type BankRequirements struct {
 	Fields      []BankRequirementField `json:"fields"`
 	Checks      map[string]string      `json:"checks"`
 	Limitations []string               `json:"limitations"`
+}
+
+// TimeZoneEntry is one supported timezone evaluated at the catalog instant.
+type TimeZoneEntry struct {
+	_             [0]func()
+	Timezone      string   `json:"timezone"`
+	Countries     []string `json:"countries"`
+	Area          *string  `json:"area"`
+	Abbreviation  string   `json:"abbreviation"`
+	Offset        string   `json:"offset"`
+	OffsetSeconds int      `json:"offset_seconds"`
+	DST           bool     `json:"dst"`
+	ObservesDST   bool     `json:"observes_dst"`
+}
+type TimeTransitionState struct {
+	_             [0]func()
+	At            *string `json:"at"`
+	Offset        *string `json:"offset"`
+	OffsetSeconds *int    `json:"offset_seconds"`
+	Abbreviation  *string `json:"abbreviation"`
+	DST           *bool   `json:"dst"`
+}
+type TimeTransition struct {
+	_             [0]func()
+	At            *string              `json:"at"`
+	Before        *TimeTransitionState `json:"before"`
+	After         *TimeTransitionState `json:"after"`
+	ChangeSeconds *int                 `json:"change_seconds"`
+}
+type TimeSeason struct {
+	_     [0]func()
+	Start *TimeTransition `json:"start"`
+	End   *TimeTransition `json:"end"`
+}
+
+type TimeLocationInput struct {
+	_     [0]func()
+	Type  string `json:"type"`
+	Value string `json:"value"`
+}
+type TimeLocationCandidate struct {
+	_         [0]func()
+	ID        *string  `json:"id"`
+	Name      *string  `json:"name"`
+	Country   *string  `json:"country"`
+	State     *string  `json:"state"`
+	Timezone  *string  `json:"timezone"`
+	Latitude  *float64 `json:"latitude"`
+	Longitude *float64 `json:"longitude"`
+}
+type TimeLocation struct {
+	_          [0]func()
+	Input      TimeLocationInput       `json:"input"`
+	Status     string                  `json:"status"`
+	Candidates []TimeLocationCandidate `json:"candidates"`
+	Truncated  bool                    `json:"truncated"`
+	Source     string                  `json:"source"`
 }
 
 // Industry names for the existing US NAICS response contract.
