@@ -103,8 +103,8 @@ parse.HLR(ctx, "+447712345678")
 parse.UserAgent(ctx, "Mozilla/5.0")
 parse.DNS(ctx, "example.com")
 parse.DNS(ctx, "_dmarc.example.com", parseapi.DNSOptions{Type: "TXT"})
-parse.NAICS(ctx, "541511")
-parse.NAICSSearch(ctx, "coffee shop", parseapi.NAICSSearchOptions{Limit: 5})
+parse.Industry(ctx, "541511")
+parse.IndustrySearch(ctx, "coffee shop", parseapi.IndustrySearchOptions{Limit: 5})
 parse.Tariff(ctx, "8471.30.01.00", parseapi.TariffOptions{Origin: "DE", Deep: true})
 parse.Address(ctx, "123 Main St", parseapi.AddressOptions{Country: "US"})
 parse.AddressSearch(ctx, "123 Main", parseapi.AddressSearchOptions{Country: "US", State: "NC"})
@@ -117,7 +117,7 @@ parse.TimeAt(ctx, 40.7128, -74.006)
 parse.Weather(ctx, 40.7128, -74.006, parseapi.WeatherOptions{Deep: true, Date: "2026-09-01"})
 ```
 
-Paid NAICS `deep` includes full definitions, child categories and classification `exclusions`, each with a description and linked codes. Generic exclusions can have no linked codes. Omitted or null exclusions in older responses remain unknown. Search results keep `country` and `year` on the envelope and optional depth on each result. They also include core `match`: the matched `field` (`name`, `term` or `naics`) and `text`, plus `corrections` with `from` and `to` tokens for typo fallback. Corrections are empty for exact, plural and prefix matches. Direct code lookups omit `match`. Older responses may omit it.
+Paid Industry `deep` includes full definitions, child categories and classification `exclusions`, each with a description and linked codes. Generic exclusions can have no linked codes. Omitted or null exclusions in older responses remain unknown. Search results keep `country` and `year` on the envelope and optional depth on each result. They also include core `match`: the matched `field` (`name`, `term` or `naics`) and `text`, plus `corrections` with `from` and `to` tokens for typo fallback. Corrections are empty for exact, plural and prefix matches. Direct code lookups omit `match`. Older responses may omit it.
 
 Use named fields when constructing response values for fixtures too. Response and options structs reserve room for future fields and cannot be compared with `==`. Nullable values are pointers. Unknown JSON fields are accepted. An omitted `deep` is nil, a requested empty `deep` is a non-nil object, and unknown fields within it stay nil. Nullable arrays use nil slices.
 
@@ -216,7 +216,7 @@ The default call returns the common answer. Request more detail with `parse.Coun
 | VAT | A metered registry check where supported, using included VAT checks or enabled on-demand usage. |
 | Country, State, City, District, Postal | Reference profiles included with a paid plan; place identity and coordinates stay core. |
 | NPI | Deactivation date, Medicare enrollment, opt-out and enrollment rows from stored sources on paid plans. Exclusion evidence stays core. |
-| VIN, NAICS, Company | Paid technical or registration profiles. NPI exclusion status and NAICS hierarchy stay core. |
+| VIN, Industry, Company | Paid technical or registration profiles. NPI exclusion status and Industry hierarchy stay core. |
 | Tariff | Paid schedule columns and units; add origin for applicable measures. |
 | Name, Weather | Paid name context or weather detail; parsing and current conditions stay core. |
 | Phone, Bank | Numbering-plan or bank structure detail in the same pooled request on every plan. |

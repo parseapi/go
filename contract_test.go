@@ -66,8 +66,8 @@ var _ func(*parseapi.Client, context.Context, string, ...parseapi.CompanyOptions
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.MeasureOptions) (*parseapi.Measure, error) = (*parseapi.Client).Measure
 var _ func(*parseapi.Client, context.Context, ...parseapi.MeasureUnitsOptions) (*parseapi.MeasureUnits, error) = (*parseapi.Client).MeasureUnits
 
-var _ func(*parseapi.Client, context.Context, string, ...parseapi.NAICSOptions) (*parseapi.NAICS, error) = (*parseapi.Client).NAICS
-var _ func(*parseapi.Client, context.Context, string, ...parseapi.NAICSSearchOptions) (*parseapi.NAICSSearch, error) = (*parseapi.Client).NAICSSearch
+var _ func(*parseapi.Client, context.Context, string, ...parseapi.IndustryOptions) (*parseapi.Industry, error) = (*parseapi.Client).Industry
+var _ func(*parseapi.Client, context.Context, string, ...parseapi.IndustrySearchOptions) (*parseapi.IndustrySearch, error) = (*parseapi.Client).IndustrySearch
 
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.DNSOptions) (*parseapi.DNS, error) = (*parseapi.Client).DNS
 

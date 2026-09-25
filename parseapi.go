@@ -1252,14 +1252,14 @@ func (c *Client) VIN(ctx context.Context, vin string, options ...VINOptions) (*V
 	return out, nil
 }
 
-// NAICSOptions reserves optional settings for NAICS.
+// NAICSOptions reserves optional settings for Industry.
 type NAICSOptions struct {
 	_    [0]func()
 	Deep bool
 }
 
-// NAICS looks up a US NAICS 2022 code and its hierarchy.
-func (c *Client) NAICS(ctx context.Context, code string, options ...NAICSOptions) (*NAICS, error) {
+// Industry looks up a US NAICS 2022 code and its hierarchy.
+func (c *Client) Industry(ctx context.Context, code string, options ...NAICSOptions) (*Industry, error) {
 	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
@@ -1268,8 +1268,8 @@ func (c *Client) NAICS(ctx context.Context, code string, options ...NAICSOptions
 	if opts.Deep {
 		deep = "true"
 	}
-	out := &NAICS{}
-	if err := c.get(ctx, "/naics/"+seg(code), values("deep", deep), nil, out); err != nil {
+	out := &Industry{}
+	if err := c.get(ctx, "/industry/"+seg(code), values("deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1282,8 +1282,8 @@ type NAICSSearchOptions struct {
 	Deep  bool
 }
 
-// NAICSSearch searches US NAICS 2022 industry names and activity terms.
-func (c *Client) NAICSSearch(ctx context.Context, query string, options ...NAICSSearchOptions) (*NAICSSearch, error) {
+// IndustrySearch searches US NAICS 2022 industry names and activity terms.
+func (c *Client) IndustrySearch(ctx context.Context, query string, options ...NAICSSearchOptions) (*IndustrySearch, error) {
 	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
@@ -1296,8 +1296,8 @@ func (c *Client) NAICSSearch(ctx context.Context, query string, options ...NAICS
 	if opts.Deep {
 		deep = "true"
 	}
-	out := &NAICSSearch{}
-	if err := c.get(ctx, "/naics", values("q", query, "limit", limit, "deep", deep), nil, out); err != nil {
+	out := &IndustrySearch{}
+	if err := c.get(ctx, "/industry", values("q", query, "limit", limit, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1903,4 +1903,16 @@ func (c *Client) MeasureUnits(ctx context.Context, options ...MeasureUnitsOption
 		return nil, err
 	}
 	return out, nil
+}
+
+type IndustryOptions = NAICSOptions
+type IndustrySearchOptions = NAICSSearchOptions
+
+// NAICS is the compatibility name for Industry.
+func (c *Client) NAICS(ctx context.Context, code string, options ...NAICSOptions) (*NAICS, error) {
+ return c.Industry(ctx, code, options...)
+}
+// NAICSSearch is the compatibility name for IndustrySearch.
+func (c *Client) NAICSSearch(ctx context.Context, query string, options ...NAICSSearchOptions) (*NAICSSearch, error) {
+ return c.IndustrySearch(ctx, query, options...)
 }

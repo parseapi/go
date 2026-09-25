@@ -14,28 +14,28 @@ func TestNAICSHierarchyAndSearch(t *testing.T) {
 	if result.NAICS != "31-33" || result.Parent != nil || result.Deep.Description != nil || len(result.Deep.Children) != 1 {
 		t.Fatalf("lost hierarchy: %#v", result)
 	}
-	if call.path != "/naics/31-33" || call.rawQry != "" {
+	if call.path != "/industry/31-33" || call.rawQry != "" {
 		t.Fatalf("bad lookup: %#v", call)
 	}
-	_, _ = client.NAICS(context.Background(), "54/11")
-	if call.path != "/naics/54%2F11" {
+	_, _ = client.Industry(context.Background(), "54/11")
+	if call.path != "/industry/54%2F11" {
 		t.Fatalf("bad encoding: %#v", call)
 	}
-	if _, err := client.NAICS(context.Background(), "54", NAICSOptions{}, NAICSOptions{}); err == nil {
+	if _, err := client.Industry(context.Background(), "54", IndustryOptions{}, IndustryOptions{}); err == nil {
 		t.Fatal("accepted multiple options")
 	}
 	client, call = newTestClient(t, okJSON(`{"q":"coffee & tea","year":2022,"country":"US","results":[]}`))
-	search, err := client.NAICSSearch(context.Background(), "coffee & tea", NAICSSearchOptions{Limit: 5})
+	search, err := client.NAICSSearch(context.Background(), "coffee & tea", IndustrySearchOptions{Limit: 5})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if search.Year != 2022 || search.Results == nil || len(search.Results) != 0 {
 		t.Fatalf("bad search: %#v", search)
 	}
-	if call.path != "/naics" || call.rawQry != "limit=5&q=coffee+%26+tea" {
+	if call.path != "/industry" || call.rawQry != "limit=5&q=coffee+%26+tea" {
 		t.Fatalf("bad search request: %#v", call)
 	}
-	_, _ = client.NAICSSearch(context.Background(), "plumbing")
+	_, _ = client.IndustrySearch(context.Background(), "plumbing")
 	if call.rawQry != "q=plumbing" {
 		t.Fatalf("unexpected defaults: %#v", call)
 	}
@@ -43,11 +43,11 @@ func TestNAICSHierarchyAndSearch(t *testing.T) {
 
 func TestNAICSExclusionsAndMatchCompatibility(t *testing.T) {
 	client, _ := newTestClient(t, okJSON(`{"q":"sofware","year":2022,"country":"US","results":[{"naics":"541511","name":"Custom Computer Programming Services","level":6,"parent":"54151","parent_name":"Computer Systems Design and Related Services","deep":{"description":null,"children":[]}},{"naics":"541511","name":"Custom Computer Programming Services","level":6,"parent":"54151","parent_name":"Computer Systems Design and Related Services","match":null,"deep":{"description":null,"children":[],"exclusions":null}},{"naics":"541511","name":"Custom Computer Programming Services","level":6,"parent":"54151","parent_name":"Computer Systems Design and Related Services","match":{"field":"future-field","text":"Future matching evidence","corrections":[],"future":true},"deep":{"description":null,"children":[],"exclusions":[]}},{"naics":"541511","name":"Custom Computer Programming Services","level":6,"parent":"54151","parent_name":"Computer Systems Design and Related Services","match":{"field":"term","text":"Computer software programming services","corrections":[{"from":"sofware","to":"software"}]},"future":true,"deep":{"description":null,"children":[],"exclusions":[{"description":"Designing integrated computer systems","codes":[{"naics":"541512","name":"Computer Systems Design Services"}]},{"description":"Activities classified elsewhere","codes":[]}]}}]}`))
-	search, err := client.NAICSSearch(context.Background(), "sofware")
+	search, err := client.IndustrySearch(context.Background(), "sofware")
 	if err != nil {
 		t.Fatal(err)
 	}
-	var results []NAICSSearchResult = search.Results // Search scope stays on the envelope.
+	var results []IndustrySearchResult = search.Results // Search scope stays on the envelope.
 	if results[0].Deep.Exclusions != nil || results[0].Match != nil || results[1].Deep.Exclusions != nil || results[1].Match != nil {
 		t.Fatal("older/null fields must remain unknown")
 	}

@@ -27,7 +27,7 @@ func TestADPModelsPreserveCoreAndDeepTriad(t *testing.T) {
 		{"Carrier", `{"phone":"+14155552671","valid":true,"carrier":"Example"}`, `{"city":"San Francisco","state":"CA"}`, &Carrier{}},
 		{"HLR", `{"phone":"+14155552671","valid":true,"live":true,"connected":false}`, `{"roaming":false,"mcc":"310","mnc":"01"}`, &HLR{}},
 		{"Tariff", `{"hts":"8471.30.01.00","description":"Portable computers","revision":"2026"}`, `{"units":[],"special":"Free","origin":null,"effective_rate":null,"measures":null}`, &Tariff{}},
-		{"NAICS", `{"naics":"541511","name":"Programming","level":6,"parent":"54151","year":2022,"country":"US"}`, `{"description":"Definition","children":[],"exclusions":[]}`, &NAICS{}},
+		{"Industry", `{"naics":"541511","name":"Programming","level":6,"parent":"54151","year":2022,"country":"US"}`, `{"description":"Definition","children":[],"exclusions":[]}`, &Industry{}},
 		{"Company", `{"company":"01234567","valid":true,"name":"Example"}`, `{"activity":"6201","gst":false,"vat":null}`, &Company{}},
 		{"Currency", `{"currency":"USD","name":"US Dollar"}`, `{"numeric":840,"countries":[]}`, &Currency{}},
 		{"Language", `{"language":"en","name":"English","direction":"ltr"}`, `{"iso3":"eng","countries":[]}`, &Language{}},
@@ -107,9 +107,9 @@ func TestADPOptionsSendOneExplicitDisclosure(t *testing.T) {
 			return err
 		},
 		func(c *Client) error { _, err := c.HLR(ctx, "+14155552671", HLROptions{Deep: true}); return err },
-		func(c *Client) error { _, err := c.NAICS(ctx, "541511", NAICSOptions{Deep: true}); return err },
+		func(c *Client) error { _, err := c.Industry(ctx, "541511", IndustryOptions{Deep: true}); return err },
 		func(c *Client) error {
-			_, err := c.NAICSSearch(ctx, "software", NAICSSearchOptions{Deep: true})
+			_, err := c.IndustrySearch(ctx, "software", IndustrySearchOptions{Deep: true})
 			return err
 		},
 		func(c *Client) error { _, err := c.Currency(ctx, "USD", CurrencyOptions{Deep: true}); return err },

@@ -1633,3 +1633,13 @@ type BankRequirements struct {
 	Checks      map[string]string      `json:"checks"`
 	Limitations []string               `json:"limitations"`
 }
+
+// Industry names for the existing US NAICS response contract.
+type Industry = NAICS
+type IndustryChild = NAICSChild
+type IndustryCorrection = NAICSCorrection
+type IndustryDeep = NAICSDeep
+type IndustryExclusion = NAICSExclusion
+type IndustryMatch = NAICSMatch
+type IndustrySearch = NAICSSearch
+type IndustrySearchResult = NAICSSearchResult
