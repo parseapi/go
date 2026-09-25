@@ -120,6 +120,11 @@ func TestURLMapping(t *testing.T) {
 		{"mac", func(c *Client) error { _, err := c.MAC(ctx, "00:1B:63:84:45:E6"); return err }, "/mac/00:1B:63:84:45:E6", ""},
 		{"mx", func(c *Client) error { _, err := c.MX(ctx, "example.com"); return err }, "/mx/example.com", ""},
 		{"useragent", func(c *Client) error { _, err := c.UserAgent(ctx, "TestUA/1.0"); return err }, "/useragent", ""},
+		{"vehicle", func(c *Client) error { _, err := c.Vehicle(ctx, "1HGCM82633A004352"); return err }, "/vehicle/1HGCM82633A004352", ""},
+		{"vehicle deep", func(c *Client) error {
+			_, err := c.Vehicle(ctx, "1HGCM82633A004352", VehicleOptions{Deep: true})
+			return err
+		}, "/vehicle/1HGCM82633A004352", "deep=true"},
 		{"vin", func(c *Client) error { _, err := c.VIN(ctx, "1HGCM82633A004352"); return err }, "/vin/1HGCM82633A004352", ""},
 		{"vin deep", func(c *Client) error {
 			_, err := c.VIN(ctx, "1HGCM82633A004352", VINOptions{Deep: true})

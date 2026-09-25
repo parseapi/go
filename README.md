@@ -96,7 +96,7 @@ parse.ASN(ctx, "AS13335")
 parse.MAC(ctx, "00:1B:63:84:45:E6")
 parse.Name(ctx, "Andrea", parseapi.NameOptions{Country: "IT"})
 parse.Name(ctx, "Robert James Smith", parseapi.NameOptions{Deep: true, NameLocale: "en"})
-parse.VIN(ctx, "1HGCM82633A004352")
+parse.Vehicle(ctx, "1HGCM82633A004352")
 parse.Carrier(ctx, "+14155552671")
 parse.Caller(ctx, "+18004633339")
 parse.HLR(ctx, "+447712345678")
@@ -307,3 +307,5 @@ Pass a public hostname without a scheme, path, port or IP address. Stack returns
 The complete technology result is included in the core response. The generic `deep=true` option adds only an empty object and is unnecessary for Stack. Successful checks may be reused for up to 24 hours. `pretty` optionally formats the wire JSON. Each lookup uses one request and API version 2.0.0 selected by this client.
 
 Stack defaults to 35 seconds per attempt so a first scan has time to finish. Other lookups retain their 10-second default. An explicit client timeout takes precedence.
+
+Vehicle lookups use `vin` as the input and response field. Existing VIN methods remain available for compatibility.

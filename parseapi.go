@@ -1235,6 +1235,23 @@ type VINOptions struct {
 	Deep bool
 }
 
+// Vehicle identifies a vehicle by VIN.
+func (c *Client) Vehicle(ctx context.Context, vin string, options ...VehicleOptions) (*Vehicle, error) {
+	opts, err := oneOption(options)
+	if err != nil {
+		return nil, err
+	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
+	out := &Vehicle{}
+	if err := c.get(ctx, "/vehicle/"+seg(vin), values("deep", deep), nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VIN calls /vin/{vin}.
 func (c *Client) VIN(ctx context.Context, vin string, options ...VINOptions) (*VIN, error) {
 	opts, err := oneOption(options)
@@ -1916,3 +1933,6 @@ func (c *Client) NAICS(ctx context.Context, code string, options ...NAICSOptions
 func (c *Client) NAICSSearch(ctx context.Context, query string, options ...NAICSSearchOptions) (*NAICSSearch, error) {
  return c.IndustrySearch(ctx, query, options...)
 }
+
+// VehicleOptions preserves the existing VIN request options.
+type VehicleOptions = VINOptions

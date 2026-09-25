@@ -1643,3 +1643,7 @@ type IndustryExclusion = NAICSExclusion
 type IndustryMatch = NAICSMatch
 type IndustrySearch = NAICSSearch
 type IndustrySearchResult = NAICSSearchResult
+
+type Vehicle = VIN
+type VehicleDeep = VINDeep
+type VehicleRecall = VINRecall
