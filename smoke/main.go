@@ -248,7 +248,7 @@ func main() {
 
 	bin, err := parse.Card(ctx, "00 0000")
 	expectOk("card", bin, err, func(r *parseapi.Card) string {
-		if r.BIN != "000000" || r.Prefix != nil {
+		if r.BIN != "000000" || r.Brand != nil || r.Logo != "https://cdn.parseapi.com/card/generic.svg" {
 			return "BIN echo or prefix mismatch"
 		}
 		return ""

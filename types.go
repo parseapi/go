@@ -652,18 +652,24 @@ type MAC struct {
 	Multicast *bool   `json:"multicast"`
 }
 
-// Card contains card-prefix reference data. Nil reference fields mean unknown.
+// Card contains network identity; nil brand means unknown or ambiguous.
 type Card struct {
-	_   [0]func()
-	BIN string `json:"bin"`
-	// Prefix is the actual longest match and may be shorter than BIN.
-	Prefix    *string `json:"prefix"`
-	Country   *string `json:"country"`
-	Issuer    *string `json:"issuer"`
-	Brand     *string `json:"brand"`
-	BrandName *string `json:"brand_name"`
-	Type      *string `json:"type"`
-	Prepaid   *bool   `json:"prepaid"`
+	_         [0]func()
+	BIN       string    `json:"bin"`
+	Brand     *string   `json:"brand"`
+	BrandName *string   `json:"brand_name"`
+	Logo      string    `json:"logo"`
+	Deep      *CardDeep `json:"deep,omitempty"`
+}
+
+// CardDeep is optional, partial recorded issuer data. Nil fields mean unknown.
+type CardDeep struct {
+	_       [0]func()
+	Prefix  *string `json:"prefix"`
+	Issuer  *string `json:"issuer"`
+	Country *string `json:"country"`
+	Type    *string `json:"type"`
+	Prepaid *bool   `json:"prepaid"`
 }
 
 // DNSRecord preserves DNS presentation text, including TXT quoting.

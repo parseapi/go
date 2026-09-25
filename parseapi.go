@@ -1132,8 +1132,19 @@ func (c *Client) MAC(ctx context.Context, mac string, options ...MACOptions) (*M
 	return out, nil
 }
 
-// Card looks up a 6-11 digit card prefix. Preserve leading zeros in the string.
+// Card looks up a 2-11 digit card prefix. Preserve leading zeros in the string.
 func (c *Client) Card(ctx context.Context, bin string) (*Card, error) {
+	return c.CardWithOptions(ctx, bin, CardOptions{})
+}
+
+// CardOptions requests optional recorded issuer details, included on every plan.
+type CardOptions struct {
+	_    [0]func()
+	Deep bool
+}
+
+// CardWithOptions adds recorded issuer details without changing core identity.
+func (c *Client) CardWithOptions(ctx context.Context, bin string, opts CardOptions) (*Card, error) {
 	digits := 0
 	valid := len(bin) <= 64
 	for _, ch := range bin {
@@ -1143,11 +1154,15 @@ func (c *Client) Card(ctx context.Context, bin string) (*Card, error) {
 			valid = false
 		}
 	}
-	if !valid || digits < 6 || digits > 11 {
-		return nil, errors.New("parseapi: Card requires a string containing 6 to 11 digits. Send a prefix only.")
+	if !valid || digits < 2 || digits > 11 {
+		return nil, errors.New("parseapi: Card requires a string containing 2 to 11 digits. Send a prefix only.")
 	}
 	out := &Card{}
-	if err := c.get(ctx, "/card/"+seg(bin), nil, nil, out); err != nil {
+	query := url.Values{}
+	if opts.Deep {
+		query.Set("deep", "true")
+	}
+	if err := c.get(ctx, "/card/"+seg(bin), query, nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
