@@ -365,7 +365,34 @@ type Bank struct {
 }
 
 // NPI is a US healthcare provider record in the healthcare provider registry.
-type NPI struct {
+type ProviderTaxonomy struct {
+	_ [0]func()
+	Taxonomy *string `json:"taxonomy"`
+	Specialty *string `json:"specialty"`
+	Primary *bool `json:"primary"`
+	License *string `json:"license"`
+	State *string `json:"state"`
+}
+
+type ProviderSource struct {
+	_ [0]func()
+	Edition *string `json:"edition"`
+	PublishedAt *string `json:"published_at"`
+	Through *string `json:"through"`
+	ImportedAt *string `json:"imported_at"`
+}
+
+type ProviderSources struct {
+	_ [0]func()
+	Nppes *ProviderSource `json:"nppes"`
+	Leie *ProviderSource `json:"leie"`
+	Pecos *ProviderSource `json:"pecos"`
+	Optout *ProviderSource `json:"optout"`
+}
+
+// Provider is a US healthcare provider record in the healthcare provider registry.
+type Provider struct {
+	Sources *ProviderSources `json:"sources"`
 	_ [0]func()
 	// NPI is input with accepted separators removed; nil when empty. Invalid values remain visible.
 	NPI *string `json:"npi"`
@@ -393,11 +420,11 @@ type NPI struct {
 	Postal    *string  `json:"postal"`
 	Country   *string  `json:"country"`
 	Phone     *string  `json:"phone"`
-	Deep      *NPIDeep `json:"deep,omitempty"`
+	Deep      *ProviderDeep `json:"deep,omitempty"`
 }
 
-// NPIEnrollment is one Medicare FFS enrollment row.
-type NPIEnrollment struct {
+// ProviderEnrollment is one Medicare FFS enrollment row.
+type ProviderEnrollment struct {
 	_ [0]func()
 	// Type is part_a, part_b, practitioner, dme, order_refer, or mdpp.
 	Type      *string `json:"type"`
@@ -405,15 +432,19 @@ type NPIEnrollment struct {
 	State     *string `json:"state"`
 }
 
-// NPIDeep is Medicare enrollment on paid plans.
-type NPIDeep struct {
+// ProviderDeep is Medicare enrollment on paid plans.
+type ProviderDeep struct {
+	EnumeratedAt *string `json:"enumerated_at"`
+	UpdatedAt *string `json:"updated_at"`
+	ReactivatedAt *string `json:"reactivated_at"`
+	Taxonomies []ProviderTaxonomy `json:"taxonomies"`
 	_ [0]func()
 	// Medicare reports presence in the stored FFS enrollment extract, not payment eligibility.
 	Medicare *bool `json:"medicare"`
 	// OptOut is an NPI-only match in the stored CMS opt-out affidavit list; nil when unavailable.
 	OptOut *bool `json:"opt_out"`
 	// Enrollments contains stored type, specialty, and state. Nil means unavailable; empty means no rows are returned.
-	Enrollments []NPIEnrollment `json:"enrollments"`
+	Enrollments []ProviderEnrollment `json:"enrollments"`
 	// DeactivatedAt is the recorded ISO deactivation date; nil when active or unavailable.
 	DeactivatedAt *string `json:"deactivated_at"`
 }

@@ -269,16 +269,16 @@ func main() {
 		return ""
 	})
 
-	npi, err := parse.NPI(ctx, "1881018208")
-	expectOk("npi", npi, err, func(r *parseapi.NPI) string {
+	npi, err := parse.Provider(ctx, "1881018208")
+	expectOk("npi", npi, err, func(r *parseapi.Provider) string {
 		if !r.Valid || r.Registered == nil || !*r.Registered {
 			return "not registered"
 		}
 		return ""
 	})
 
-	npiJunk, err := parse.NPI(ctx, "hello")
-	expectOk("npi junk", npiJunk, err, func(r *parseapi.NPI) string {
+	npiJunk, err := parse.Provider(ctx, "hello")
+	expectOk("npi junk", npiJunk, err, func(r *parseapi.Provider) string {
 		if r.Valid {
 			return "expected invalid"
 		}

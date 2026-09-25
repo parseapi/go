@@ -923,16 +923,16 @@ func (c *Client) BankRequirements(ctx context.Context, country string, options .
 	return out, nil
 }
 
-// NPIOptions configures NPI. Omitted fields use API defaults.
-type NPIOptions struct {
+// ProviderOptions configures NPI. Omitted fields use API defaults.
+type ProviderOptions struct {
 	// Lang selects translated display names for this request.
 	Lang string
 	_    [0]func()
 	Deep bool
 }
 
-// NPI calls /npi/{npi}.
-func (c *Client) NPI(ctx context.Context, npi string, options ...NPIOptions) (*NPI, error) {
+// NPI calls /provider/{npi}.
+func (c *Client) Provider(ctx context.Context, npi string, options ...ProviderOptions) (*Provider, error) {
 	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
@@ -941,8 +941,8 @@ func (c *Client) NPI(ctx context.Context, npi string, options ...NPIOptions) (*N
 	if opts.Deep {
 		deep = "true"
 	}
-	out := &NPI{}
-	if err := c.get(ctx, "/npi/"+seg(npi), values("lang", opts.Lang, "deep", deep), nil, out); err != nil {
+	out := &Provider{}
+	if err := c.get(ctx, "/provider/"+seg(npi), values("lang", opts.Lang, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil

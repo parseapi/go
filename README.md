@@ -91,7 +91,7 @@ parse.Email(ctx, "hello@example.com", parseapi.EmailOptions{Deep: true})
 parse.VAT(ctx, "DE136695976", parseapi.VATOptions{Deep: true})
 parse.Bank(ctx, "DE89370400440532013000")
 parse.Card(ctx, "424242")
-parse.NPI(ctx, "1881018208")
+parse.Provider(ctx, "1881018208")
 parse.ASN(ctx, "AS13335")
 parse.MAC(ctx, "00:1B:63:84:45:E6")
 parse.Name(ctx, "Andrea", parseapi.NameOptions{Country: "IT"})
@@ -189,11 +189,11 @@ parse.BankRequirements(ctx, "US", parseapi.BankRequirementsOptions{Format: "us_a
 parse.BankUSACH(ctx, parseapi.BankUSACHInput{Routing: "011000015", Account: "0001234567"})
 ```
 
-## NPI provider lookup
+## Provider lookup
 
 ```go
-provider, err := parse.NPI(ctx, "1881018208")
-profile, err := parse.NPI(ctx, "1881018208", parseapi.NPIOptions{Deep: true})
+provider, err := parse.Provider(ctx, "1881018208")
+profile, err := parse.Provider(ctx, "1881018208", parseapi.ProviderOptions{Deep: true})
 ```
 
 Pass the original NPI as a string. `valid` checks its format and checksum; `registered` means a match in the stored NPPES snapshot. `active` reflects recorded NPI deactivation, not licensure. `excluded` is an NPI-only OIG LEIE match; `false` is not a complete exclusion clearance. These directory facts do not verify credentials, current practice contact or payment eligibility.
@@ -201,6 +201,8 @@ Pass the original NPI as a string. `valid` checks its format and checksum; `regi
 Invalid input returns `valid: false` with unknown provider fields. A checksum-valid number missing from the snapshot returns `registered: false`; unavailable storage remains an API error. Preserve `null` as unknown.
 
 The default pooled lookup includes provider identity, specialty and practice contact where held. Paid `deep` adds `deactivated_at`, `medicare`, `opt_out` and `enrollments` from stored source files, with no separate check meter or live verification. `enrollments: null` means unavailable; `[]` means no enrollment rows are returned. The API omits unrequested `deep` and returns `{}` when requested on Free.
+
+Paid Deep also returns `taxonomies` in published order, with taxonomy code, specialty label, primary flag and provider-reported license number/state, plus `enumerated_at`, `updated_at` and `reactivated_at` record dates. Reported licenses are not verified licenses. Null lists mean unavailable; empty lists mean the edition contains no entries. Core `sources` is available on every plan: NPPES, LEIE, PECOS and opt-out each have nullable edition metadata (`edition`, `published_at`, `through`, `imported_at`). Provider record dates are separate from source publication and completed import dates. Older responses may omit these additions. Edition details remain null until a verified source is served.
 
 ## Deep
 

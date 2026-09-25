@@ -102,8 +102,8 @@ func TestURLMapping(t *testing.T) {
 			_, err := c.Bank(ctx, "89370400440532013000", BankOptions{Country: "DE"})
 			return err
 		}, "/bank", ""},
-		{"npi", func(c *Client) error { _, err := c.NPI(ctx, "1881018208"); return err }, "/npi/1881018208", ""},
-		{"npi deep", func(c *Client) error { _, err := c.NPI(ctx, "1881018208", NPIOptions{Deep: true}); return err }, "/npi/1881018208", "deep=true"},
+		{"npi", func(c *Client) error { _, err := c.Provider(ctx, "1881018208"); return err }, "/provider/1881018208", ""},
+		{"npi deep", func(c *Client) error { _, err := c.Provider(ctx, "1881018208", ProviderOptions{Deep: true}); return err }, "/provider/1881018208", "deep=true"},
 		{"vat from deep", func(c *Client) error {
 			_, err := c.VAT(ctx, "DE136695976", VATOptions{From: "IE6388047V", Deep: true})
 			return err

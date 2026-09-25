@@ -31,7 +31,7 @@ var _ func(*parseapi.Client, context.Context, string, ...parseapi.EmailOptions) 
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.VATOptions) (*parseapi.VAT, error) = (*parseapi.Client).VAT
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.BankOptions) (*parseapi.Bank, error) = (*parseapi.Client).Bank
 var _ func(*parseapi.Client, context.Context, string) (*parseapi.Card, error) = (*parseapi.Client).Card
-var _ func(*parseapi.Client, context.Context, string, ...parseapi.NPIOptions) (*parseapi.NPI, error) = (*parseapi.Client).NPI
+var _ func(*parseapi.Client, context.Context, string, ...parseapi.ProviderOptions) (*parseapi.Provider, error) = (*parseapi.Client).Provider
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.PhoneOptions) (*parseapi.Phone, error) = (*parseapi.Client).Phone
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.CarrierOptions) (*parseapi.Carrier, error) = (*parseapi.Client).Carrier
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.CallerOptions) (*parseapi.Caller, error) = (*parseapi.Client).Caller

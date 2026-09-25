@@ -91,8 +91,8 @@ func TestDisplayLanguagePerRequest(t *testing.T) {
 			_, err := c.Company(ctx, "732829320", CompanyOptions{Lang: lang, Country: "FR", Deep: true})
 			return err
 		}},
-		{"NPI", "/npi/1881018208", "deep=true", func(c *Client, lang string) error {
-			_, err := c.NPI(ctx, "1881018208", NPIOptions{Lang: lang, Deep: true})
+		{"NPI", "/provider/1881018208", "deep=true", func(c *Client, lang string) error {
+			_, err := c.Provider(ctx, "1881018208", ProviderOptions{Lang: lang, Deep: true})
 			return err
 		}},
 		{"ASN", "/asn/AS13335", "", func(c *Client, lang string) error {

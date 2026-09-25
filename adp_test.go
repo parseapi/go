@@ -21,7 +21,7 @@ func TestADPModelsPreserveCoreAndDeepTriad(t *testing.T) {
 		{"City", `{"name":"Charlotte","country":"US","id":"city_123"}`, `{"population":0,"area":0.25}`, &City{}},
 		{"Postal", `{"postal":"28202","country":"US"}`, `{"metros":[],"water_area":0.25,"tax_rate":0}`, &Postal{}},
 		{"Bank", `{"iban":"DE89370400440532013000","valid":true}`, `{"checksum":"89","branch":null,"account":"0532013000"}`, &Bank{}},
-		{"NPI", `{"npi":"1881018208","valid":true,"excluded":true,"credential":"MD","state_name":"Minnesota"}`, `{"deactivated_at":"2026-09-01","enrollments":[]}`, &NPI{}},
+		{"NPI", `{"npi":"1881018208","valid":true,"excluded":true,"credential":"MD","state_name":"Minnesota"}`, `{"deactivated_at":"2026-09-01","enrollments":[]}`, &Provider{}},
 		{"VIN", `{"vin":"1HGCM82633A004352","valid":true,"make":"Honda"}`, `{"horsepower":240.5,"recalls":[]}`, &VIN{}},
 		{"Phone", `{"phone":"+14155552671","valid":true}`, `{"state":"CA","timezone":"America/Los_Angeles"}`, &Phone{}},
 		{"Carrier", `{"phone":"+14155552671","valid":true,"carrier":"Example"}`, `{"city":"San Francisco","state":"CA"}`, &Carrier{}},
