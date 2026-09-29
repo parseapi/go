@@ -71,5 +71,9 @@ var _ func(*parseapi.Client, context.Context, string, ...parseapi.IndustrySearch
 
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.DNSOptions) (*parseapi.DNS, error) = (*parseapi.Client).DNS
 
+var _ func(*parseapi.Client, context.Context, string, ...parseapi.CompanyIDOptions) (*parseapi.CompanyProfile, error) = (*parseapi.Client).CompanyID
+var _ func(*parseapi.Client, context.Context, ...parseapi.CompanySearchOptions) (*parseapi.CompanySearch, error) = (*parseapi.Client).CompanySearch
+var _ func(*parseapi.Client, context.Context, ...parseapi.CompanyCoverageOptions) (*parseapi.CompanyCoverage, error) = (*parseapi.Client).CompanyCoverage
+
 var _ func(*parseapi.Client, context.Context, parseapi.BankUSACHInput) (*parseapi.BankUSACH, error) = (*parseapi.Client).BankUSACH
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.BankRequirementsOptions) (*parseapi.BankRequirements, error) = (*parseapi.Client).BankRequirements
