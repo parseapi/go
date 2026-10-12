@@ -1469,6 +1469,7 @@ type CurrencyRateOptions struct {
 	_      [0]func()
 	Date   string
 	Amount *float64
+	Pretty bool
 }
 
 // CurrencyRate calls /currency/{base}/{quote}.
@@ -1482,7 +1483,7 @@ func (c *Client) CurrencyRate(ctx context.Context, base string, quote string, op
 		amount = f(*opts.Amount)
 	}
 	out := &CurrencyRate{}
-	if err := c.get(ctx, "/currency/"+seg(base)+"/"+seg(quote), values("date", opts.Date, "amount", amount), nil, out); err != nil {
+	if err := c.get(ctx, "/currency/"+seg(base)+"/"+seg(quote), values("date", opts.Date, "amount", amount, "pretty", currencyBool(opts.Pretty)), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil

@@ -322,6 +322,43 @@ Carrier, caller, and HLR are separate metered operations. Choose them explicitly
 
 Without `deep`, the response omits that key. When requested, it is an empty object if access is locked or the operation has no deep fields. Otherwise it contains the available fields. A missing or null field means unknown.
 
+## Currency reference rates
+
+The new currency list, batch, history and summary methods are a local release candidate awaiting API activation and client publication.
+```go
+if err != nil { return err }
+rates, err := parse.CurrencyRates(ctx, "USD", []string{"EUR", "JPY"}, parseapi.CurrencyRatesOptions{})
+if err != nil { return err }
+if eur, ok := rates.Rates["EUR"]; ok { fmt.Println(eur.Rate) }
+history, err := parse.CurrencyHistory(ctx, "USD", "EUR", "2026-10-01", "2026-10-09", parseapi.CurrencyHistoryOptions{})
+if err != nil { return err }
+series, err := parse.CurrencyRatesHistory(ctx, "USD", []string{"EUR", "JPY"}, "2026-10-01", "2026-10-09", parseapi.CurrencyRatesHistoryOptions{})
+if err != nil { return err }
+allRates, err := parse.CurrencyRates(ctx, "USD", nil)
+if err != nil { log.Fatal(err) }
+catalog, err := parse.CurrencyList(ctx, parseapi.CurrencyListOptions{Q: "dollar"})
+if err != nil { log.Fatal(err) }
+_ = history; _ = series; _ = allRates; _ = catalog
+```
+
+
+`CurrencyRate` keeps its signature and adds optional `Source` settings. Unknown historical minor-unit precision keeps `Converted` nil. Amount calculations use the held reference ratio and quote minor units. Returned JSON numbers retain ordinary numeric magnitude precision.
+
+Rate batches return a `rates` object keyed by currency code, so each value holds its rate, date and any necessary qualifications without repeating the quote code. History, catalog and period summaries return complete bounded `data` arrays. Ordinary catalog currencies omit `unit`; special units identify troy ounces or indexed units. The catalog uses `/currency`. Its optional `lang` translates available currency names and Deep plural names using the same policy as individual metadata lookups; identifiers, symbols and numeric facts stay unchanged. Omitted quotes return all available rates (Go uses `nil`). Optional Core `units` distinguishes troy ounces and indexed units. Rates and history keep shared base, pair and requested amount on the envelope. The API omits empty missing arrays. Lists and all-quotes batches exclude metals and test/no-currency codes.
+
+### Currency history sampling and period summaries
+
+```go
+sampled, err := parse.CurrencyHistory(ctx, "USD", "JPY", "1999-01-01", "2026-10-09", parseapi.CurrencyHistoryOptions{Interval: "month"})
+if err != nil { return err }
+report, err := parse.CurrencyRatesSummary(ctx, "USD", []string{"EUR"}, "1999-01-01", "1999-01-31", parseapi.CurrencyRatesSummaryOptions{Interval: "month"})
+if err != nil { return err }
+```
+
+History accepts `interval` (`Interval` in Go): `day` by default, or `week` and `month` for longer ranges. Samples start at `from` and include `to`. Weekly samples advance seven days. Monthly samples retain the original day of month and clamp in shorter months. Week/month history and period summaries accept at most 36,600 calendar days, under a complete read bound of 100,000 currency-day rows including a 30-day lookback. History output is bounded to 5,000 requested quote-dates, including gaps. Reduce the range or quote list when a request exceeds a bound.
+
+Period summaries use `month` by default, or `quarter` and `year`. Each row gives `average`, `min`, `max`, `observation_count`, `first_date`, `last_date` and `missing_day_count`. Averages count each original effective observation date once. ParseAPI carry-forward rows add no observations. Bank-supplied calendar dates still count when values repeat; they are not all proven fresh publications. Periods at the edges are clipped to the requested range. A period with no observations is explicit in `missing`. Summaries do not accept amounts or Deep.
+
 ## Errors
 
 Every non-2xx response returns `*parseapi.Error` with `Status`, `Code`, `Message`, `Docs`, and `RequestID`. Branch on `Code`.

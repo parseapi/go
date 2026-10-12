@@ -828,13 +828,16 @@ type Name struct {
 
 type CurrencyRate struct {
 	_         [0]func()
-	Base      string   `json:"base"`
-	Quote     string   `json:"quote"`
-	Rate      float64  `json:"rate"`
-	Date      string   `json:"date"`
-	Amount    *float64 `json:"amount,omitempty"`
-	Converted *float64 `json:"converted,omitempty"`
-	Source    string   `json:"source,omitempty"`
+	Base      string             `json:"base"`
+	Quote     string             `json:"quote"`
+	Rate      float64            `json:"rate"`
+	Date      string             `json:"date"`
+	Amount    *float64           `json:"amount,omitempty"`
+	Converted *float64           `json:"converted,omitempty"`
+	Source    string             `json:"source,omitempty"`
+	Stale     *bool              `json:"stale,omitempty"`
+	Dates     *CurrencyRateDates `json:"dates,omitempty"`
+	Units     *CurrencyRateUnits `json:"units,omitempty"`
 }
 
 type TimezoneNextDST struct {
