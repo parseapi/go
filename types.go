@@ -1074,10 +1074,48 @@ type Emoji struct {
 	Deep       *EmojiDeep `json:"deep,omitempty"`
 }
 
-type EmojiSearch struct {
+type EmojiBrowse struct {
+	_          [0]func()
+	Emojis     []Emoji `json:"emojis"`
+	Total      int     `json:"total"`
+	NextOffset *int    `json:"next_offset"`
+}
+type EmojiVariant struct {
+	_     [0]func()
+	Emoji string   `json:"emoji"`
+	Tones []string `json:"tones"`
+}
+type EmojiCategory struct {
+	_             [0]func()
+	Category      string   `json:"category"`
+	Subcategories []string `json:"subcategories"`
+}
+type EmojiCategories struct {
+	_          [0]func()
+	Categories []EmojiCategory `json:"categories"`
+}
+
+// EmojiPosition uses UTF-16 code units, with an exclusive end.
+type EmojiPosition struct {
+	_     [0]func()
+	Start int `json:"start"`
+	End   int `json:"end"`
+}
+type EmojiParseItem struct {
+	Emoji
+	Positions []EmojiPosition `json:"positions"`
+}
+type EmojiParse struct {
 	_      [0]func()
-	Q      string  `json:"q"`
-	Emojis []Emoji `json:"emojis"`
+	Emojis []EmojiParseItem `json:"emojis"`
+}
+
+type EmojiSearch struct {
+	Total      *int `json:"total"`
+	NextOffset *int `json:"next_offset"`
+	_          [0]func()
+	Q          string  `json:"q"`
+	Emojis     []Emoji `json:"emojis"`
 }
 
 type TimezoneConversionTarget struct {
@@ -1537,13 +1575,17 @@ type DateInfoDeep struct {
 }
 
 type EmojiDeep struct {
-	_          [0]func()
-	Codepoints []string    `json:"codepoints"`
-	Hex        *string     `json:"hex"`
-	Status     *string     `json:"status"`
-	Version    *string     `json:"version"`
-	Keywords   []string    `json:"keywords"`
-	Skins      []EmojiSkin `json:"skins"`
+	Artwork     map[string]EmojiArtwork `json:"artwork"`
+	Subcategory *string                 `json:"subcategory"`
+	Base        *string                 `json:"base"`
+	Variants    []EmojiVariant          `json:"variants"`
+	_           [0]func()
+	Codepoints  []string    `json:"codepoints"`
+	Hex         *string     `json:"hex"`
+	Status      *string     `json:"status"`
+	Version     *string     `json:"version"`
+	Keywords    []string    `json:"keywords"`
+	Skins       []EmojiSkin `json:"skins"`
 }
 
 type WeatherCurrentDeep struct {
@@ -1835,4 +1877,129 @@ type IBANDeep struct {
 	// Branch is the identifier when that country has one.
 	Branch  *string `json:"branch"`
 	Account *string `json:"account"`
+}
+
+// Artwork URLs exist only for files present in a pinned source manifest.
+type EmojiArtwork struct {
+	_           [0]func()
+	License     *string           `json:"license"`
+	LicenseURL  *string           `json:"license_url"`
+	Attribution *string           `json:"attribution"`
+	SVG         *string           `json:"svg"`
+	PNG         map[string]string `json:"png"`
+}
+
+type EmojiCompleteness struct {
+	_               [0]func()
+	MissingCount    int `json:"missing_count"`
+	UnexpectedCount int `json:"unexpected_count"`
+}
+type EmojiSource struct {
+	_          [0]func()
+	ID         string  `json:"id"`
+	Version    *string `json:"version"`
+	SourceURL  string  `json:"source_url"`
+	License    string  `json:"license"`
+	LicenseURL string  `json:"license_url"`
+}
+type EmojiNotice struct {
+	_       [0]func()
+	ID      string `json:"id"`
+	License string `json:"license"`
+	Notice  string `json:"notice"`
+}
+type EmojiFlagLicense struct {
+	_           [0]func()
+	License     string `json:"license"`
+	LicenseURL  string `json:"license_url"`
+	Description string `json:"description"`
+}
+
+type EmojiArtworkCoverage struct {
+	_   [0]func()
+	SVG int `json:"svg"`
+	PNG int `json:"png"`
+}
+type EmojiArtworkSource struct {
+	_              [0]func()
+	Style          string                `json:"style"`
+	Version        *string               `json:"version"`
+	UnicodeVersion *string               `json:"unicode_version"`
+	SourceURL      *string               `json:"source_url"`
+	License        *string               `json:"license"`
+	LicenseURL     *string               `json:"license_url"`
+	Attribution    *string               `json:"attribution"`
+	FlagLicense    *EmojiFlagLicense     `json:"flag_license"`
+	LoadedCoverage *EmojiArtworkCoverage `json:"loaded_coverage"`
+	Notices        []string              `json:"notices"`
+}
+type EmojiMetadata struct {
+	ShortcodeSources map[string]EmojiShortcodeSourceMetadata `json:"shortcode_sources"`
+	_                [0]func()
+	Edition          string               `json:"edition"`
+	MaxVersion       *string              `json:"max_version"`
+	SourceVersion    string               `json:"source_version"`
+	Total            uint32               `json:"total"`
+	Completeness     EmojiCompleteness    `json:"completeness"`
+	Sources          []EmojiSource        `json:"sources"`
+	ArtworkSources   []EmojiArtworkSource `json:"artwork_sources"`
+	Notices          []EmojiNotice        `json:"notices"`
+}
+type EmojiCatalogScope struct {
+	_                 [0]func()
+	Filters           map[string]string `json:"filters"`
+	CompleteInventory bool              `json:"complete_inventory"`
+}
+type EmojiCatalog struct {
+	Localization *EmojiCatalogLocalization `json:"localization"`
+	Profile      *string                   `json:"profile"`
+	Scope        *EmojiCatalogScope        `json:"scope"`
+	Search       *EmojiCatalogSearchFacts  `json:"search"`
+	_            [0]func()
+	Metadata     EmojiMetadata                  `json:"metadata"`
+	Total        int                            `json:"total"`
+	Emojis       []Emoji                        `json:"emojis"`
+	Forms        map[string]string              `json:"forms"`
+	Shortcodes   map[string]map[string][]string `json:"shortcodes"`
+	Legacy       map[string]string              `json:"legacy"`
+}
+
+type EmojiNativeSearchFacts struct {
+	Order    *int `json:"order"`
+	_        [0]func()
+	Name     *string  `json:"name"`
+	Keywords []string `json:"keywords"`
+}
+type EmojiCatalogSearchFacts struct {
+	LocalizedKeywords []string `json:"localized_keywords"`
+	_                 [0]func()
+	Native            map[string]EmojiNativeSearchFacts `json:"native"`
+}
+
+// Emoji discovery and conversion preserve input UTF-16 positions.
+type EmojiUnresolved struct {
+	Emoji     *string `json:"emoji"`
+	Shortcode *string `json:"shortcode"`
+	Start     int     `json:"start"`
+	End       int     `json:"end"`
+	Reason    string  `json:"reason"`
+}
+type EmojiConversion struct {
+	Text       string            `json:"text"`
+	Unresolved []EmojiUnresolved `json:"unresolved"`
+}
+
+// Verified localization and shortcode provenance are optional on older servers.
+type EmojiCatalogLocalization struct {
+	RequestedLocale    *string `json:"requested_locale"`
+	ResolvedLocale     *string `json:"resolved_locale"`
+	TranslatedNames    int     `json:"translated_names"`
+	TranslatedKeywords int     `json:"translated_keywords"`
+	FallbackNames      int     `json:"fallback_names"`
+	FallbackKeywords   int     `json:"fallback_keywords"`
+}
+type EmojiShortcodeSourceMetadata struct {
+	Records          uint32 `json:"records"`
+	MissingRecords   uint32 `json:"missing_records"`
+	AmbiguousAliases uint32 `json:"ambiguous_aliases"`
 }

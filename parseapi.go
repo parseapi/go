@@ -1872,6 +1872,7 @@ func (c *Client) Weather(ctx context.Context, lat float64, lon float64, options 
 
 // EmojiOptions reserves optional settings for Emoji.
 type EmojiOptions struct {
+	ShortcodeSource string
 	// Lang selects translated display names for this request.
 	Lang string
 	_    [0]func()
@@ -1889,7 +1890,7 @@ func (c *Client) Emoji(ctx context.Context, emoji string, options ...EmojiOption
 		deep = "true"
 	}
 	out := &Emoji{}
-	if err := c.get(ctx, "/emoji/"+seg(emoji), values("lang", opts.Lang, "deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/emoji/"+seg(emoji), values("lang", opts.Lang, "deep", deep, "shortcode_source", opts.ShortcodeSource), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -1897,6 +1898,12 @@ func (c *Client) Emoji(ctx context.Context, emoji string, options ...EmojiOption
 
 // EmojiSearchOptions configures EmojiSearch. Omitted fields use API defaults.
 type EmojiSearchOptions struct {
+	Category         string
+	Subcategory      string
+	Version          string
+	MaxVersion       string
+	IncludeSkinTones *bool
+	Offset           *int
 	// Lang selects translated display names for this request.
 	Lang  string
 	_     [0]func()
@@ -1910,19 +1917,136 @@ func (c *Client) EmojiSearch(ctx context.Context, query string, options ...Emoji
 	if err != nil {
 		return nil, err
 	}
-	limit := ""
-	if opts.Limit != 0 {
-		limit = strconv.Itoa(opts.Limit)
+	params := emojiQuery(opts)
+	params.Set("q", query)
+	out := &EmojiSearch{}
+	if err := c.get(ctx, "/emoji", params, nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// EmojiBrowseOptions configures catalog browsing. Omitted fields use API defaults.
+type EmojiBrowseOptions = EmojiSearchOptions
+
+// EmojiBrowse lists the catalog without a search query.
+func (c *Client) EmojiBrowse(ctx context.Context, options ...EmojiBrowseOptions) (*EmojiBrowse, error) {
+	opts, err := oneOption(options)
+	if err != nil {
+		return nil, err
+	}
+	out := &EmojiBrowse{}
+	if err := c.get(ctx, "/emoji", emojiQuery(opts), nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// EmojiCatalogOptions configures the complete JSON export. Deep defaults true.
+type EmojiCatalogOptions struct {
+	_                [0]func()
+	Profile          string
+	Deep             *bool
+	Lang             string
+	Category         string
+	Subcategory      string
+	Version          string
+	MaxVersion       string
+	IncludeSkinTones *bool
+}
+
+func (c *Client) EmojiCatalog(ctx context.Context, options ...EmojiCatalogOptions) (*EmojiCatalog, error) {
+	opts, err := oneOption(options)
+	if err != nil {
+		return nil, err
+	}
+	params := emojiQuery(EmojiSearchOptions{Lang: opts.Lang, Category: opts.Category, Subcategory: opts.Subcategory, Version: opts.Version, MaxVersion: opts.MaxVersion, IncludeSkinTones: opts.IncludeSkinTones})
+	deep := opts.Deep == nil || *opts.Deep
+	params.Set("deep", strconv.FormatBool(deep))
+	if opts.Profile != "" {
+		params.Set("profile", opts.Profile)
+	}
+	out := &EmojiCatalog{}
+	if err := c.get(ctx, "/emoji/catalog", params, nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) EmojiConvert(ctx context.Context, text, direction, shortcodeSource string) (*EmojiConversion, error) {
+	body, err := json.Marshal(map[string]string{"text": text})
+	if err != nil {
+		return nil, err
+	}
+	out := &EmojiConversion{}
+	if err := c.request(ctx, http.MethodPost, "/emoji/convert", values("direction", direction, "shortcode_source", shortcodeSource), nil, body, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// EmojiMetadata retrieves the corresponding catalog resource.
+
+func (c *Client) EmojiMetadata(ctx context.Context) (*EmojiMetadata, error) {
+	out := &EmojiMetadata{}
+	if err := c.get(ctx, "/emoji/metadata", nil, nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// EmojiCategories retrieves the corresponding catalog resource.
+
+func (c *Client) EmojiCategories(ctx context.Context) (*EmojiCategories, error) {
+	out := &EmojiCategories{}
+	if err := c.get(ctx, "/emoji/categories", nil, nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+type EmojiParseOptions struct {
+	_    [0]func()
+	Deep bool
+	Lang string
+}
+
+// EmojiParse extracts complete sequences. Positions are UTF-16 code units; end is exclusive.
+func (c *Client) EmojiParse(ctx context.Context, text string, options ...EmojiParseOptions) (*EmojiParse, error) {
+	opts, err := oneOption(options)
+	if err != nil {
+		return nil, err
 	}
 	deep := ""
 	if opts.Deep {
 		deep = "true"
 	}
-	out := &EmojiSearch{}
-	if err := c.get(ctx, "/emoji", values("lang", opts.Lang, "q", query, "limit", limit, "deep", deep), nil, out); err != nil {
+	body, err := json.Marshal(map[string]string{"text": text})
+	if err != nil {
+		return nil, err
+	}
+	out := &EmojiParse{}
+	if err := c.request(ctx, http.MethodPost, "/emoji/parse", values("deep", deep, "lang", opts.Lang), nil, body, out); err != nil {
 		return nil, err
 	}
 	return out, nil
+}
+
+func emojiQuery(opts EmojiSearchOptions) url.Values {
+	params := values("lang", opts.Lang, "category", opts.Category, "subcategory", opts.Subcategory, "version", opts.Version, "max_version", opts.MaxVersion)
+	if opts.Deep {
+		params.Set("deep", "true")
+	}
+	if opts.Limit != 0 {
+		params.Set("limit", strconv.Itoa(opts.Limit))
+	}
+	if opts.Offset != nil {
+		params.Set("offset", strconv.Itoa(*opts.Offset))
+	}
+	if opts.IncludeSkinTones != nil {
+		params.Set("include_skin_tones", strconv.FormatBool(*opts.IncludeSkinTones))
+	}
+	return params
 }
 
 // AddressOptions configures Address. Omitted fields use API defaults.
