@@ -1252,8 +1252,8 @@ type Measure struct {
 	Type    *string         `json:"type"`
 	Amount  *string         `json:"amount"`
 	Unit    *string         `json:"unit"`
-	Reason  *string         `json:"reason"`
-	Choices []MeasureChoice `json:"choices"`
+	Reason  *string         `json:"reason,omitempty"`
+	Choices []MeasureChoice `json:"choices,omitempty"`
 }
 
 type MeasureUnit struct {
