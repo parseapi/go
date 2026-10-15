@@ -152,6 +152,7 @@ type District struct {
 }
 
 type City struct {
+	Match        *CityMatch `json:"match"`
 	_            [0]func()
 	Name         string   `json:"name"`
 	NameLocal    *string  `json:"name_local"`
@@ -168,6 +169,11 @@ type City struct {
 	// ID is the minted parse id (city_ + 12 chars). Stable pin via /city/id/{id}.
 	ID   string    `json:"id"`
 	Deep *CityDeep `json:"deep,omitempty"`
+	// Grain and Parent are present when hierarchy is requested.
+	Grain                *string     `json:"grain,omitempty"`
+	Parent               *CityParent `json:"parent,omitempty"`
+	NameRomanized        *string     `json:"name_romanized"`
+	RomanizationLanguage *string     `json:"romanization_language"`
 }
 
 // CityNearest is a City plus the distance from the query point.
@@ -179,21 +185,23 @@ type CityNearest struct {
 }
 
 type CitySearch struct {
-	_       [0]func()
-	Q       string `json:"q"`
-	Country string `json:"country,omitempty"`
-	State   string `json:"state,omitempty"`
-	Cities  []City `json:"cities"`
+	_          [0]func()
+	Q          string  `json:"q"`
+	Country    string  `json:"country,omitempty"`
+	State      string  `json:"state,omitempty"`
+	Cities     []City  `json:"cities"`
+	NextCursor *string `json:"next_cursor,omitempty"`
 }
 
 type CityNearby struct {
-	_       [0]func()
-	City    string        `json:"city"`
-	State   *string       `json:"state"`
-	Country string        `json:"country"`
-	Radius  float64       `json:"radius"`
-	Unit    string        `json:"unit"`
-	Nearby  []CityNearest `json:"nearby"`
+	_          [0]func()
+	City       string        `json:"city"`
+	State      *string       `json:"state"`
+	Country    string        `json:"country"`
+	Radius     float64       `json:"radius"`
+	Unit       string        `json:"unit"`
+	Nearby     []CityNearest `json:"nearby"`
+	NextCursor *string       `json:"next_cursor,omitempty"`
 }
 
 // PostalMetro describes an area's share of ZIP addresses. Category shares are independent fractions.
@@ -366,34 +374,34 @@ type Bank struct {
 
 // NPI is a US healthcare provider record in the healthcare provider registry.
 type ProviderTaxonomy struct {
-	_ [0]func()
-	Taxonomy *string `json:"taxonomy"`
+	_         [0]func()
+	Taxonomy  *string `json:"taxonomy"`
 	Specialty *string `json:"specialty"`
-	Primary *bool `json:"primary"`
-	License *string `json:"license"`
-	State *string `json:"state"`
+	Primary   *bool   `json:"primary"`
+	License   *string `json:"license"`
+	State     *string `json:"state"`
 }
 
 type ProviderSource struct {
-	_ [0]func()
-	Edition *string `json:"edition"`
+	_           [0]func()
+	Edition     *string `json:"edition"`
 	PublishedAt *string `json:"published_at"`
-	Through *string `json:"through"`
-	ImportedAt *string `json:"imported_at"`
+	Through     *string `json:"through"`
+	ImportedAt  *string `json:"imported_at"`
 }
 
 type ProviderSources struct {
-	_ [0]func()
-	Nppes *ProviderSource `json:"nppes"`
-	Leie *ProviderSource `json:"leie"`
-	Pecos *ProviderSource `json:"pecos"`
+	_      [0]func()
+	Nppes  *ProviderSource `json:"nppes"`
+	Leie   *ProviderSource `json:"leie"`
+	Pecos  *ProviderSource `json:"pecos"`
 	Optout *ProviderSource `json:"optout"`
 }
 
 // Provider is a US healthcare provider record in the healthcare provider registry.
 type Provider struct {
 	Sources *ProviderSources `json:"sources"`
-	_ [0]func()
+	_       [0]func()
 	// NPI is input with accepted separators removed; nil when empty. Invalid values remain visible.
 	NPI *string `json:"npi"`
 	// Valid checks format and NPI checksum only, not a provider or credentials.
@@ -412,14 +420,14 @@ type Provider struct {
 	Credential *string `json:"credential"`
 	Specialty  *string `json:"specialty"`
 	// Taxonomy is the NUCC taxonomy code.
-	Taxonomy  *string  `json:"taxonomy"`
-	Address   *string  `json:"address"`
-	City      *string  `json:"city"`
-	State     *string  `json:"state"`
-	StateName *string  `json:"state_name"`
-	Postal    *string  `json:"postal"`
-	Country   *string  `json:"country"`
-	Phone     *string  `json:"phone"`
+	Taxonomy  *string       `json:"taxonomy"`
+	Address   *string       `json:"address"`
+	City      *string       `json:"city"`
+	State     *string       `json:"state"`
+	StateName *string       `json:"state_name"`
+	Postal    *string       `json:"postal"`
+	Country   *string       `json:"country"`
+	Phone     *string       `json:"phone"`
 	Deep      *ProviderDeep `json:"deep,omitempty"`
 }
 
@@ -434,11 +442,11 @@ type ProviderEnrollment struct {
 
 // ProviderDeep is Medicare enrollment on paid plans.
 type ProviderDeep struct {
-	EnumeratedAt *string `json:"enumerated_at"`
-	UpdatedAt *string `json:"updated_at"`
-	ReactivatedAt *string `json:"reactivated_at"`
-	Taxonomies []ProviderTaxonomy `json:"taxonomies"`
-	_ [0]func()
+	EnumeratedAt  *string            `json:"enumerated_at"`
+	UpdatedAt     *string            `json:"updated_at"`
+	ReactivatedAt *string            `json:"reactivated_at"`
+	Taxonomies    []ProviderTaxonomy `json:"taxonomies"`
+	_             [0]func()
 	// Medicare reports presence in the stored FFS enrollment extract, not payment eligibility.
 	Medicare *bool `json:"medicare"`
 	// OptOut is an NPI-only match in the stored CMS opt-out affidavit list; nil when unavailable.
@@ -1329,8 +1337,8 @@ type CountryDeep struct {
 	Region     *string  `json:"region"`
 	Subregion  *string  `json:"subregion"`
 	Population *int64   `json:"population"`
-	// Reporting year or period for population (YYYY or YYYY-YYYY). Null when unknown or unverifiable.
-	PopulationPeriod *string  `json:"population_period"`
+	// Deprecated: no longer returned; retained for source compatibility and omitted from JSON.
+	PopulationPeriod *string  `json:"-"`
 	Area             *float64 `json:"area"`
 	// Land area in km2.
 	LandArea *float64 `json:"land_area"`
@@ -1377,8 +1385,8 @@ type CountryElevationPoint struct {
 type StateDeep struct {
 	_          [0]func()
 	Population *int64 `json:"population"`
-	// Reporting year or period for population (YYYY or YYYY-YYYY). Null when unknown or unverifiable.
-	PopulationPeriod *string  `json:"population_period"`
+	// Deprecated: no longer returned; retained for source compatibility and omitted from JSON.
+	PopulationPeriod *string  `json:"-"`
 	Area             *float64 `json:"area"`
 	FIPS             *string  `json:"fips"`
 	Capital          *string  `json:"capital"`
@@ -1392,8 +1400,8 @@ type StateDeep struct {
 type DistrictDeep struct {
 	_          [0]func()
 	Population *int64 `json:"population"`
-	// Reporting year or period for population (YYYY or YYYY-YYYY). Null when unknown or unverifiable.
-	PopulationPeriod *string `json:"population_period"`
+	// Deprecated: no longer returned; retained for source compatibility and omitted from JSON.
+	PopulationPeriod *string `json:"-"`
 	// Area is the total in km2 (land + water, or the official total).
 	Area *float64 `json:"area"`
 	// LandArea / WaterArea are the km2 split, null when the source publishes total only.
@@ -1411,8 +1419,11 @@ type CityDeep struct {
 	Elevation   *float64 `json:"elevation"`
 	ElevationFt *float64 `json:"elevation_ft"`
 	Population  *int64   `json:"population"`
-	// Reporting year or period for population (YYYY or YYYY-YYYY). Null when unknown or unverifiable.
-	PopulationPeriod *string `json:"population_period"`
+	// Deprecated: no longer returned; retained for source compatibility and omitted from JSON.
+	PopulationPeriod *string `json:"-"`
+	// Official observation date and population basis; null when unproven.
+	PopulationObservedOn *string `json:"population_observed_on"`
+	PopulationBasis      *string `json:"population_basis"`
 	// Area is the total in km2 (land + water, or the official total).
 	Area *float64 `json:"area"`
 	// LandArea / WaterArea are the km2 split, null when the source publishes total only.
@@ -1425,8 +1436,8 @@ type PostalDeep struct {
 	Elevation   *float64 `json:"elevation"`
 	ElevationFt *float64 `json:"elevation_ft"`
 	Population  *int64   `json:"population"`
-	// Reporting year or period for population (YYYY or YYYY-YYYY). Null when unknown or unverifiable.
-	PopulationPeriod *string `json:"population_period"`
+	// Deprecated: no longer returned; retained for source compatibility and omitted from JSON.
+	PopulationPeriod *string `json:"-"`
 	// Area is the total in km2, null when the source has no water split.
 	Area *float64 `json:"area"`
 	// LandArea / WaterArea are the km2 split where the source has them.
@@ -1625,8 +1636,8 @@ type PostalMetroDeep struct {
 type StateDistrictItemDeep struct {
 	_          [0]func()
 	Population *int64 `json:"population"`
-	// Reporting year or period for population (YYYY or YYYY-YYYY). Null when unknown or unverifiable.
-	PopulationPeriod *string `json:"population_period"`
+	// Deprecated: no longer returned; retained for source compatibility and omitted from JSON.
+	PopulationPeriod *string `json:"-"`
 }
 
 type CountryEmergency struct {
@@ -1803,7 +1814,6 @@ type IBAN struct {
 	Deep     *IBANDeep `json:"deep,omitempty"`
 }
 
-
 type NPI struct {
 	_ [0]func()
 	// NPI is the normalized 10-digit NPI. Invalid input still echoes the fold.
@@ -1833,7 +1843,6 @@ type NPI struct {
 	Deep      *NPIDeep `json:"deep,omitempty"`
 }
 
-
 type NPIEnrollment struct {
 	_ [0]func()
 	// Type is part_a, part_b, practitioner, dme, order_refer, or mdpp.
@@ -1841,7 +1850,6 @@ type NPIEnrollment struct {
 	Specialty *string `json:"specialty"`
 	State     *string `json:"state"`
 }
-
 
 type NPIDeep struct {
 	_ [0]func()
@@ -1854,7 +1862,6 @@ type NPIDeep struct {
 	// DeactivatedAt is the ISO date the NPI was deactivated.
 	DeactivatedAt *string `json:"deactivated_at"`
 }
-
 
 type BIN struct {
 	_   [0]func()
@@ -1869,7 +1876,6 @@ type BIN struct {
 	Prepaid   *bool          `json:"prepaid"`
 	Deep      map[string]any `json:"deep,omitempty"`
 }
-
 
 type IBANDeep struct {
 	_        [0]func()
@@ -2002,4 +2008,45 @@ type EmojiShortcodeSourceMetadata struct {
 	Records          uint32 `json:"records"`
 	MissingRecords   uint32 `json:"missing_records"`
 	AmbiguousAliases uint32 `json:"ambiguous_aliases"`
+}
+
+// CityParent is a reviewed immediate parent. Nullable names remain unknown.
+type CityParent struct {
+	_         [0]func()
+	ID        string  `json:"id"`
+	Name      *string `json:"name"`
+	NameLocal *string `json:"name_local"`
+	Country   string  `json:"country"`
+	State     *string `json:"state"`
+	Type      *string `json:"type"`
+	Grain     *string `json:"grain"`
+}
+
+// CityList is a page from the curated City collection.
+type CityList struct {
+	_          [0]func()
+	Object     string         `json:"object"`
+	HasMore    *bool          `json:"has_more,omitempty"`
+	URL        *string        `json:"url,omitempty"`
+	Q          *string        `json:"q,omitempty"`
+	Country    *string        `json:"country,omitempty"`
+	State      *string        `json:"state,omitempty"`
+	Type       *string        `json:"type,omitempty"`
+	Grain      *string        `json:"grain,omitempty"`
+	Data       []CityResource `json:"data"`
+	NextCursor *string        `json:"next_cursor"`
+}
+
+// CityNearbyCoords is a page of cities around the supplied coordinate.
+type CityNearbyCoords struct {
+	_          [0]func()
+	Object     string         `json:"object"`
+	HasMore    *bool          `json:"has_more,omitempty"`
+	URL        *string        `json:"url,omitempty"`
+	Latitude   float64        `json:"latitude"`
+	Longitude  float64        `json:"longitude"`
+	Radius     float64        `json:"radius"`
+	Unit       string         `json:"unit"`
+	Data       []CityResource `json:"data"`
+	NextCursor *string        `json:"next_cursor"`
 }

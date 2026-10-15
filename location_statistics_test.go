@@ -23,7 +23,7 @@ func TestLocationStatistics(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	if postal.Population == nil || *postal.Population != 0 || *postal.PopulationPeriod != "2020-2024" || postal.PropertyTax == nil || postal.PropertyTax.AnnualMedian != 0 || postal.PropertyTax.Currency != "USD" || postal.PropertyTax.Period != "2020-2024" {
+	if postal.Population == nil || *postal.Population != 0 || postal.PopulationPeriod != nil || postal.PropertyTax == nil || postal.PropertyTax.AnnualMedian != 0 || postal.PropertyTax.Currency != "USD" || postal.PropertyTax.Period != "2020-2024" {
 		t.Fatalf("lost statistic: %+v", postal)
 	}
 	if district.PropertyTax == nil || district.PropertyTax.Period != "2020-2024" {
