@@ -1397,11 +1397,17 @@ func (c *Client) IndustrySearch(ctx context.Context, query string, options ...NA
 	return out, nil
 }
 
+func tariffExactEdition(value string) bool {
+ if len(value)==64 && strings.Trim(value,"0123456789abcdef")=="" { return true }
+ if !strings.HasPrefix(value,"ted_") {return false};digits:=value[4:]
+ return len(digits)>0 && len(digits)<=20 && digits[0]!='0' && strings.Trim(digits,"0123456789")=="" && (len(digits)<20 || digits<="18446744073709551615")
+}
+
 func tariffSelection(edition, date string, gotEdition, gotDate *string) error {
 	if edition == "" && date == "" {
 		return nil
 	}
-	if gotEdition == nil || len(*gotEdition) != 64 || strings.Trim(*gotEdition, "0123456789abcdef") != "" || (edition != "" && *gotEdition != edition) || (date != "" && (gotDate == nil || *gotDate != date)) || (date == "" && gotDate != nil) {
+	if gotEdition == nil || !tariffExactEdition(*gotEdition) || (edition != "" && *gotEdition != edition) || (date != "" && (gotDate == nil || *gotDate != date)) || (date == "" && gotDate != nil) {
 		return &Error{Status: 0, Code: "tariff_selection_mismatch", Message: "Tariff response did not confirm the requested edition/date. The server may not support this selection."}
 	}
 	return nil
