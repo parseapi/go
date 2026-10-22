@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	version         = "1.10.1"
+	version         = "1.10.2"
 	defaultBaseURL  = "https://api.parseapi.com"
 	defaultTimeout  = 10 * time.Second
 	defaultRetries  = 2
@@ -431,43 +431,13 @@ func (c *Client) ContinentCountries(ctx context.Context, code string, options ..
 	return out, nil
 }
 
-// BlocOptions reserves optional settings for Bloc.
-type BlocOptions struct {
-	_ [0]func()
-}
 
-// Bloc calls /bloc/{code}.
-func (c *Client) Bloc(ctx context.Context, code string, options ...BlocOptions) (*Bloc, error) {
-	_, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	out := &Bloc{}
-	if err := c.get(ctx, "/bloc/"+seg(code), nil, nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
 
-// BlocCountriesOptions reserves optional settings for BlocCountries.
-type BlocCountriesOptions struct {
-	// Lang selects translated display names for this request.
-	Lang string
-	_    [0]func()
-}
 
-// BlocCountries calls /bloc/{code}/countries.
-func (c *Client) BlocCountries(ctx context.Context, code string, options ...BlocCountriesOptions) (*BlocCountries, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	out := &BlocCountries{}
-	if err := c.get(ctx, "/bloc/"+seg(code)+"/countries", values("lang", opts.Lang), nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
+
+
+
+
 
 // CountryOptions reserves optional settings for Country.
 type CountryOptions struct {
@@ -921,32 +891,9 @@ func (c *Client) Email(ctx context.Context, email string, options ...EmailOption
 	return out, nil
 }
 
-// VATOptions configures VAT. Omitted fields use API defaults.
-type VATOptions struct {
-	_       [0]func()
-	Country string
-	From    string
-	Deep    bool
-}
 
-// VAT checks VAT format and checksum. Deep requests a metered registry check where supported. Deep
-// checks use one attempt by default. Supply your own VAT number for a consultation reference when
-// supported.
-func (c *Client) VAT(ctx context.Context, number string, options ...VATOptions) (*VAT, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	deep := ""
-	if opts.Deep {
-		deep = "true"
-	}
-	out := &VAT{}
-	if err := c.get(ctx, "/vat/"+seg(number), values("country", opts.Country, "from", opts.From, "deep", deep), nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
+
+
 
 // BankOptions configures Bank. Omitted fields use API defaults.
 type BankOptions struct {
@@ -1000,30 +947,9 @@ func (c *Client) BankRequirements(ctx context.Context, country string, options .
 	return out, nil
 }
 
-// ProviderOptions configures NPI. Omitted fields use API defaults.
-type ProviderOptions struct {
-	// Lang selects translated display names for this request.
-	Lang string
-	_    [0]func()
-	Deep bool
-}
 
-// NPI calls /provider/{npi}.
-func (c *Client) Provider(ctx context.Context, npi string, options ...ProviderOptions) (*Provider, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	deep := ""
-	if opts.Deep {
-		deep = "true"
-	}
-	out := &Provider{}
-	if err := c.get(ctx, "/provider/"+seg(npi), values("lang", opts.Lang, "deep", deep), nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
+
+
 
 // PhoneOptions configures Phone. Omitted fields use API defaults.
 type PhoneOptions struct {
@@ -1360,79 +1286,17 @@ func (c *Client) IndustrySearch(ctx context.Context, query string, options ...NA
 	return out, nil
 }
 
-func tariffExactEdition(value string) bool {
- if len(value)==64 && strings.Trim(value,"0123456789abcdef")=="" { return true }
- if !strings.HasPrefix(value,"ted_") {return false};digits:=value[4:]
- return len(digits)>0 && len(digits)<=20 && digits[0]!='0' && strings.Trim(digits,"0123456789")=="" && (len(digits)<20 || digits<="18446744073709551615")
-}
 
-func tariffSelection(edition, date string, gotEdition, gotDate *string) error {
-	if edition == "" && date == "" {
-		return nil
-	}
-	if gotEdition == nil || !tariffExactEdition(*gotEdition) || (edition != "" && *gotEdition != edition) || (date != "" && (gotDate == nil || *gotDate != date)) || (date == "" && gotDate != nil) {
-		return &Error{Status: 0, Code: "tariff_selection_mismatch", Message: "Tariff response did not confirm the requested edition/date. The server may not support this selection."}
-	}
-	return nil
-}
 
-// TariffOptions configures Tariff. Omitted fields use API defaults.
-type TariffOptions struct {
-	// Edition pins an immutable source fingerprint. Date requires verified source coverage.
-	Edition string
-	Date    string
-	_       [0]func()
-	// Add units and the special and other schedule columns on paid plans.
-	Deep bool
-	// ISO 3166-1 alpha-2 origin. With paid deep, resolves country-specific measures. Optional for schedule detail.
-	Origin string
-}
 
-// Tariff looks up the general US duty schedule line. Paid deep adds units and the special and other
-// schedule columns. Add origin with deep to resolve country-specific measures. Without origin,
-// schedule detail remains available and origin-dependent fields are null. A null effective rate is
-// not a zero rate.
-func (c *Client) Tariff(ctx context.Context, code string, options ...TariffOptions) (*Tariff, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	deep := ""
-	if opts.Deep {
-		deep = "true"
-	}
-	out := &Tariff{}
-	if err := c.get(ctx, "/tariff/"+seg(code), values("deep", deep, "origin", opts.Origin, "edition", opts.Edition, "date", opts.Date), nil, out); err != nil {
-		return nil, err
-	}
-	if err := tariffSelection(opts.Edition, opts.Date, out.Edition, out.Date); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
 
-// TariffSearchOptions reserves optional settings for TariffSearch.
-type TariffSearchOptions struct {
-	_       [0]func()
-	Edition string
-	Date    string
-}
 
-// TariffSearch calls /tariff.
-func (c *Client) TariffSearch(ctx context.Context, query string, options ...TariffSearchOptions) (*TariffSearch, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	out := &TariffSearch{}
-	if err := c.get(ctx, "/tariff", values("q", query, "edition", opts.Edition, "date", opts.Date), nil, out); err != nil {
-		return nil, err
-	}
-	if err := tariffSelection(opts.Edition, opts.Date, out.Edition, out.Date); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
+
+
+
+
+
+
 
 // CurrencyOptions reserves optional settings for Currency.
 type CurrencyOptions struct {
@@ -2237,12 +2101,7 @@ type IBANOptions struct {
 	Deep    bool
 }
 
-type NPIOptions struct {
-	// Lang selects translated display names for this request.
-	Lang string
-	_    [0]func()
-	Deep bool
-}
+
 
 type BINOptions struct {
 	_    [0]func()
@@ -2265,21 +2124,7 @@ func (c *Client) IBAN(ctx context.Context, iban string, options ...IBANOptions) 
 	return out, nil
 }
 
-func (c *Client) NPI(ctx context.Context, npi string, options ...NPIOptions) (*NPI, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	deep := ""
-	if opts.Deep {
-		deep = "true"
-	}
-	out := &NPI{}
-	if err := c.get(ctx, "/npi/"+seg(npi), values("lang", opts.Lang, "deep", deep), nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
+
 
 func (c *Client) BIN(ctx context.Context, bin string, options ...BINOptions) (*BIN, error) {
 	opts, err := oneOption(options)

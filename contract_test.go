@@ -12,8 +12,6 @@ var _ func(*parseapi.Client, context.Context, string, ...parseapi.IPOptions) (*p
 var _ func(*parseapi.Client, context.Context, ...parseapi.IPSelfOptions) (*parseapi.IP, error) = (*parseapi.Client).IPSelf
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.ContinentOptions) (*parseapi.Continent, error) = (*parseapi.Client).Continent
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.ContinentCountriesOptions) (*parseapi.ContinentCountries, error) = (*parseapi.Client).ContinentCountries
-var _ func(*parseapi.Client, context.Context, string, ...parseapi.BlocOptions) (*parseapi.Bloc, error) = (*parseapi.Client).Bloc
-var _ func(*parseapi.Client, context.Context, string, ...parseapi.BlocCountriesOptions) (*parseapi.BlocCountries, error) = (*parseapi.Client).BlocCountries
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.CountryOptions) (*parseapi.Country, error) = (*parseapi.Client).Country
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.CountryStatesOptions) (*parseapi.CountryStates, error) = (*parseapi.Client).CountryStates
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.StateOptions) (*parseapi.State, error) = (*parseapi.Client).State
@@ -28,10 +26,8 @@ var _ func(*parseapi.Client, context.Context, string, ...parseapi.PostalOptions)
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.PostalNearbyOptions) (*parseapi.PostalNearby, error) = (*parseapi.Client).PostalNearby
 var _ func(*parseapi.Client, context.Context, string, string, ...parseapi.PostalDistanceOptions) (*parseapi.PostalDistance, error) = (*parseapi.Client).PostalDistance
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.EmailOptions) (*parseapi.Email, error) = (*parseapi.Client).Email
-var _ func(*parseapi.Client, context.Context, string, ...parseapi.VATOptions) (*parseapi.VAT, error) = (*parseapi.Client).VAT
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.BankOptions) (*parseapi.Bank, error) = (*parseapi.Client).Bank
 var _ func(*parseapi.Client, context.Context, string) (*parseapi.Card, error) = (*parseapi.Client).Card
-var _ func(*parseapi.Client, context.Context, string, ...parseapi.ProviderOptions) (*parseapi.Provider, error) = (*parseapi.Client).Provider
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.PhoneOptions) (*parseapi.Phone, error) = (*parseapi.Client).Phone
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.CarrierOptions) (*parseapi.Carrier, error) = (*parseapi.Client).Carrier
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.CallerOptions) (*parseapi.Caller, error) = (*parseapi.Client).Caller
@@ -41,8 +37,6 @@ var _ func(*parseapi.Client, context.Context, string, ...parseapi.ASNOptions) (*
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.MACOptions) (*parseapi.MAC, error) = (*parseapi.Client).MAC
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.MXOptions) (*parseapi.MX, error) = (*parseapi.Client).MX
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.UserAgentOptions) (*parseapi.UserAgent, error) = (*parseapi.Client).UserAgent
-var _ func(*parseapi.Client, context.Context, string, ...parseapi.TariffOptions) (*parseapi.Tariff, error) = (*parseapi.Client).Tariff
-var _ func(*parseapi.Client, context.Context, string, ...parseapi.TariffSearchOptions) (*parseapi.TariffSearch, error) = (*parseapi.Client).TariffSearch
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.CurrencyOptions) (*parseapi.Currency, error) = (*parseapi.Client).Currency
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.LanguageOptions) (*parseapi.Language, error) = (*parseapi.Client).Language
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.NameOptions) (*parseapi.Name, error) = (*parseapi.Client).Name

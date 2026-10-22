@@ -21,11 +21,11 @@ func TestADPModelsPreserveCoreAndDeepTriad(t *testing.T) {
 		{"City", `{"name":"Charlotte","country":"US","id":"city_123"}`, `{"population":0,"area":0.25}`, &City{}},
 		{"Postal", `{"postal":"28202","country":"US"}`, `{"metros":[],"water_area":0.25,"tax_rate":0}`, &Postal{}},
 		{"Bank", `{"iban":"DE89370400440532013000","valid":true}`, `{"checksum":"89","branch":null,"account":"0532013000"}`, &Bank{}},
-		{"NPI", `{"npi":"1881018208","valid":true,"excluded":true,"credential":"MD","state_name":"Minnesota"}`, `{"deactivated_at":"2026-09-01","enrollments":[]}`, &Provider{}},
+
 		{"Phone", `{"phone":"+14155552671","valid":true}`, `{"state":"CA","timezone":"America/Los_Angeles"}`, &Phone{}},
 		{"Carrier", `{"phone":"+14155552671","valid":true,"carrier":"Example"}`, `{"city":"San Francisco","state":"CA"}`, &Carrier{}},
 		{"HLR", `{"phone":"+14155552671","valid":true,"live":true,"connected":false}`, `{"roaming":false,"mcc":"310","mnc":"01"}`, &HLR{}},
-		{"Tariff", `{"hts":"8471.30.01.00","description":"Portable computers","revision":"2026"}`, `{"units":[],"special":"Free","origin":null,"effective_rate":null,"measures":null}`, &Tariff{}},
+
 		{"Industry", `{"naics":"541511","name":"Programming","level":6,"parent":"54151","year":2022,"country":"US"}`, `{"description":"Definition","children":[],"exclusions":[]}`, &Industry{}},
 		{"Company", `{"company":"01234567","valid":true,"name":"Example"}`, `{"activity":"6201","gst":false,"vat":null}`, &Company{}},
 		{"Currency", `{"currency":"USD","name":"US Dollar"}`, `{"numeric":840,"countries":[]}`, &Currency{}},

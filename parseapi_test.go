@@ -63,8 +63,8 @@ func TestURLMapping(t *testing.T) {
 		{"ip deep", func(c *Client) error { _, err := c.IP(ctx, "8.8.8.8", IPOptions{Deep: true}); return err }, "/ip/8.8.8.8", "deep=true"},
 		{"continent", func(c *Client) error { _, err := c.Continent(ctx, "NA"); return err }, "/continent/NA", ""},
 		{"continent countries", func(c *Client) error { _, err := c.ContinentCountries(ctx, "NA"); return err }, "/continent/NA/countries", ""},
-		{"bloc", func(c *Client) error { _, err := c.Bloc(ctx, "EU"); return err }, "/bloc/EU", ""},
-		{"bloc countries", func(c *Client) error { _, err := c.BlocCountries(ctx, "SCHENGEN"); return err }, "/bloc/SCHENGEN/countries", ""},
+
+
 		{"country", func(c *Client) error { _, err := c.Country(ctx, "US"); return err }, "/country/US", ""},
 		{"country states", func(c *Client) error { _, err := c.CountryStates(ctx, "US"); return err }, "/country/US/states", ""},
 		{"state", func(c *Client) error { _, err := c.State(ctx, "NC", StateOptions{Country: "US"}); return err }, "/state/NC", "country=US"},
@@ -96,18 +96,12 @@ func TestURLMapping(t *testing.T) {
 			return err
 		}, "/postal/28202/distance/10001", "country=US"},
 		{"email", func(c *Client) error { _, err := c.Email(ctx, "a@b.com"); return err }, "/email/a@b.com", ""},
-		{"vat", func(c *Client) error { _, err := c.VAT(ctx, "DE136695976"); return err }, "/vat/DE136695976", ""},
+
 		{"bank", func(c *Client) error { _, err := c.Bank(ctx, "DE89370400440532013000"); return err }, "/bank", ""},
 		{"bank country", func(c *Client) error {
 			_, err := c.Bank(ctx, "89370400440532013000", BankOptions{Country: "DE"})
 			return err
 		}, "/bank", ""},
-		{"npi", func(c *Client) error { _, err := c.Provider(ctx, "1881018208"); return err }, "/provider/1881018208", ""},
-		{"npi deep", func(c *Client) error { _, err := c.Provider(ctx, "1881018208", ProviderOptions{Deep: true}); return err }, "/provider/1881018208", "deep=true"},
-		{"vat from deep", func(c *Client) error {
-			_, err := c.VAT(ctx, "DE136695976", VATOptions{From: "IE6388047V", Deep: true})
-			return err
-		}, "/vat/DE136695976", "deep=true&from=IE6388047V"},
 		{"phone", func(c *Client) error { _, err := c.Phone(ctx, "+14155552671", PhoneOptions{Deep: true}); return err }, "/phone/+14155552671", "deep=true"},
 		{"carrier", func(c *Client) error { _, err := c.Carrier(ctx, "+14155552671"); return err }, "/carrier/+14155552671", ""},
 		{"caller with country", func(c *Client) error {
@@ -571,8 +565,8 @@ func TestMeteredRetryDefaultsAndExplicitOverride(t *testing.T) {
 		{"hlr", func(c *Client) error { _, e := c.HLR(ctx, "555-0100"); return e }, 1},
 		{"email", func(c *Client) error { _, e := c.Email(ctx, "a@b.com"); return e }, 3},
 		{"email deep", func(c *Client) error { _, e := c.Email(ctx, "a@b.com", EmailOptions{Deep: true}); return e }, 1},
-		{"vat", func(c *Client) error { _, e := c.VAT(ctx, "DE136695976"); return e }, 3},
-		{"vat deep", func(c *Client) error { _, e := c.VAT(ctx, "DE136695976", VATOptions{Deep: true}); return e }, 1},
+
+
 		{"address", func(c *Client) error { _, e := c.Address(ctx, "123 Main St"); return e }, 3},
 		{"address deep", func(c *Client) error { _, e := c.Address(ctx, "123 Main St", AddressOptions{Deep: true}); return e }, 1},
 	}

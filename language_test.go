@@ -31,10 +31,6 @@ func TestDisplayLanguagePerRequest(t *testing.T) {
 			_, err := c.ContinentCountries(ctx, "EU", ContinentCountriesOptions{Lang: lang})
 			return err
 		}},
-		{"BlocCountries", "/bloc/EU/countries", "", func(c *Client, lang string) error {
-			_, err := c.BlocCountries(ctx, "EU", BlocCountriesOptions{Lang: lang})
-			return err
-		}},
 		{"Country", "/country/DE", "deep=true", func(c *Client, lang string) error {
 			_, err := c.Country(ctx, "DE", CountryOptions{Lang: lang, Deep: true})
 			return err
@@ -89,10 +85,6 @@ func TestDisplayLanguagePerRequest(t *testing.T) {
 		}},
 		{"Company", "/company/732829320", "country=FR&deep=true", func(c *Client, lang string) error {
 			_, err := c.Company(ctx, "732829320", CompanyOptions{Lang: lang, Country: "FR", Deep: true})
-			return err
-		}},
-		{"NPI", "/provider/1881018208", "deep=true", func(c *Client, lang string) error {
-			_, err := c.Provider(ctx, "1881018208", ProviderOptions{Lang: lang, Deep: true})
 			return err
 		}},
 		{"ASN", "/asn/AS13335", "", func(c *Client, lang string) error {
@@ -192,7 +184,7 @@ func TestDisplayLanguageKeepsNativeNullAndInputOptions(t *testing.T) {
 	if call.path != "/measure/1%2C5%20m" || call.rawQry != "locale=de-DE&to=cm" {
 		t.Fatalf("changed measure input or leaked lang: %#v", call)
 	}
-	for _, options := range []any{BlocOptions{}, CurrencyRateOptions{}, MeasureOptions{}, HolidayOptions{}, HolidayDateOptions{}, NameOptions{}, EmailOptions{}, PhoneOptions{}, AddressOptions{}} {
+	for _, options := range []any{CurrencyRateOptions{}, MeasureOptions{}, HolidayOptions{}, HolidayDateOptions{}, NameOptions{}, EmailOptions{}, PhoneOptions{}, AddressOptions{}} {
 		if _, ok := reflect.TypeOf(options).FieldByName("Lang"); ok {
 			t.Fatalf("unsupported language option on %T", options)
 		}

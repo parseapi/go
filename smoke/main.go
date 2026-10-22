@@ -113,22 +113,6 @@ func main() {
 		return ""
 	})
 
-	bloc, err := parse.Bloc(ctx, "EU")
-	expectOk("bloc", bloc, err, func(r *parseapi.Bloc) string {
-		if r.Name != "European Union" || r.Members != 27 {
-			return "wrong bloc"
-		}
-		return ""
-	})
-
-	blocCountries, err := parse.BlocCountries(ctx, "SCHENGEN")
-	expectOk("bloc countries", blocCountries, err, func(r *parseapi.BlocCountries) string {
-		if len(r.Countries) != 29 {
-			return "wrong members"
-		}
-		return ""
-	})
-
 	country, err := parse.Country(ctx, "US")
 	expectOk("country", country, err, func(r *parseapi.Country) string {
 		if r.Country != "US" {
@@ -238,14 +222,6 @@ func main() {
 		return ""
 	})
 
-	vat, err := parse.VAT(ctx, "DE136695976")
-	expectOk("vat", vat, err, func(r *parseapi.VAT) string {
-		if !r.Valid || str(r.Country) != "DE" {
-			return "not valid DE"
-		}
-		return ""
-	})
-
 	bin, err := parse.Card(ctx, "00 0000")
 	expectOk("card", bin, err, func(r *parseapi.Card) string {
 		if r.BIN != "000000" || r.Brand != nil || r.Logo != "https://cdn.parseapi.com/card/generic.svg" {
@@ -263,22 +239,6 @@ func main() {
 
 	ibanJunk, err := parse.Bank(ctx, "hello")
 	expectOk("bank junk", ibanJunk, err, func(r *parseapi.Bank) string {
-		if r.Valid {
-			return "expected invalid"
-		}
-		return ""
-	})
-
-	npi, err := parse.Provider(ctx, "1881018208")
-	expectOk("npi", npi, err, func(r *parseapi.Provider) string {
-		if !r.Valid || r.Registered == nil || !*r.Registered {
-			return "not registered"
-		}
-		return ""
-	})
-
-	npiJunk, err := parse.Provider(ctx, "hello")
-	expectOk("npi junk", npiJunk, err, func(r *parseapi.Provider) string {
 		if r.Valid {
 			return "expected invalid"
 		}

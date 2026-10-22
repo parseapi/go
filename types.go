@@ -52,26 +52,11 @@ type ContinentCountries struct {
 	Countries []ContinentCountryItem `json:"countries"`
 }
 
-type Bloc struct {
-	_       [0]func()
-	Bloc    string `json:"bloc"`
-	Name    string `json:"name"`
-	Members int    `json:"members"`
-}
 
-type BlocCountryItem struct {
-	_           [0]func()
-	Country     string  `json:"country"`
-	Name        string  `json:"name"`
-	Emoji       *string `json:"emoji"`
-	CallingCode *string `json:"calling_code"`
-}
 
-type BlocCountries struct {
-	_         [0]func()
-	Bloc      string            `json:"bloc"`
-	Countries []BlocCountryItem `json:"countries"`
-}
+
+
+
 
 type Country struct {
 	_              [0]func()
@@ -309,32 +294,11 @@ type Email struct {
 	DidYouMean  *string    `json:"didyoumean"`
 }
 
-type VATAddress struct {
-	_       [0]func()
-	Street  *string `json:"street"`
-	City    *string `json:"city"`
-	Postal  *string `json:"postal"`
-	Country *string `json:"country"`
-}
 
-type VATDeep struct {
-	_            [0]func()
-	Registered   *bool       `json:"registered"`
-	Name         *string     `json:"name"`
-	Address      *VATAddress `json:"address"`
-	Consultation *string     `json:"consultation"`
-	// ConsultedAt is the registry-provided check time, or nil when unavailable.
-	ConsultedAt *string `json:"consulted_at"`
-}
 
-type VAT struct {
-	_       [0]func()
-	VAT     *string  `json:"vat"`
-	Valid   bool     `json:"valid"`
-	Country *string  `json:"country"`
-	From    *string  `json:"from,omitempty"`
-	Deep    *VATDeep `json:"deep,omitempty"`
-}
+
+
+
 
 // BankChecks reports ordered IBAN checks. States remain open strings.
 type BankChecks struct {
@@ -372,163 +336,28 @@ type Bank struct {
 	Deep   *BankDeep   `json:"deep,omitempty"`
 }
 
-// NPI is a US healthcare provider record in the healthcare provider registry.
-type ProviderTaxonomy struct {
-	_         [0]func()
-	Taxonomy  *string `json:"taxonomy"`
-	Specialty *string `json:"specialty"`
-	Primary   *bool   `json:"primary"`
-	License   *string `json:"license"`
-	State     *string `json:"state"`
-}
-
-type ProviderSource struct {
-	_           [0]func()
-	Edition     *string `json:"edition"`
-	PublishedAt *string `json:"published_at"`
-	Through     *string `json:"through"`
-	ImportedAt  *string `json:"imported_at"`
-}
-
-type ProviderSources struct {
-	_      [0]func()
-	Nppes  *ProviderSource `json:"nppes"`
-	Leie   *ProviderSource `json:"leie"`
-	Pecos  *ProviderSource `json:"pecos"`
-	Optout *ProviderSource `json:"optout"`
-}
-
-// Provider is a US healthcare provider record in the healthcare provider registry.
-type Provider struct {
-	Sources *ProviderSources `json:"sources"`
-	_       [0]func()
-	// NPI is input with accepted separators removed; nil when empty. Invalid values remain visible.
-	NPI *string `json:"npi"`
-	// Valid checks format and NPI checksum only, not a provider or credentials.
-	Valid bool `json:"valid"`
-	// Registered reports a match in the stored NPPES snapshot; nil for invalid input.
-	Registered *bool `json:"registered"`
-	// Active is recorded NPI activation status; nil when unknown, not licensure or practice status.
-	Active *bool `json:"active"`
-	// Excluded is an NPI-only match in the stored OIG LEIE file. False is not complete exclusion clearance.
-	Excluded *bool `json:"excluded"`
-	// Type is individual or organization.
-	Type       *string `json:"type"`
-	Name       *string `json:"name"`
-	First      *string `json:"first"`
-	Last       *string `json:"last"`
-	Credential *string `json:"credential"`
-	Specialty  *string `json:"specialty"`
-	// Taxonomy is the NUCC taxonomy code.
-	Taxonomy  *string       `json:"taxonomy"`
-	Address   *string       `json:"address"`
-	City      *string       `json:"city"`
-	State     *string       `json:"state"`
-	StateName *string       `json:"state_name"`
-	Postal    *string       `json:"postal"`
-	Country   *string       `json:"country"`
-	Phone     *string       `json:"phone"`
-	Deep      *ProviderDeep `json:"deep,omitempty"`
-}
-
-// ProviderEnrollment is one Medicare FFS enrollment row.
-type ProviderEnrollment struct {
-	_ [0]func()
-	// Type is part_a, part_b, practitioner, dme, order_refer, or mdpp.
-	Type      *string `json:"type"`
-	Specialty *string `json:"specialty"`
-	State     *string `json:"state"`
-}
-
-// ProviderDeep is Medicare enrollment on paid plans.
-type ProviderDeep struct {
-	EnumeratedAt  *string            `json:"enumerated_at"`
-	UpdatedAt     *string            `json:"updated_at"`
-	ReactivatedAt *string            `json:"reactivated_at"`
-	Taxonomies    []ProviderTaxonomy `json:"taxonomies"`
-	_             [0]func()
-	// Medicare reports presence in the stored FFS enrollment extract, not payment eligibility.
-	Medicare *bool `json:"medicare"`
-	// OptOut is an NPI-only match in the stored CMS opt-out affidavit list; nil when unavailable.
-	OptOut *bool `json:"opt_out"`
-	// Enrollments contains stored type, specialty, and state. Nil means unavailable; empty means no rows are returned.
-	Enrollments []ProviderEnrollment `json:"enrollments"`
-	// DeactivatedAt is the recorded ISO deactivation date; nil when active or unavailable.
-	DeactivatedAt *string `json:"deactivated_at"`
-}
 
 
-type TariffMeasure struct {
-	_ [0]func()
-	// Heading is the Chapter 99 heading, dotted (9903.01.24).
-	Heading string `json:"heading"`
-	// Description is the measure text verbatim.
-	Description string `json:"description"`
-	// Rate is the rate string verbatim.
-	Rate *string `json:"rate"`
-	// From is the effective date, ISO YYYY-MM-DD. Nil when the schedule states none.
-	From *string `json:"from"`
-	// Until is the expiry, ISO YYYY-MM-DD. Nil when open-ended.
-	Until       *string `json:"until"`
-	Conditional *bool   `json:"conditional"`
-}
 
-type TariffDeep struct {
-	// Reason is an open-string explanation when EffectiveRate is nil.
-	Reason *string `json:"reason"`
-	_      [0]func()
-	// Origin is the country the measures were resolved for.
-	Origin *string `json:"origin"`
-	// EffectiveRate is the composed ad valorem percent for matched stored measures
-	// only, not complete duty or landed cost. Nil when the components do not compose cleanly.
-	EffectiveRate *float64 `json:"effective_rate"`
-	// Measures is the matching stored Chapter 99 schedule measures for this code and goods origin.
-	Measures []TariffMeasure `json:"measures"`
-	// Units is the units of quantity (No., kg).
-	Units []string `json:"units"`
-	// Special is the column 1 special rate, verbatim.
-	Special *string `json:"special"`
-	// Other is the column 2 rate, verbatim.
-	Other *string `json:"other"`
-}
 
-type Tariff struct {
-	// Edition and Date are absent on older servers. Date is nil for an undated edition query.
-	Edition *string `json:"edition"`
-	Date    *string `json:"date"`
-	_       [0]func()
-	// HTS is the normalized code with dots (8471.30.01.00).
-	HTS string `json:"hts"`
-	// Description is the schedule line verbatim.
-	Description string `json:"description"`
-	// Lineage is the parent descriptions from the schedule outline, outermost first.
-	Lineage []string `json:"lineage"`
-	// General is the column 1 general rate, verbatim.
-	General *string `json:"general"`
-	// Revision is the official release that answered (2026HTSRev17).
-	Revision string      `json:"revision"`
-	Deep     *TariffDeep `json:"deep,omitempty"`
-}
 
-type TariffSearchHit struct {
-	_           [0]func()
-	HTS         string  `json:"hts"`
-	Description string  `json:"description"`
-	General     *string `json:"general"`
-	// Lineage is the parent descriptions, outermost first. Older responses may omit this context.
-	Lineage []string `json:"lineage"`
-}
 
-type TariffSearch struct {
-	// Edition and Date are absent on older servers. Date is nil for an undated edition query.
-	Edition  *string `json:"edition"`
-	Date     *string `json:"date"`
-	_        [0]func()
-	Q        string `json:"q"`
-	Revision string `json:"revision"`
-	// Lines is up to 20 tariff lines, best match first.
-	Lines []TariffSearchHit `json:"lines"`
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1763,54 +1592,11 @@ type IBAN struct {
 	Deep     *IBANDeep `json:"deep,omitempty"`
 }
 
-type NPI struct {
-	_ [0]func()
-	// NPI is the normalized 10-digit NPI. Invalid input still echoes the fold.
-	NPI   *string `json:"npi"`
-	Valid bool    `json:"valid"`
-	// Registered reports whether the NPI exists in the registry.
-	Registered *bool `json:"registered"`
-	Active     *bool `json:"active"`
-	// Excluded reports the OIG exclusion flag.
-	Excluded *bool `json:"excluded"`
-	// Type is individual or organization.
-	Type       *string `json:"type"`
-	Name       *string `json:"name"`
-	First      *string `json:"first"`
-	Last       *string `json:"last"`
-	Credential *string `json:"credential"`
-	Specialty  *string `json:"specialty"`
-	// Taxonomy is the NUCC taxonomy code.
-	Taxonomy  *string  `json:"taxonomy"`
-	Address   *string  `json:"address"`
-	City      *string  `json:"city"`
-	State     *string  `json:"state"`
-	StateName *string  `json:"state_name"`
-	Postal    *string  `json:"postal"`
-	Country   *string  `json:"country"`
-	Phone     *string  `json:"phone"`
-	Deep      *NPIDeep `json:"deep,omitempty"`
-}
 
-type NPIEnrollment struct {
-	_ [0]func()
-	// Type is part_a, part_b, practitioner, dme, order_refer, or mdpp.
-	Type      *string `json:"type"`
-	Specialty *string `json:"specialty"`
-	State     *string `json:"state"`
-}
 
-type NPIDeep struct {
-	_ [0]func()
-	// Medicare is whether the NPI is in the published FFS enrollment extract.
-	Medicare *bool `json:"medicare"`
-	// OptOut is whether the NPI has a Medicare opt-out affidavit.
-	OptOut *bool `json:"opt_out"`
-	// Enrollments is type, specialty, and state. Empty when Medicare is false.
-	Enrollments []NPIEnrollment `json:"enrollments"`
-	// DeactivatedAt is the ISO date the NPI was deactivated.
-	DeactivatedAt *string `json:"deactivated_at"`
-}
+
+
+
 
 type BIN struct {
 	_   [0]func()

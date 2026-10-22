@@ -88,10 +88,8 @@ Optional query inputs use one options value. Omit it to use defaults. Use named 
 ```go
 parse.IP(ctx, "8.8.8.8", parseapi.IPOptions{Deep: true})
 parse.Email(ctx, "hello@example.com", parseapi.EmailOptions{Deep: true})
-parse.VAT(ctx, "DE136695976", parseapi.VATOptions{Deep: true})
 parse.Bank(ctx, "DE89370400440532013000")
 parse.Card(ctx, "424242")
-parse.Provider(ctx, "1881018208")
 parse.ASN(ctx, "AS13335")
 parse.MAC(ctx, "00:1B:63:84:45:E6")
 parse.Name(ctx, "Andrea", parseapi.NameOptions{Country: "IT"})
@@ -104,7 +102,6 @@ parse.DNS(ctx, "example.com")
 parse.DNS(ctx, "_dmarc.example.com", parseapi.DNSOptions{Type: "TXT"})
 parse.Industry(ctx, "541511")
 parse.IndustrySearch(ctx, "coffee shop", parseapi.IndustrySearchOptions{Limit: 5})
-parse.Tariff(ctx, "8471.30.01.00", parseapi.TariffOptions{Origin: "DE", Deep: true})
 parse.Address(ctx, "123 Main St", parseapi.AddressOptions{Country: "US"})
 parse.AddressSearch(ctx, "123 Main", parseapi.AddressSearchOptions{Country: "US", State: "NC"})
 parse.Company(ctx, "123456789", parseapi.CompanyOptions{Country: "FR"})
@@ -252,19 +249,6 @@ Weather returns current conditions by default. Paid deep adds specialist current
 parse.Weather(ctx, 40.7128, -74.006, parseapi.WeatherOptions{Deep: true, Date: "2026-08-15"})
 ```
 
-Tariff starts with the general schedule line. Paid deep adds units and the special and other schedule columns. An optional origin then resolves country-specific measures. The three calls below show those successive choices. Without origin, schedule detail is still returned and origin-dependent fields are null. A null effective rate is not a zero rate.
-
-Tariff lookup and search accept the `edition` ID returned by Tariff, such as `ted_3`, and an optional `date` (`YYYY-MM-DD`). The edition pins exact immutable source bytes. A date is accepted only when verified source coverage exists. An edition without a date returns undated schedule context (`date: null`). Default requests use today. Paid detail exposes an open-string `reason` when `effective_rate` is null, including `incomplete_coverage`. A null rate never means zero. Explicit selections fail with `tariff_selection_mismatch` if an older server ignores the requested scope.
-
-Origin means where the goods originate, not where they ship from. The effective rate covers matched stored schedule measures only. It is not complete duty or landed cost.
-
-Codes contain 4, 6, 8 or 10 ASCII digits; dots and whitespace are optional. Search returns up to 20 description matches with parent `lineage` so a result named "Other" has context. Search is not product classification. In deep, `measures: null` means origin-dependent measures were not resolved. `measures: []` means the resolved lookup found none.
-
-```go
-parse.Tariff(ctx, "8471.30.01.00")
-parse.Tariff(ctx, "8471.30.01.00", parseapi.TariffOptions{Deep: true})
-parse.Tariff(ctx, "8471.30.01.00", parseapi.TariffOptions{Deep: true, Origin: "CN"})
-```
 
 Address search uses context from the form: prefer postal, or city and state. An optional end-user `ip` is a locality hint for server-side calls. An empty result explains itself with `reason`: `more_input`, `missing_context` or `no_matches`. With suggestions, reason is null. Older responses may omit it, and future reasons remain strings. Catalog and lookup failures use the existing API errors.
 
@@ -281,35 +265,17 @@ parse.BankRequirements(ctx, "US", parseapi.BankRequirementsOptions{Format: "us_a
 parse.BankUSACH(ctx, parseapi.BankUSACHInput{Routing: "011000015", Account: "0001234567"})
 ```
 
-## Provider lookup
-
-```go
-provider, err := parse.Provider(ctx, "1881018208")
-profile, err := parse.Provider(ctx, "1881018208", parseapi.ProviderOptions{Deep: true})
-```
-
-Pass the original NPI as a string. `valid` checks its format and checksum; `registered` means a match in the stored NPPES snapshot. `active` reflects recorded NPI deactivation, not licensure. `excluded` is an NPI-only OIG LEIE match; `false` is not a complete exclusion clearance. These directory facts do not verify credentials, current practice contact or payment eligibility.
-
-Invalid input returns `valid: false` with unknown provider fields. A checksum-valid number missing from the snapshot returns `registered: false`; unavailable storage remains an API error. Preserve `null` as unknown.
-
-The default pooled lookup includes provider identity, specialty and practice contact where held. Paid `deep` adds `deactivated_at`, `medicare`, `opt_out` and `enrollments` from stored source files, with no separate check meter or live verification. `enrollments: null` means unavailable; `[]` means no enrollment rows are returned. The API omits unrequested `deep` and returns `{}` when requested on Free.
-
-Paid Deep also returns `taxonomies` in published order, with taxonomy code, specialty label, primary flag and provider-reported license number/state, plus `enumerated_at`, `updated_at` and `reactivated_at` record dates. Reported licenses are not verified licenses. Null lists mean unavailable; empty lists mean the edition contains no entries. Provider record dates describe the provider record. Unknown dates stay null.
-
 ## Deep
 
 The default call returns the common answer. Request more detail with `parse.Country(ctx, "US", parseapi.CountryOptions{Deep: true})`. Read those fields from the optional deep member; this does not change the core answer.
 
 | Operation | What `deep` requests |
 |---|---|
-| NPI | All published taxonomies, reported license details, provider record dates and Medicare detail on paid plans. Primary specialty and exclusion flag stay core. |
 | IP | Richer IP fields included with a paid plan. No separate check meter. |
 | Domain | Registration dates, registrar, status and DNSSEC, included with a paid plan. Use `DNS` for DNS records and `MX` for mail routing. |
 | Email | A metered mailbox check with deliverability, catch-all, status, reason and address hints, using included email checks or enabled on-demand usage. |
-| VAT | A metered registry check where supported, using included VAT checks or enabled on-demand usage. |
 | Country, State, City, District, Postal | Reference profiles included with a paid plan; place identity and coordinates stay core. |
 | Industry, Company (national number) | Paid technical or registration profiles. Industry hierarchy stays core. |
-| Tariff | Paid schedule columns and units; add origin for applicable measures. |
 | Name, Weather | Paid name context or weather detail; parsing and current conditions stay core. |
 | Phone, Bank | Numbering-plan or bank structure detail in the same pooled request on every plan. |
 | Time, Date, Currency, Language, Emoji, Point | Optional reference detail in the same pooled request on every plan. |
@@ -341,7 +307,7 @@ Network failures, invalid JSON, and context cancellation retain their native Go 
 
 Create one client and share it across goroutines. A context deadline covers the whole call, including retry waits. The client timeout defaults to 35 seconds for Stack and 10 seconds for other operations. Cancellation stops the request and any retry wait.
 
-Ordinary lookups retry twice on network failures, 429, 500, 502, 503, and 504. Carrier, caller, and HLR calls use one attempt by default. Deep email, VAT, and address calls also use one attempt, reserving that behavior for address verification. Address deep currently returns an empty object. An explicit retry setting applies to every call, including metered operations. Additional attempts can be billed.
+Ordinary lookups retry twice on network failures, 429, 500, 502, 503, and 504. Carrier, caller, and HLR calls use one attempt by default. Deep email and address calls also use one attempt, reserving that behavior for address verification. Address deep currently returns an empty object. An explicit retry setting applies to every call, including metered operations. Additional attempts can be billed.
 
 ```go
 parse, err := parseapi.New("your-api-key",
@@ -451,7 +417,6 @@ Browse the curated City catalog or list cities around a supplied coordinate. The
 Collection options include minimum and maximum population, an exact IANA timezone, and `bbox` in `west,south,east,north` order. A west bound greater than east crosses the dateline. Population filtering and sorting use the same count as paid Deep: an admitted observation when available, otherwise the stored count. Missing counts do not match a population range and sort last; legacy counts keep unknown dates. Coverage and observation dates vary by place.
 
 Collections support `name`, `population`, `country` and `elevation`; search also supports `relevance`, and nearby supports `distance`. Combine up to three signed terms, for example `sort=-population,name`. A signed multi-key sort does not also take `order`. Population defaults to descending order; other sorts default to ascending. Set `order` to `asc` or `desc`, except relevance only supports ascending. Named nearby uses country and state to select the anchor; population, timezone and bounding box filter the returned neighbors. Coordinate nearby applies country and state to its returned cities.
-
 
 
 ## Canonical City operations
