@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	version         = "1.10.0"
+	version         = "1.10.1"
 	defaultBaseURL  = "https://api.parseapi.com"
 	defaultTimeout  = 10 * time.Second
 	defaultRetries  = 2
@@ -1306,45 +1306,8 @@ func (c *Client) UserAgent(ctx context.Context, ua string, options ...UserAgentO
 	return out, nil
 }
 
-// VINOptions configures VIN. Omitted fields use API defaults.
-type VINOptions struct {
-	_    [0]func()
-	Deep bool
-}
 
-// Vehicle identifies a vehicle by VIN.
-func (c *Client) Vehicle(ctx context.Context, vin string, options ...VehicleOptions) (*Vehicle, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	deep := ""
-	if opts.Deep {
-		deep = "true"
-	}
-	out := &Vehicle{}
-	if err := c.get(ctx, "/vehicle/"+seg(vin), values("deep", deep), nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
 
-// VIN calls /vin/{vin}.
-func (c *Client) VIN(ctx context.Context, vin string, options ...VINOptions) (*VIN, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	deep := ""
-	if opts.Deep {
-		deep = "true"
-	}
-	out := &VIN{}
-	if err := c.get(ctx, "/vin/"+seg(vin), values("deep", deep), nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
 
 // NAICSOptions reserves optional settings for Industry.
 type NAICSOptions struct {
@@ -2266,8 +2229,6 @@ func (c *Client) NAICSSearch(ctx context.Context, query string, options ...NAICS
 	return c.IndustrySearch(ctx, query, options...)
 }
 
-// VehicleOptions preserves the existing VIN request options.
-type VehicleOptions = VINOptions
 
 // Published compatibility API.
 type IBANOptions struct {

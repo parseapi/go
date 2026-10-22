@@ -457,16 +457,6 @@ type ProviderDeep struct {
 	DeactivatedAt *string `json:"deactivated_at"`
 }
 
-type VINRecall struct {
-	_ [0]func()
-	// Campaign is the government campaign number.
-	Campaign string `json:"campaign"`
-	// Date is the report date, ISO YYYY-MM-DD.
-	Date      *string `json:"date"`
-	Component *string `json:"component"`
-	// Summary is the filed summary verbatim.
-	Summary *string `json:"summary"`
-}
 
 type TariffMeasure struct {
 	_ [0]func()
@@ -540,45 +530,7 @@ type TariffSearch struct {
 	Lines []TariffSearchHit `json:"lines"`
 }
 
-type VINDeep struct {
-	_ [0]func()
-	// Recalls is the open campaigns for the decoded vehicle. Empty when none,
-	// nil when the registry did not answer.
-	Recalls   []VINRecall `json:"recalls"`
-	Series    *string     `json:"series"`
-	Doors     *int        `json:"doors"`
-	Cylinders *int        `json:"cylinders"`
-	// Displacement is the engine displacement in liters.
-	Displacement *float64 `json:"displacement"`
-	Fuel         *string  `json:"fuel"`
-	Horsepower   *float64 `json:"horsepower"`
-	// Drive is fwd, rwd, awd, or 4wd.
-	Drive *string `json:"drive"`
-	// Transmission is automatic, manual, or cvt.
-	Transmission *string `json:"transmission"`
-	Manufacturer *string `json:"manufacturer"`
-	PlantCity    *string `json:"plant_city"`
-	PlantState   *string `json:"plant_state"`
-	PlantCountry *string `json:"plant_country"`
-	// Gvwr is the gross vehicle weight rating class as filed.
-	Gvwr *string `json:"gvwr"`
-}
 
-type VIN struct {
-	_ [0]func()
-	// VIN is the normalized VIN, uppercase, no spaces. Invalid input still echoes the fold.
-	VIN   *string `json:"vin"`
-	Valid bool    `json:"valid"`
-	Year  *int    `json:"year"`
-	Make  *string `json:"make"`
-	Model *string `json:"model"`
-	Trim  *string `json:"trim"`
-	// Body is the body style (sedan, coupe, suv, pickup).
-	Body *string `json:"body"`
-	// Type is the vehicle type (passenger car, truck, motorcycle, bus, trailer).
-	Type *string  `json:"type"`
-	Deep *VINDeep `json:"deep,omitempty"`
-}
 
 type Phone struct {
 	_       [0]func()
@@ -1795,9 +1747,6 @@ type IndustryMatch = NAICSMatch
 type IndustrySearch = NAICSSearch
 type IndustrySearchResult = NAICSSearchResult
 
-type Vehicle = VIN
-type VehicleDeep = VINDeep
-type VehicleRecall = VINRecall
 
 // Published compatibility API.
 type IBAN struct {

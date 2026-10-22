@@ -41,7 +41,6 @@ var _ func(*parseapi.Client, context.Context, string, ...parseapi.ASNOptions) (*
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.MACOptions) (*parseapi.MAC, error) = (*parseapi.Client).MAC
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.MXOptions) (*parseapi.MX, error) = (*parseapi.Client).MX
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.UserAgentOptions) (*parseapi.UserAgent, error) = (*parseapi.Client).UserAgent
-var _ func(*parseapi.Client, context.Context, string, ...parseapi.VINOptions) (*parseapi.VIN, error) = (*parseapi.Client).VIN
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.TariffOptions) (*parseapi.Tariff, error) = (*parseapi.Client).Tariff
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.TariffSearchOptions) (*parseapi.TariffSearch, error) = (*parseapi.Client).TariffSearch
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.CurrencyOptions) (*parseapi.Currency, error) = (*parseapi.Client).Currency
