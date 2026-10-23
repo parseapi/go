@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	version         = "1.10.2"
+	version         = "1.10.3"
 	defaultBaseURL  = "https://api.parseapi.com"
 	defaultTimeout  = 10 * time.Second
 	defaultRetries  = 2
@@ -895,57 +895,15 @@ func (c *Client) Email(ctx context.Context, email string, options ...EmailOption
 
 
 
-// BankOptions configures Bank. Omitted fields use API defaults.
-type BankOptions struct {
-	_       [0]func()
-	Country string
-	Deep    bool
-}
 
-// Bank sends the original IBAN in a JSON body to POST /bank.
-func (c *Client) Bank(ctx context.Context, iban string, options ...BankOptions) (*Bank, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	input := map[string]any{"iban": iban}
-	if opts.Country != "" {
-		input["country"] = opts.Country
-	}
-	if opts.Deep {
-		input["deep"] = true
-	}
-	out := &Bank{}
-	if err := c.post(ctx, "/bank", input, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
 
-// BankUSACH sends US routing and account strings in a JSON request body.
-func (c *Client) BankUSACH(ctx context.Context, input BankUSACHInput) (*BankUSACH, error) {
-	out := &BankUSACH{}
-	if err := c.post(ctx, "/bank", map[string]string{"format": "us_ach", "country": "US", "routing": input.Routing, "account": input.Account}, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
 
-// BankRequirementsOptions selects an input format; omitted format defaults to IBAN.
-type BankRequirementsOptions struct{ Format string }
 
-// BankRequirements describes accepted fields and validation scope, not directory completeness.
-func (c *Client) BankRequirements(ctx context.Context, country string, options ...BankRequirementsOptions) (*BankRequirements, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	out := &BankRequirements{}
-	if err := c.get(ctx, "/bank/requirements", values("country", country, "format", opts.Format), nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
+
+
+
+
+
 
 
 
@@ -2094,12 +2052,7 @@ func (c *Client) NAICSSearch(ctx context.Context, query string, options ...NAICS
 }
 
 
-// Published compatibility API.
-type IBANOptions struct {
-	_       [0]func()
-	Country string
-	Deep    bool
-}
+
 
 
 
@@ -2108,21 +2061,7 @@ type BINOptions struct {
 	Deep bool
 }
 
-func (c *Client) IBAN(ctx context.Context, iban string, options ...IBANOptions) (*IBAN, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	deep := ""
-	if opts.Deep {
-		deep = "true"
-	}
-	out := &IBAN{}
-	if err := c.get(ctx, "/iban/"+seg(iban), values("country", opts.Country, "deep", deep), nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
+
 
 
 

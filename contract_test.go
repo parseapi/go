@@ -26,7 +26,6 @@ var _ func(*parseapi.Client, context.Context, string, ...parseapi.PostalOptions)
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.PostalNearbyOptions) (*parseapi.PostalNearby, error) = (*parseapi.Client).PostalNearby
 var _ func(*parseapi.Client, context.Context, string, string, ...parseapi.PostalDistanceOptions) (*parseapi.PostalDistance, error) = (*parseapi.Client).PostalDistance
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.EmailOptions) (*parseapi.Email, error) = (*parseapi.Client).Email
-var _ func(*parseapi.Client, context.Context, string, ...parseapi.BankOptions) (*parseapi.Bank, error) = (*parseapi.Client).Bank
 var _ func(*parseapi.Client, context.Context, string) (*parseapi.Card, error) = (*parseapi.Client).Card
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.PhoneOptions) (*parseapi.Phone, error) = (*parseapi.Client).Phone
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.CarrierOptions) (*parseapi.Carrier, error) = (*parseapi.Client).Carrier
@@ -67,6 +66,3 @@ var _ func(*parseapi.Client, context.Context, string, ...parseapi.DNSOptions) (*
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.CompanyIDOptions) (*parseapi.CompanyProfile, error) = (*parseapi.Client).CompanyID
 var _ func(*parseapi.Client, context.Context, ...parseapi.CompanySearchOptions) (*parseapi.CompanySearch, error) = (*parseapi.Client).CompanySearch
 var _ func(*parseapi.Client, context.Context, ...parseapi.CompanyCoverageOptions) (*parseapi.CompanyCoverage, error) = (*parseapi.Client).CompanyCoverage
-
-var _ func(*parseapi.Client, context.Context, parseapi.BankUSACHInput) (*parseapi.BankUSACH, error) = (*parseapi.Client).BankUSACH
-var _ func(*parseapi.Client, context.Context, string, ...parseapi.BankRequirementsOptions) (*parseapi.BankRequirements, error) = (*parseapi.Client).BankRequirements

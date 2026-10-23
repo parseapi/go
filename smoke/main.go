@@ -229,21 +229,7 @@ func main() {
 		}
 		return ""
 	})
-	iban, err := parse.Bank(ctx, "DE89370400440532013000")
-	expectOk("bank", iban, err, func(r *parseapi.Bank) string {
-		if !r.Valid || str(r.Country) != "DE" || str(r.Bank) != "37040044" {
-			return "not valid DE"
-		}
-		return ""
-	})
 
-	ibanJunk, err := parse.Bank(ctx, "hello")
-	expectOk("bank junk", ibanJunk, err, func(r *parseapi.Bank) string {
-		if r.Valid {
-			return "expected invalid"
-		}
-		return ""
-	})
 
 	phone, err := parse.Phone(ctx, "+14155552671")
 	expectOk("phone", phone, err, func(r *parseapi.Phone) string {

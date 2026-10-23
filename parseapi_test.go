@@ -97,11 +97,8 @@ func TestURLMapping(t *testing.T) {
 		}, "/postal/28202/distance/10001", "country=US"},
 		{"email", func(c *Client) error { _, err := c.Email(ctx, "a@b.com"); return err }, "/email/a@b.com", ""},
 
-		{"bank", func(c *Client) error { _, err := c.Bank(ctx, "DE89370400440532013000"); return err }, "/bank", ""},
-		{"bank country", func(c *Client) error {
-			_, err := c.Bank(ctx, "89370400440532013000", BankOptions{Country: "DE"})
-			return err
-		}, "/bank", ""},
+
+
 		{"phone", func(c *Client) error { _, err := c.Phone(ctx, "+14155552671", PhoneOptions{Deep: true}); return err }, "/phone/+14155552671", "deep=true"},
 		{"carrier", func(c *Client) error { _, err := c.Carrier(ctx, "+14155552671"); return err }, "/carrier/+14155552671", ""},
 		{"caller with country", func(c *Client) error {

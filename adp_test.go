@@ -20,7 +20,7 @@ func TestADPModelsPreserveCoreAndDeepTriad(t *testing.T) {
 		{"District", `{"district":"37081","name":"Guilford","country":"US"}`, `{"population":0,"water_area":0.25}`, &District{}},
 		{"City", `{"name":"Charlotte","country":"US","id":"city_123"}`, `{"population":0,"area":0.25}`, &City{}},
 		{"Postal", `{"postal":"28202","country":"US"}`, `{"metros":[],"water_area":0.25,"tax_rate":0}`, &Postal{}},
-		{"Bank", `{"iban":"DE89370400440532013000","valid":true}`, `{"checksum":"89","branch":null,"account":"0532013000"}`, &Bank{}},
+
 
 		{"Phone", `{"phone":"+14155552671","valid":true}`, `{"state":"CA","timezone":"America/Los_Angeles"}`, &Phone{}},
 		{"Carrier", `{"phone":"+14155552671","valid":true,"carrier":"Example"}`, `{"city":"San Francisco","state":"CA"}`, &Carrier{}},
@@ -97,10 +97,7 @@ func TestADPOptionsSendOneExplicitDisclosure(t *testing.T) {
 			_, err := c.PostalDistance(ctx, "28202", "10001", PostalDistanceOptions{Deep: true})
 			return err
 		},
-		func(c *Client) error {
-			_, err := c.Bank(ctx, "DE89370400440532013000", BankOptions{Deep: true})
-			return err
-		},
+
 		func(c *Client) error {
 			_, err := c.Carrier(ctx, "+14155552671", CarrierOptions{Deep: true})
 			return err
