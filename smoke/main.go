@@ -279,31 +279,6 @@ func main() {
 		}
 		return ""
 	})
-	mac, err := parse.MAC(ctx, "00:1B:63:84:45:E6")
-	expectOk("mac", mac, err, func(r *parseapi.MAC) string {
-		if !r.Valid || r.MAC != "00:1B:63:84:45:E6" || r.Local == nil || *r.Local || r.Multicast == nil || *r.Multicast {
-			return "wrong MAC"
-		}
-		return ""
-	})
-
-	measure, err := parse.Measure(ctx, "5 ft 11 in", parseapi.MeasureOptions{To: "cm"})
-	expectOk("measure", measure, err, func(r *parseapi.Measure) string {
-		if !r.Valid || str(r.Amount) != "180.34" || str(r.Unit) != "cm" {
-			return "wrong conversion"
-		}
-		return ""
-	})
-	units, err := parse.MeasureUnits(ctx, parseapi.MeasureUnitsOptions{Unit: "m"})
-	expectOk("measureUnits", units, err, func(r *parseapi.MeasureUnits) string {
-		for _, unit := range r.Units {
-			if unit.Unit == "m" {
-				return ""
-			}
-		}
-		return "missing metre"
-	})
-
 	dns, err := parse.DNS(ctx, "example.com", parseapi.DNSOptions{Type: "A"})
 	expectOk("dns", dns, err, func(r *parseapi.DNS) string {
 		for _, record := range r.Records {
@@ -330,23 +305,6 @@ func main() {
 		return ""
 	})
 
-
-
-	currency, err := parse.Currency(ctx, "USD")
-	expectOk("currency", currency, err, func(r *parseapi.Currency) string {
-		if str(r.Symbol) != "$" {
-			return "symbol " + str(r.Symbol)
-		}
-		return ""
-	})
-
-	rate, err := parse.CurrencyRate(ctx, "USD", "EUR")
-	expectOk("currency rate", rate, err, func(r *parseapi.CurrencyRate) string {
-		if r.Rate <= 0 || r.Rate >= 10 {
-			return fmt.Sprintf("rate %f", r.Rate)
-		}
-		return ""
-	})
 
 	language, err := parse.Language(ctx, "en")
 	expectOk("language", language, err, func(r *parseapi.Language) string {

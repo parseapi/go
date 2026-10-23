@@ -441,14 +441,6 @@ type ASN struct {
 	CountryName *string `json:"country_name"`
 }
 
-type MAC struct {
-	_         [0]func()
-	MAC       string  `json:"mac"`
-	Valid     bool    `json:"valid"`
-	Vendor    *string `json:"vendor"`
-	Local     *bool   `json:"local"`
-	Multicast *bool   `json:"multicast"`
-}
 
 // Card contains network identity; nil brand means unknown or ambiguous.
 type Card struct {
@@ -549,15 +541,6 @@ type UserAgent struct {
 	Deep      *UserAgentDeep `json:"deep,omitempty"`
 }
 
-type Currency struct {
-	_            [0]func()
-	Currency     string        `json:"currency"`
-	Name         string        `json:"name"`
-	Symbol       *string       `json:"symbol"`
-	SymbolNative *string       `json:"symbol_native"`
-	Digits       *int          `json:"digits"`
-	Deep         *CurrencyDeep `json:"deep,omitempty"`
-}
 
 // Language is one language by BCP 47 shortest code or ISO 639-3. Codes are lowercase.
 type Language struct {
@@ -584,16 +567,6 @@ type Name struct {
 	Deep   *NameDeep `json:"deep,omitempty"`
 }
 
-type CurrencyRate struct {
-	_         [0]func()
-	Base      string   `json:"base"`
-	Quote     string   `json:"quote"`
-	Rate      float64  `json:"rate"`
-	Date      string   `json:"date"`
-	Amount    *float64 `json:"amount,omitempty"`
-	Converted *float64 `json:"converted,omitempty"`
-	Source    string   `json:"source,omitempty"`
-}
 
 type TimezoneNextDST struct {
 	_            [0]func()
@@ -997,33 +970,6 @@ type Company struct {
 	Deep       *CompanyDeep `json:"deep,omitempty"`
 }
 
-// MeasureChoice is one explicit interpretation of an ambiguous unit.
-type MeasureChoice struct {
-	Unit string `json:"unit"`
-	Name string `json:"name"`
-}
-
-// Measure contains the parsed result. Amount stays a decimal string, including zero.
-type Measure struct {
-	Measure string          `json:"measure"`
-	Valid   bool            `json:"valid"`
-	Type    *string         `json:"type"`
-	Amount  *string         `json:"amount"`
-	Unit    *string         `json:"unit"`
-	Reason  *string         `json:"reason,omitempty"`
-	Choices []MeasureChoice `json:"choices,omitempty"`
-}
-
-type MeasureUnit struct {
-	Unit    string   `json:"unit"`
-	Name    string   `json:"name"`
-	Type    string   `json:"type"`
-	Aliases []string `json:"aliases"`
-}
-
-type MeasureUnits struct {
-	Units []MeasureUnit `json:"units"`
-}
 
 // NAICSChild names a direct child industry code.
 type NAICSChild struct {
@@ -1254,12 +1200,6 @@ type NAICSDeep struct {
 	Exclusions []NAICSExclusion `json:"exclusions"`
 }
 
-type CurrencyDeep struct {
-	_          [0]func()
-	Numeric    *int     `json:"numeric"`
-	NamePlural *string  `json:"name_plural"`
-	Countries  []string `json:"countries"`
-}
 
 type LanguageDeep struct {
 	_         [0]func()

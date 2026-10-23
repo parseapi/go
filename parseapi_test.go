@@ -108,20 +108,10 @@ func TestURLMapping(t *testing.T) {
 		{"hlr", func(c *Client) error { _, err := c.HLR(ctx, "+447712345678"); return err }, "/hlr/+447712345678", ""},
 		{"domain", func(c *Client) error { _, err := c.Domain(ctx, "example.com"); return err }, "/domain/example.com", ""},
 		{"asn", func(c *Client) error { _, err := c.ASN(ctx, "AS13335"); return err }, "/asn/AS13335", ""},
-		{"mac", func(c *Client) error { _, err := c.MAC(ctx, "00:1B:63:84:45:E6"); return err }, "/mac/00:1B:63:84:45:E6", ""},
 		{"mx", func(c *Client) error { _, err := c.MX(ctx, "example.com"); return err }, "/mx/example.com", ""},
 		{"useragent", func(c *Client) error { _, err := c.UserAgent(ctx, "TestUA/1.0"); return err }, "/useragent", ""},
 
 
-
-
-		{"currency", func(c *Client) error { _, err := c.Currency(ctx, "USD"); return err }, "/currency/USD", ""},
-		{"currency rate", func(c *Client) error { _, err := c.CurrencyRate(ctx, "USD", "EUR"); return err }, "/currency/USD/EUR", ""},
-		{"currency rate date amount", func(c *Client) error {
-			amt := 100.0
-			_, err := c.CurrencyRate(ctx, "USD", "JPY", CurrencyRateOptions{Date: "2026-08-28", Amount: &amt})
-			return err
-		}, "/currency/USD/JPY", "amount=100&date=2026-08-28"},
 		{"language", func(c *Client) error { _, err := c.Language(ctx, "en"); return err }, "/language/en", ""},
 		{"name encodes spaces", func(c *Client) error { _, err := c.Name(ctx, "Smith, John"); return err }, "/name/Smith%2C%20John", ""},
 		{"time compatible", func(c *Client) error {

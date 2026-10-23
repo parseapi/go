@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	version         = "1.10.3"
+	version         = "1.10.4"
 	defaultBaseURL  = "https://api.parseapi.com"
 	defaultTimeout  = 10 * time.Second
 	defaultRetries  = 2
@@ -1075,23 +1075,6 @@ func (c *Client) ASN(ctx context.Context, asn string, options ...ASNOptions) (*A
 	return out, nil
 }
 
-// MACOptions reserves optional settings for MAC.
-type MACOptions struct {
-	_ [0]func()
-}
-
-// MAC calls /mac/{mac}.
-func (c *Client) MAC(ctx context.Context, mac string, options ...MACOptions) (*MAC, error) {
-	_, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	out := &MAC{}
-	if err := c.get(ctx, "/mac/"+seg(mac), nil, nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
 
 // Card looks up a 2-11 digit card prefix. Preserve leading zeros in the string.
 func (c *Client) Card(ctx context.Context, bin string) (*Card, error) {
@@ -1247,40 +1230,6 @@ func (c *Client) IndustrySearch(ctx context.Context, query string, options ...NA
 
 
 
-
-
-
-
-
-
-
-
-
-// CurrencyOptions reserves optional settings for Currency.
-type CurrencyOptions struct {
-	// Lang selects translated display names for this request.
-	Lang string
-	_    [0]func()
-	Deep bool
-}
-
-// Currency calls /currency/{code}.
-func (c *Client) Currency(ctx context.Context, code string, options ...CurrencyOptions) (*Currency, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	deep := ""
-	if opts.Deep {
-		deep = "true"
-	}
-	out := &Currency{}
-	if err := c.get(ctx, "/currency/"+seg(code), values("lang", opts.Lang, "deep", deep), nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // LanguageOptions reserves optional settings for Language.
 type LanguageOptions struct {
 	// Lang selects translated display names for this request.
@@ -1332,29 +1281,7 @@ func (c *Client) Name(ctx context.Context, name string, options ...NameOptions) 
 	return out, nil
 }
 
-// CurrencyRateOptions configures CurrencyRate. Omitted fields use API defaults.
-type CurrencyRateOptions struct {
-	_      [0]func()
-	Date   string
-	Amount *float64
-}
 
-// CurrencyRate calls /currency/{base}/{quote}.
-func (c *Client) CurrencyRate(ctx context.Context, base string, quote string, options ...CurrencyRateOptions) (*CurrencyRate, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	amount := ""
-	if opts.Amount != nil {
-		amount = f(*opts.Amount)
-	}
-	out := &CurrencyRate{}
-	if err := c.get(ctx, "/currency/"+seg(base)+"/"+seg(quote), values("date", opts.Date, "amount", amount), nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
 
 // TimeOptions configures Time. With To, offsetless At is source wall time.
 type TimeOptions struct {
@@ -1993,50 +1920,6 @@ func (c *Client) Company(ctx context.Context, number string, options ...CompanyO
 	return out, nil
 }
 
-// MeasureOptions configures measurement conversion and explicit ambiguity resolution.
-type MeasureOptions struct {
-	_      [0]func()
-	To     string
-	Locale string
-	System string
-}
-
-// Measure parses or converts a measurement. Amount is a decimal string. Without To,
-// the API uses the type's canonical unit. System accepts us or imperial.
-func (c *Client) Measure(ctx context.Context, measure string, options ...MeasureOptions) (*Measure, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	out := &Measure{}
-	if err := c.get(ctx, "/measure/"+seg(measure), values("to", opts.To, "locale", opts.Locale, "system", opts.System), nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// MeasureUnitsOptions filters the reviewed unit catalog. Unit selects compatible targets.
-type MeasureUnitsOptions struct {
-	// Lang selects translated display names for this request.
-	Lang  string
-	_     [0]func()
-	Query string
-	Type  string
-	Unit  string
-}
-
-// MeasureUnits discovers reviewed units and their accepted aliases.
-func (c *Client) MeasureUnits(ctx context.Context, options ...MeasureUnitsOptions) (*MeasureUnits, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	out := &MeasureUnits{}
-	if err := c.get(ctx, "/measure/units", values("lang", opts.Lang, "q", opts.Query, "type", opts.Type, "unit", opts.Unit), nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
 
 type IndustryOptions = NAICSOptions
 type IndustrySearchOptions = NAICSSearchOptions

@@ -91,10 +91,6 @@ func TestDisplayLanguagePerRequest(t *testing.T) {
 			_, err := c.ASN(ctx, "AS13335", ASNOptions{Lang: lang})
 			return err
 		}},
-		{"Currency", "/currency/USD", "deep=true", func(c *Client, lang string) error {
-			_, err := c.Currency(ctx, "USD", CurrencyOptions{Lang: lang, Deep: true})
-			return err
-		}},
 		{"Language", "/language/ja", "", func(c *Client, lang string) error {
 			_, err := c.Language(ctx, "ja", LanguageOptions{Lang: lang})
 			return err
@@ -133,10 +129,6 @@ func TestDisplayLanguagePerRequest(t *testing.T) {
 		}},
 		{"EmojiSearch", "/emoji", "limit=2&q=visage", func(c *Client, lang string) error {
 			_, err := c.EmojiSearch(ctx, "visage", EmojiSearchOptions{Lang: lang, Limit: 2})
-			return err
-		}},
-		{"MeasureUnits", "/measure/units", "q=meter&unit=m", func(c *Client, lang string) error {
-			_, err := c.MeasureUnits(ctx, MeasureUnitsOptions{Lang: lang, Query: "meter", Unit: "m"})
 			return err
 		}},
 	}
@@ -178,13 +170,7 @@ func TestDisplayLanguageKeepsNativeNullAndInputOptions(t *testing.T) {
 	if call.path != "/date/03%2F04%2F2026" || call.rawQry != "format=dmy&lang=en-US" {
 		t.Fatalf("changed date parsing: %#v", call)
 	}
-	if _, err := client.Measure(ctx, "1,5 m", MeasureOptions{Locale: "de-DE", To: "cm"}); err != nil {
-		t.Fatal(err)
-	}
-	if call.path != "/measure/1%2C5%20m" || call.rawQry != "locale=de-DE&to=cm" {
-		t.Fatalf("changed measure input or leaked lang: %#v", call)
-	}
-	for _, options := range []any{CurrencyRateOptions{}, MeasureOptions{}, HolidayOptions{}, HolidayDateOptions{}, NameOptions{}, EmailOptions{}, PhoneOptions{}, AddressOptions{}} {
+	for _, options := range []any{HolidayOptions{}, HolidayDateOptions{}, NameOptions{}, EmailOptions{}, PhoneOptions{}, AddressOptions{}} {
 		if _, ok := reflect.TypeOf(options).FieldByName("Lang"); ok {
 			t.Fatalf("unsupported language option on %T", options)
 		}

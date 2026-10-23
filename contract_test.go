@@ -33,13 +33,10 @@ var _ func(*parseapi.Client, context.Context, string, ...parseapi.CallerOptions)
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.HLROptions) (*parseapi.HLR, error) = (*parseapi.Client).HLR
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.DomainOptions) (*parseapi.Domain, error) = (*parseapi.Client).Domain
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.ASNOptions) (*parseapi.ASN, error) = (*parseapi.Client).ASN
-var _ func(*parseapi.Client, context.Context, string, ...parseapi.MACOptions) (*parseapi.MAC, error) = (*parseapi.Client).MAC
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.MXOptions) (*parseapi.MX, error) = (*parseapi.Client).MX
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.UserAgentOptions) (*parseapi.UserAgent, error) = (*parseapi.Client).UserAgent
-var _ func(*parseapi.Client, context.Context, string, ...parseapi.CurrencyOptions) (*parseapi.Currency, error) = (*parseapi.Client).Currency
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.LanguageOptions) (*parseapi.Language, error) = (*parseapi.Client).Language
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.NameOptions) (*parseapi.Name, error) = (*parseapi.Client).Name
-var _ func(*parseapi.Client, context.Context, string, string, ...parseapi.CurrencyRateOptions) (*parseapi.CurrencyRate, error) = (*parseapi.Client).CurrencyRate
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.TimezoneOptions) (*parseapi.Timezone, error) = (*parseapi.Client).Timezone
 var _ func(*parseapi.Client, context.Context, float64, float64, ...parseapi.TimezoneAtOptions) (*parseapi.Timezone, error) = (*parseapi.Client).TimezoneAt
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.DateOptions) (*parseapi.DateInfo, error) = (*parseapi.Client).Date
@@ -55,8 +52,6 @@ var _ func(*parseapi.Client, context.Context, string, ...parseapi.AddressOptions
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.AddressSearchOptions) (*parseapi.AddressSearch, error) = (*parseapi.Client).AddressSearch
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.CompanyOptions) (*parseapi.Company, error) = (*parseapi.Client).Company
 
-var _ func(*parseapi.Client, context.Context, string, ...parseapi.MeasureOptions) (*parseapi.Measure, error) = (*parseapi.Client).Measure
-var _ func(*parseapi.Client, context.Context, ...parseapi.MeasureUnitsOptions) (*parseapi.MeasureUnits, error) = (*parseapi.Client).MeasureUnits
 
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.IndustryOptions) (*parseapi.Industry, error) = (*parseapi.Client).Industry
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.IndustrySearchOptions) (*parseapi.IndustrySearch, error) = (*parseapi.Client).IndustrySearch
