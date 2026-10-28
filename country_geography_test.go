@@ -7,11 +7,14 @@ import (
 
 func TestCountryGeographyValues(t *testing.T) {
 	var country Country
-	err := json.Unmarshal([]byte(`{"country":"XX","deep":{"land_area":10010.5,"water_area":0,"coastline":0,"elevation":0,"lowest_point":{"name":null,"elevation":-430.5},"highest_point":{"name":"Summit","elevation":8848.86}}}`), &country)
+	err := json.Unmarshal([]byte(`{"country":"XX","deep":{"gdp":30769700000000,"gdp_per_capita":90026.5163,"population_growth":-0.25,"urban_population":0,"internet_users":95.5,"land_area":10010.5,"water_area":0,"coastline":0,"elevation":0,"lowest_point":{"name":null,"elevation":-430.5},"highest_point":{"name":"Summit","elevation":8848.86}}}`), &country)
 	if err != nil {
 		t.Fatal(err)
 	}
 	c := country.Deep
+	if c == nil || c.GDP == nil || *c.GDP != 30769700000000 || c.GDPPerCapita == nil || *c.GDPPerCapita != 90026.5163 || c.PopulationGrowth == nil || *c.PopulationGrowth != -0.25 || c.UrbanPopulation == nil || *c.UrbanPopulation != 0 || c.InternetUsers == nil || *c.InternetUsers != 95.5 {
+		t.Fatalf("country statistics: %#v", c)
+	}
 	if c == nil || c.LandArea == nil || *c.LandArea != 10010.5 || c.WaterArea == nil || *c.WaterArea != 0 || c.Coastline == nil || *c.Coastline != 0 || c.Elevation == nil || *c.Elevation != 0 {
 		t.Fatalf("country geography: %#v", c)
 	}

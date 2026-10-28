@@ -1022,6 +1022,15 @@ type NAICSSearch struct {
 }
 
 type CountryDeep struct {
+	// Latest available GDP and GDP per person in current US dollars.
+	GDP          *float64 `json:"gdp"`
+	GDPPerCapita *float64 `json:"gdp_per_capita"`
+	// Annual percent change; negative values indicate decline.
+	PopulationGrowth *float64 `json:"population_growth"`
+	// Shares of population, from 0 to 100.
+	UrbanPopulation *float64 `json:"urban_population"`
+	InternetUsers   *float64 `json:"internet_users"`
+
 	_          [0]func()
 	ISO3       *string  `json:"iso3"`
 	Numeric    *int     `json:"numeric"`
