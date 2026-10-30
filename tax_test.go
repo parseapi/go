@@ -11,7 +11,7 @@ func TestTaxReferenceFields(t *testing.T) {
 		t.Fatal(err)
 	}
 	c := country.Deep
-	if c == nil || c.Tax == nil || *c.Tax != "VAT" || c.TaxRate == nil || *c.TaxRate != 19 || c.TaxIDFormat == nil || *c.TaxIDFormat != "DE999999999" || c.TaxIDRegex == nil || *c.TaxIDRegex != "^DE[0-9]{9}$" {
+	if c == nil || c.Tax == nil || c.Tax.Name == nil || *c.Tax.Name != "VAT" || c.TaxRate == nil || *c.TaxRate != 19 || c.TaxIDFormat == nil || *c.TaxIDFormat != "DE999999999" || c.TaxIDRegex == nil || *c.TaxIDRegex != "^DE[0-9]{9}$" {
 		t.Fatalf("country tax: %#v", c)
 	}
 	var postal Postal
@@ -34,7 +34,7 @@ func TestMissingAndNullTaxRemainUnknown(t *testing.T) {
 		if err := json.Unmarshal([]byte(body), &postal); err != nil {
 			t.Fatal(err)
 		}
-		if country.Deep != nil && (country.Deep.Tax != nil || country.Deep.TaxRate != nil || country.Deep.TaxIDFormat != nil || country.Deep.TaxIDRegex != nil) {
+		if country.Deep != nil && ((country.Deep.Tax != nil && (country.Deep.Tax.Name != nil || country.Deep.Tax.Rate != nil)) || country.Deep.TaxRate != nil || country.Deep.TaxIDFormat != nil || country.Deep.TaxIDRegex != nil) {
 			t.Fatal("unknown country tax became a known value")
 		}
 		if postal.Deep != nil && (postal.Deep.Tax != nil || postal.Deep.TaxRate != nil || postal.Deep.TaxRateSpecial != nil) {

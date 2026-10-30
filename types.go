@@ -44,10 +44,12 @@ type Continent struct {
 }
 
 type ContinentCountryItem struct {
-	_           [0]func()
-	Country     string  `json:"country"`
-	Name        string  `json:"name"`
-	Emoji       *string `json:"emoji"`
+	_       [0]func()
+	Country string  `json:"country"`
+	Name    string  `json:"name"`
+	Flag    *string `json:"flag"`
+	// Deprecated: use Flag.
+	Emoji       *string `json:"-"`
 	CallingCode *string `json:"calling_code"`
 }
 
@@ -65,18 +67,48 @@ type ContinentCountries struct {
 
 type Country struct {
 	_              [0]func()
-	Country        string       `json:"country"`
-	Name           string       `json:"name"`
-	NameLocal      *string      `json:"name_local"`
-	Continent      string       `json:"continent"`
-	Currency       *string      `json:"currency"`
-	CurrencyName   *string      `json:"currency_name"`
-	CurrencySymbol *string      `json:"currency_symbol"`
-	CallingCode    *string      `json:"calling_code"`
-	Emoji          *string      `json:"emoji"`
-	Languages      []string     `json:"languages"`
-	Deep           *CountryDeep `json:"deep,omitempty"`
-	Timezones      []string     `json:"timezones"`
+	Country        string  `json:"country"`
+	Name           string  `json:"name"`
+	NameLocal      *string `json:"name_local"`
+	Continent      string  `json:"continent"`
+	Currency       *string `json:"currency"`
+	CurrencyName   *string `json:"currency_name"`
+	CurrencySymbol *string `json:"currency_symbol"`
+	CallingCode    *string `json:"calling_code"`
+	Flag           *string `json:"flag"`
+	// Deprecated: use Flag. Historical source adapter, not a second JSON key.
+	Emoji     *string      `json:"-"`
+	Languages []string     `json:"languages"`
+	Deep      *CountryDeep `json:"deep,omitempty"`
+	Timezones []string     `json:"timezones"`
+	ISO3      *string      `json:"iso3,omitempty"`
+	Numeric   *int         `json:"numeric,omitempty"`
+
+	NameFull *string `json:"name_full,omitempty"`
+	// Deprecated: use NameFull. Retained as a source-compatible adapter.
+	FullName        *string         `json:"-"`
+	Region          *string         `json:"region,omitempty"`
+	Subregion       *string         `json:"subregion,omitempty"`
+	Capital         *CountryCapital `json:"capital,omitempty"`
+	CapitalLat      *float64        `json:"-"`
+	CapitalLon      *float64        `json:"-"`
+	Borders         []string        `json:"borders"`
+	Blocs           []string        `json:"blocs"`
+	Demonym         *string         `json:"demonym,omitempty"`
+	nameFullPresent bool
+}
+
+type CountryCapital struct {
+	_    [0]func()
+	Name *string  `json:"name"`
+	Lat  *float64 `json:"lat"`
+	Lon  *float64 `json:"lon"`
+}
+
+type CountryTax struct {
+	_    [0]func()
+	Name *string  `json:"name"`
+	Rate *float64 `json:"rate"`
 }
 
 type CountryStateItem struct {
@@ -1032,24 +1064,24 @@ type NAICSSearch struct {
 
 type CountryDeep struct {
 	// Latest available GDP and GDP per person in current US dollars.
-	GDP          *float64 `json:"gdp"`
-	GDPPerCapita *float64 `json:"gdp_per_capita"`
+	GDP          *float64 `json:"gdp,omitempty"`
+	GDPPerCapita *float64 `json:"gdp_per_capita,omitempty"`
 	// Annual percent change; negative values indicate decline.
-	PopulationGrowth *float64 `json:"population_growth"`
+	PopulationGrowth *float64 `json:"population_growth,omitempty"`
 	// Shares of population, from 0 to 100.
-	UrbanPopulation *float64 `json:"urban_population"`
-	InternetUsers   *float64 `json:"internet_users"`
+	UrbanPopulation *float64 `json:"urban_population,omitempty"`
+	InternetUsers   *float64 `json:"internet_users,omitempty"`
 
 	_          [0]func()
-	ISO3       *string  `json:"iso3"`
-	Numeric    *int     `json:"numeric"`
-	FullName   *string  `json:"full_name"`
-	Demonym    *string  `json:"demonym"`
-	Capital    *string  `json:"capital"`
-	CapitalLat *float64 `json:"capital_lat"`
-	CapitalLon *float64 `json:"capital_lon"`
-	Region     *string  `json:"region"`
-	Subregion  *string  `json:"subregion"`
+	ISO3       *string  `json:"iso3,omitempty"`
+	Numeric    *int     `json:"numeric,omitempty"`
+	FullName   *string  `json:"full_name,omitempty"`
+	Demonym    *string  `json:"demonym,omitempty"`
+	Capital    *string  `json:"capital,omitempty"`
+	CapitalLat *float64 `json:"capital_lat,omitempty"`
+	CapitalLon *float64 `json:"capital_lon,omitempty"`
+	Region     *string  `json:"region,omitempty"`
+	Subregion  *string  `json:"subregion,omitempty"`
 	Population *int64   `json:"population"`
 	// Deprecated: no longer returned; retained for source compatibility and omitted from JSON.
 	PopulationPeriod *string  `json:"-"`
@@ -1061,32 +1093,39 @@ type CountryDeep struct {
 	// Coastline length in km. Zero is a known landlocked coastline.
 	Coastline *float64 `json:"coastline"`
 	// Mean elevation in metres above sea level.
-	Elevation    *float64               `json:"elevation"`
+	Elevation    *float64               `json:"elevation,omitempty"`
 	LowestPoint  *CountryElevationPoint `json:"lowest_point"`
 	HighestPoint *CountryElevationPoint `json:"highest_point"`
 	TLD          *string                `json:"tld"`
-	Borders      []string               `json:"borders"`
-	Blocs        []string               `json:"blocs"`
+	Borders      []string               `json:"borders,omitempty"`
+	Blocs        []string               `json:"blocs,omitempty"`
 	// Levy name, such as VAT, GST or sales tax. Null when unknown or not applicable.
-	Tax *string `json:"tax"`
+	Tax *CountryTax `json:"tax,omitempty"`
 	// Standard country reference rate in percent (19 means 19%). Null is unknown, zero is known zero.
-	TaxRate *float64 `json:"tax_rate"`
+	TaxRate *float64 `json:"-"`
 	// Tax registration number mask (9 is a digit, A is a letter). Describes format only.
-	TaxIDFormat *string `json:"tax_id_format"`
+	TaxIDFormat *string `json:"-"`
 	// Anchored tax registration number format regex. A match does not establish registration.
-	TaxIDRegex   *string           `json:"tax_id_regex"`
-	WeekStart    *string           `json:"week_start"`
-	Units        *string           `json:"units"`
-	DrivingSide  *string           `json:"driving_side"`
-	Plugs        []string          `json:"plugs"`
-	Voltage      *int              `json:"voltage"`
-	Frequency    *int              `json:"frequency"`
-	Emergency    *CountryEmergency `json:"emergency"`
-	PostalFormat *string           `json:"postal_format"`
-	PostalRegex  *string           `json:"postal_regex"`
-	IOC          *string           `json:"ioc"`
-	FIFA         *string           `json:"fifa"`
-	Plate        *string           `json:"plate"`
+	TaxIDRegex              *string           `json:"-"`
+	WeekStart               *string           `json:"week_start"`
+	Units                   *string           `json:"units"`
+	DrivingSide             *string           `json:"driving_side"`
+	Plugs                   []string          `json:"plugs"`
+	Voltage                 *int              `json:"voltage"`
+	Frequency               *int              `json:"frequency"`
+	Emergency               *CountryEmergency `json:"emergency"`
+	PostalFormat            *string           `json:"postal_format"`
+	PostalRegex             *string           `json:"postal_regex"`
+	IOC                     *string           `json:"ioc"`
+	FIFA                    *string           `json:"fifa"`
+	Plate                   *string           `json:"plate"`
+	GDPUSD                  *float64          `json:"gdp_usd,omitempty"`
+	GDPPerCapitaUSD         *float64          `json:"gdp_per_capita_usd,omitempty"`
+	PopulationGrowthPercent *float64          `json:"population_growth_percent,omitempty"`
+	UrbanPopulationPercent  *float64          `json:"urban_population_percent,omitempty"`
+	InternetUsersPercent    *float64          `json:"internet_users_percent,omitempty"`
+	// Average terrain elevation in meters above sea level.
+	ElevationAverage *float64 `json:"elevation_average,omitempty"`
 }
 
 type CountryElevationPoint struct {
