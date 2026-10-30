@@ -199,6 +199,8 @@ type PostalMetro struct {
 	ResidentialShare *float64 `json:"residential_share"`
 	BusinessShare    *float64 `json:"business_share"`
 	OtherShare       *float64 `json:"other_share"`
+	// Percentage of ZIP addresses (0-100). Nil is unknown or absent.
+	SharePercent *float64 `json:"share_percent"`
 }
 
 // PostalLocality is a supported Australian postcode suburb choice, independent of the scalar city.
@@ -228,6 +230,8 @@ type Postal struct {
 	Longitude         *float64         `json:"longitude"`
 	Timezone          *string          `json:"timezone"`
 	Deep              *PostalDeep      `json:"deep,omitempty"`
+	// Open ZIP type, including future values. Nil is unknown or absent.
+	Type *string `json:"type"`
 }
 
 type PostalNearbyItem struct {
