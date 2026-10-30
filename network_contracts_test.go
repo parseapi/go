@@ -64,7 +64,7 @@ func TestNetworkContractsCurrentAndFrozen(t *testing.T) {
 		}
 	}
 	var domain Domain
-	if err := json.Unmarshal(fixtures["domain_unregistered"], &domain); err != nil || !domain.Available || domain.Deep == nil || domain.Deep.Registration == nil || domain.Deep.Registration.Registered {
+	if err := json.Unmarshal(fixtures["domain_unregistered"], &domain); err != nil || domain.Available == nil || !*domain.Available || domain.Deep == nil || domain.Deep.Registration == nil || domain.Deep.Registration.Registered {
 		t.Fatalf("partial registration rejected: %v", err)
 	}
 }

@@ -329,10 +329,10 @@ before dispatch, accepted input is forwarded unchanged. Never send a full card n
 
 ## Domain results with unknown availability
 
-Use `DomainResult` when deciding whether a domain is registered.
+Use `Domain` when deciding whether a domain is registered.
 
 ```go
-result, err := parse.DomainResult(ctx, "example.com", parseapi.DomainOptions{Deep: true})
+result, err := parse.Domain(ctx, "example.com", parseapi.DomainOptions{Deep: true})
 if err != nil {
     return err
 }
@@ -347,7 +347,7 @@ if result.Available == nil {
 
 This makes one ordinary Domain lookup with the same options, authentication and retry policy. Nil registration detail is unknown. A non-nil false `DNSSEC` is a known negative, and a non-nil empty `Status` is a known empty list.
 
-The existing `Domain` method and model keep their published interface. Its legacy boolean fields cannot distinguish unknown from false. Use `DomainResult` for decisions that need that distinction.
+The ordinary `Domain` model uses `*bool` for availability and DNSSEC so nil stays distinct from false. The existing `DomainResult` method and model remain available.
 
 ## Stack
 

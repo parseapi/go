@@ -459,7 +459,7 @@ type DomainRegistration struct {
 	Expires    *string  `json:"expires"`
 	Registrar  *string  `json:"registrar"`
 	Status     []string `json:"status"`
-	DNSSEC     bool     `json:"dnssec"`
+	DNSSEC     *bool    `json:"dnssec"`
 }
 
 type DomainDeep struct {
@@ -468,9 +468,10 @@ type DomainDeep struct {
 }
 
 type Domain struct {
-	_         [0]func()
-	Domain    string      `json:"domain"`
-	Available bool        `json:"available"`
+	_      [0]func()
+	Domain string `json:"domain"`
+	// True means unregistered, false means registered, nil means unknown.
+	Available *bool       `json:"available"`
 	Deep      *DomainDeep `json:"deep,omitempty"`
 }
 

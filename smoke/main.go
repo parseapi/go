@@ -230,7 +230,6 @@ func main() {
 		return ""
 	})
 
-
 	phone, err := parse.Phone(ctx, "+14155552671")
 	expectOk("phone", phone, err, func(r *parseapi.Phone) string {
 		if str(r.Phone) != "+14155552671" {
@@ -266,8 +265,8 @@ func main() {
 
 	domain, err := parse.Domain(ctx, "gmail.com")
 	expectOk("domain", domain, err, func(r *parseapi.Domain) string {
-		if r.Available {
-			return "gmail available?"
+		if r.Available == nil || *r.Available {
+			return "gmail registration is unknown or unregistered"
 		}
 		return ""
 	})
@@ -304,7 +303,6 @@ func main() {
 		}
 		return ""
 	})
-
 
 	language, err := parse.Language(ctx, "en")
 	expectOk("language", language, err, func(r *parseapi.Language) string {
