@@ -134,7 +134,6 @@ type State struct {
 	CountryName *string    `json:"country_name"`
 	Latitude    *float64   `json:"latitude"`
 	Longitude   *float64   `json:"longitude"`
-	Timezone    *string    `json:"timezone"`
 	Timezones   []string   `json:"timezones"`
 	ISO3166_2   *string    `json:"iso_3166_2"`
 	Deep        *StateDeep `json:"deep,omitempty"`
@@ -168,7 +167,6 @@ type District struct {
 	CountryName *string       `json:"country_name"`
 	Latitude    *float64      `json:"latitude"`
 	Longitude   *float64      `json:"longitude"`
-	Timezone    *string       `json:"timezone"`
 	Timezones   []string      `json:"timezones"`
 	Deep        *DistrictDeep `json:"deep,omitempty"`
 }
@@ -436,9 +434,6 @@ type Stack struct {
 	Domain    string  `json:"domain"`
 	URL       string  `json:"url"`
 	CheckedAt *string `json:"checked_at"`
-	Scope     string  `json:"scope"`
-	Pages     int     `json:"pages"`
-	Partial   *bool   `json:"partial"`
 	// Nil collections mean the check did not complete. Empty slices mean no matches.
 	CMS        []StackTechnology `json:"cms"`
 	Servers    []StackTechnology `json:"servers"`

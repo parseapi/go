@@ -36,11 +36,6 @@ func TestNetworkContractsCurrentAndFrozen(t *testing.T) {
 		if err := json.Unmarshal(fixtures[name], &result); err != nil {
 			t.Fatal(err)
 		}
-		var scope string = result.Scope
-		var pages int = result.Pages
-		if scope != "" || pages != 0 || result.Partial != nil {
-			t.Fatal("legacy fields inferred")
-		}
 		if name == "stack_unavailable" {
 			if result.CMS != nil || result.CheckedAt != nil {
 				t.Fatal("unknown became empty")
@@ -56,12 +51,20 @@ func TestNetworkContractsCurrentAndFrozen(t *testing.T) {
 		if err := json.Unmarshal(encoded, &fields); err != nil {
 			t.Fatal(err)
 		}
-		// Retain the released Go model's JSON encoding for existing callers.
+		// Encode the actual response fields, keeping unknown values honest.
 		for _, legacy := range []string{"scope", "pages", "partial"} {
-			if _, present := fields[legacy]; !present {
-				t.Fatal("published Go encoding changed")
+			if _, present := fields[legacy]; present {
+				t.Fatal("unsupported field encoded")
 			}
 		}
+	}
+	var state State
+	if err := json.Unmarshal(fixtures["state_current"], &state); err != nil || len(state.Timezones) != 1 || state.Timezones[0] != "America/Los_Angeles" {
+		t.Fatalf("state timezones lost: %v", err)
+	}
+	var district District
+	if err := json.Unmarshal(fixtures["district_current"], &district); err != nil || len(district.Timezones) != 1 || district.Timezones[0] != "America/New_York" {
+		t.Fatalf("district timezones lost: %v", err)
 	}
 	var domain Domain
 	if err := json.Unmarshal(fixtures["domain_unregistered"], &domain); err != nil || !domain.Available || domain.Deep == nil || domain.Deep.Registration == nil || domain.Deep.Registration.Registered {

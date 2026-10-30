@@ -25,7 +25,7 @@ func TestStackInventoryShapesAndEncoding(t *testing.T) {
 			t.Fatalf("wrong request: %#v", captured)
 		}
 		if i == 0 || i == 3 {
-			if result.CMS != nil || result.Servers != nil || result.Pages != 0 || result.Partial != nil {
+			if result.CMS != nil || result.Servers != nil {
 				t.Fatal("unknown inventory changed")
 			}
 		} else if i != 2 && (result.CMS == nil || len(result.CMS) != 0 || result.Servers == nil || len(result.Servers) != 0) {
@@ -50,22 +50,22 @@ func TestStackInventoryShapesAndEncoding(t *testing.T) {
 				t.Fatal("unknown or omitted values changed")
 			}
 		case 1:
-			if result.Scope != "site" || result.Pages != 2 || result.Partial == nil || *result.Partial || result.Frameworks == nil || len(result.Frameworks) != 0 || result.Deep == nil || len(result.Deep) != 0 {
+			if result.Frameworks == nil || len(result.Frameworks) != 0 || result.Deep == nil || len(result.Deep) != 0 {
 				t.Fatal("empty result or generic deep lost")
 			}
 		case 2:
-			if result.Scope != "site" || result.Pages != 3 || result.Partial == nil || !*result.Partial || result.CheckedAt == nil || len(result.CMS) != 2 || len(result.Servers) != 2 || len(result.Frameworks) != 2 || result.Deep != nil {
+			if result.CheckedAt == nil || len(result.CMS) != 2 || len(result.Servers) != 2 || len(result.Frameworks) != 2 || result.Deep != nil {
 				t.Fatal("site inventory changed")
 			}
 			if result.CMS[0].Technology != "wordpress" || result.CMS[0].Name != "WordPress" || result.CMS[0].Version == nil || *result.CMS[0].Version != "6.8" || result.CMS[1].Technology != "ghost" || result.CMS[1].Version != nil || result.Servers[0].Version == nil || *result.Servers[0].Version != "1.26.2" || result.Servers[1].Technology != "apache" || result.Frameworks[0].Version != nil {
 				t.Fatal("inventory technology detail changed")
 			}
 		case 3:
-			if result.Scope != "future-scope" || result.Frameworks != nil || result.Deep == nil || len(result.Deep) != 0 {
+			if result.Frameworks != nil || result.Deep == nil || len(result.Deep) != 0 {
 				t.Fatal("future/null fields changed")
 			}
 		case 4:
-			if result.Scope != "homepage" || result.Pages != 1 || result.Partial == nil || !*result.Partial || result.Deep == nil || len(result.Deep) != 0 || result.Frameworks[0].Technology != "nextjs" || result.Frameworks[0].Version != nil {
+			if result.Deep == nil || len(result.Deep) != 0 || result.Frameworks[0].Technology != "nextjs" || result.Frameworks[0].Version != nil {
 				t.Fatal("generic deep changed core")
 			}
 		}

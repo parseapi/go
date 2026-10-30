@@ -6,9 +6,8 @@ import (
 	"testing"
 )
 
-func TestReleasedStackMarshalPreservesKnownZeroFalseAndEmpty(t *testing.T) {
-	partial := false
-	value := parseapi.Stack{Domain: "example.com", URL: "https://example.com/", Scope: "homepage", Pages: 0, Partial: &partial,
+func TestStackMarshalPreservesUnknownAndEmpty(t *testing.T) {
+	value := parseapi.Stack{Domain: "example.com", URL: "https://example.com/",
 		CMS: []parseapi.StackTechnology{}, Servers: nil, Frameworks: []parseapi.StackTechnology{{Technology: "react", Name: "React"}}}
 	encoded, err := json.Marshal(value)
 	if err != nil {
@@ -18,7 +17,7 @@ func TestReleasedStackMarshalPreservesKnownZeroFalseAndEmpty(t *testing.T) {
 	if err := json.Unmarshal(encoded, &fields); err != nil {
 		t.Fatal(err)
 	}
-	for key, expected := range map[string]string{"scope": `"homepage"`, "pages": `0`, "partial": `false`, "cms": `[]`, "servers": `null`} {
+	for key, expected := range map[string]string{"cms": `[]`, "servers": `null`} {
 		if string(fields[key]) != expected {
 			t.Fatalf("%s = %s, want %s", key, fields[key], expected)
 		}
