@@ -84,17 +84,17 @@ func TestDomainResultUnknownPartialAndOneRequest(t *testing.T) {
 	}
 }
 
-func TestExistingDomainConsumerStillCompiles(t *testing.T) {
+func TestExistingDomainCallableUsesNullableFields(t *testing.T) {
 	client, _ := newTestClient(t, okJSON(`{"domain":"example.com","available":true}`))
 	var oldCall func(context.Context, string, ...DomainOptions) (*Domain, error) = client.Domain
 	old, err := oldCall(context.Background(), "example.com")
 	if err != nil {
 		t.Fatal(err)
 	}
-	var available bool = old.Available
-	var dnssec bool = DomainRegistration{}.DNSSEC
+	var available *bool = old.Available
+	var dnssec *bool = DomainRegistration{}.DNSSEC
 	var status []string = DomainRegistration{}.Status
-	if !available || dnssec || status != nil {
+	if available == nil || !*available || dnssec != nil || status != nil {
 		t.Fatal("existing fields changed")
 	}
 }
