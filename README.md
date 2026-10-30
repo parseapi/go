@@ -323,6 +323,28 @@ Leading zeros are preserved. Only ASCII spaces, tabs, CR, LF and hyphens are
 removed; raw input is limited to 64 characters. Invalid prefixes are rejected
 before dispatch, accepted input is forwarded unchanged. Never send a full card number.
 
+## Domain results with unknown availability
+
+Use `DomainResult` when deciding whether a domain is registered.
+
+```go
+result, err := parse.DomainResult(ctx, "example.com", parseapi.DomainOptions{Deep: true})
+if err != nil {
+    return err
+}
+if result.Available == nil {
+    fmt.Println("Registration could not be determined")
+} else if *result.Available {
+    fmt.Println("Unregistered")
+} else {
+    fmt.Println("Registered")
+}
+```
+
+This makes one ordinary Domain lookup with the same options, authentication and retry policy. Nil registration detail is unknown. A non-nil false `DNSSEC` is a known negative, and a non-nil empty `Status` is a known empty list.
+
+The existing `Domain` method and model keep their published interface. Its legacy boolean fields cannot distinguish unknown from false. Use `DomainResult` for decisions that need that distinction.
+
 ## Stack
 
 ```go

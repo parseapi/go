@@ -14,6 +14,11 @@ type IPDeep struct {
 	Tor        *bool   `json:"tor"`
 	VPN        *bool   `json:"vpn"`
 	Provider   *string `json:"provider"`
+	// Present only when supported. District is qualified by the response country.
+	District       *string `json:"district,omitempty"`
+	DistrictName   *string `json:"district_name,omitempty"`
+	CensusDivision *string `json:"census_division,omitempty"`
+	CensusRegion   *string `json:"census_region,omitempty"`
 }
 
 type IP struct {
