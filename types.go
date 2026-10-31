@@ -99,10 +99,10 @@ type Country struct {
 }
 
 type CountryCapital struct {
-	_    [0]func()
-	Name *string  `json:"name"`
-	Lat  *float64 `json:"lat"`
-	Lon  *float64 `json:"lon"`
+	_         [0]func()
+	Name      *string  `json:"name"`
+	Latitude  *float64 `json:"latitude"`
+	Longitude *float64 `json:"longitude"`
 }
 
 type CountryTax struct {
@@ -122,6 +122,13 @@ type CountryStates struct {
 	_       [0]func()
 	Country string             `json:"country"`
 	States  []CountryStateItem `json:"states"`
+}
+
+type StateCapital struct {
+	_         [0]func()
+	Name      *string  `json:"name"`
+	Latitude  *float64 `json:"latitude"`
+	Longitude *float64 `json:"longitude"`
 }
 
 type State struct {
@@ -1696,12 +1703,6 @@ type StateTax struct {
 }
 
 
-type StateCapital struct {
-	_    [0]func()
-	Name *string  `json:"name"`
-	Lat  *float64 `json:"lat"`
-	Lon  *float64 `json:"lon"`
-}
 
 type Currency struct {
 	_ [0]func()

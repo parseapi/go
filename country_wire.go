@@ -55,12 +55,12 @@ func (country *Country) UnmarshalJSON(data []byte) error {
 		}
 	}
 	if value, ok := raw["capital"]; ok && len(value) > 0 && value[0] != '{' && string(value) != "null" {
-		capital := map[string]json.RawMessage{"name": value, "lat": json.RawMessage("null"), "lon": json.RawMessage("null")}
+		capital := map[string]json.RawMessage{"name": value, "latitude": json.RawMessage("null"), "longitude": json.RawMessage("null")}
 		if value, ok := raw["capital_lat"]; ok {
-			capital["lat"] = value
+			capital["latitude"] = value
 		}
 		if value, ok := raw["capital_lon"]; ok {
-			capital["lon"] = value
+			capital["longitude"] = value
 		}
 		encoded, err := json.Marshal(capital)
 		if err != nil {
@@ -71,12 +71,12 @@ func (country *Country) UnmarshalJSON(data []byte) error {
 		_, lat := raw["capital_lat"]
 		_, lon := raw["capital_lon"]
 		if lat || lon {
-			capital := map[string]json.RawMessage{"name": value, "lat": json.RawMessage("null"), "lon": json.RawMessage("null")}
+			capital := map[string]json.RawMessage{"name": value, "latitude": json.RawMessage("null"), "longitude": json.RawMessage("null")}
 			if lat {
-				capital["lat"] = raw["capital_lat"]
+				capital["latitude"] = raw["capital_lat"]
 			}
 			if lon {
-				capital["lon"] = raw["capital_lon"]
+				capital["longitude"] = raw["capital_lon"]
 			}
 			encoded, err := json.Marshal(capital)
 			if err != nil {
@@ -98,8 +98,8 @@ func (country *Country) UnmarshalJSON(data []byte) error {
 	country.FullName = country.NameFull
 	country.Emoji = country.Flag
 	if country.Capital != nil {
-		country.CapitalLat = country.Capital.Lat
-		country.CapitalLon = country.Capital.Lon
+		country.CapitalLat = country.Capital.Latitude
+		country.CapitalLon = country.Capital.Longitude
 	}
 	return nil
 }
@@ -168,5 +168,40 @@ func (detail *CountryDeep) UnmarshalJSON(data []byte) error {
 			}
 		}
 	}
+	return nil
+}
+
+// Decode older capital objects while emitting only the canonical coordinate keys.
+func decodeCapitalCoordinates(data []byte, target any) error {
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	isoWireAlias(raw, "latitude", "lat")
+	isoWireAlias(raw, "longitude", "lon")
+	delete(raw, "lat")
+	delete(raw, "lon")
+	normalized, err := json.Marshal(raw)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(normalized, target)
+}
+func (value *CountryCapital) UnmarshalJSON(data []byte) error {
+	type wire CountryCapital
+	var decoded wire
+	if err := decodeCapitalCoordinates(data, &decoded); err != nil {
+		return err
+	}
+	*value = CountryCapital(decoded)
+	return nil
+}
+func (value *StateCapital) UnmarshalJSON(data []byte) error {
+	type wire StateCapital
+	var decoded wire
+	if err := decodeCapitalCoordinates(data, &decoded); err != nil {
+		return err
+	}
+	*value = StateCapital(decoded)
 	return nil
 }

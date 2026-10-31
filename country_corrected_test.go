@@ -18,7 +18,7 @@ func TestCorrectedCountryResponse(t *testing.T) {
 	if c.NameFull == nil || *c.NameFull != "United States of America" || c.FullName != c.NameFull || c.Demonym == nil || *c.Demonym != "American" || c.Numeric == nil || *c.Numeric != 840 {
 		t.Fatal("Core name family missing")
 	}
-	if c.Flag == nil || *c.Flag != "🇺🇸" || c.Emoji != c.Flag || c.Capital == nil || c.Capital.Name == nil || *c.Capital.Name != "Washington, D.C." || c.Capital.Lat == nil || *c.Capital.Lat != 38.89 || c.Capital.Lon == nil || *c.Capital.Lon != -77.05 {
+	if c.Flag == nil || *c.Flag != "🇺🇸" || c.Emoji != c.Flag || c.Capital == nil || c.Capital.Name == nil || *c.Capital.Name != "Washington, D.C." || c.Capital.Latitude == nil || *c.Capital.Latitude != 38.89 || c.Capital.Longitude == nil || *c.Capital.Longitude != -77.05 {
 		t.Fatal("Country flag/capital group missing")
 	}
 	if c.Deep == nil || c.Deep.Tax == nil || c.Deep.Tax.Name != nil || c.Deep.Tax.Rate != nil || c.Deep.Demonym != nil || c.Deep.FullName != nil || c.Deep.GDPPerCapitaUSD == nil || *c.Deep.GDPPerCapitaUSD != 90026.52 || c.Deep.ElevationAverage == nil || *c.Deep.ElevationAverage != 760 || c.Deep.Population == nil || c.Deep.Area == nil {
@@ -102,11 +102,11 @@ func TestCountryTaxGroupsAndZeroes(t *testing.T) {
 	if tax == nil || tax.Name == nil || *tax.Name != "VAT" || tax.Rate == nil || *tax.Rate != 19 {
 		t.Fatal("Actual German tax reference lost")
 	}
-	body := `{"flag":null,"emoji":"OLD","capital":{"name":null,"lat":0,"lon":null},"capital_lat":99,"capital_lon":99,"deep":{"tax":{"name":null,"rate":0},"tax_rate":99,"tax_id_format":"OLD"}}`
+	body := `{"flag":null,"emoji":"OLD","capital":{"name":null,"latitude":0,"longitude":null},"capital_lat":99,"capital_lon":99,"deep":{"tax":{"name":null,"rate":0},"tax_rate":99,"tax_id_format":"OLD"}}`
 	if err = json.Unmarshal([]byte(body), &c); err != nil {
 		t.Fatal(err)
 	}
-	if c.Flag != nil || c.Emoji != nil || c.Capital.Name != nil || c.Capital.Lat == nil || *c.Capital.Lat != 0 || c.Capital.Lon != nil || c.Deep.Tax.Name != nil || c.Deep.Tax.Rate == nil || *c.Deep.Tax.Rate != 0 || c.Deep.TaxIDFormat != nil {
+	if c.Flag != nil || c.Emoji != nil || c.Capital.Name != nil || c.Capital.Latitude == nil || *c.Capital.Latitude != 0 || c.Capital.Longitude != nil || c.Deep.Tax.Name != nil || c.Deep.Tax.Rate == nil || *c.Deep.Tax.Rate != 0 || c.Deep.TaxIDFormat != nil {
 		t.Fatal("Canonical nested null/zero was overwritten by a legacy value")
 	}
 	encoded, err := json.Marshal(c)
@@ -142,13 +142,13 @@ func TestCountryHistoricalShapeAdapter(t *testing.T) {
 		if err := json.Unmarshal([]byte(body), &c); err != nil {
 			t.Fatal(err)
 		}
-		if c.Flag == nil || *c.Flag != "🇺🇸" || c.Capital == nil || c.Capital.Lat == nil || *c.Capital.Lat != 0 || c.Deep == nil || c.Deep.Tax == nil || c.Deep.Tax.Rate == nil || *c.Deep.Tax.Rate != 0 || c.Deep.TaxIDFormat == nil || *c.Deep.TaxIDFormat != "FORMAT" {
+		if c.Flag == nil || *c.Flag != "🇺🇸" || c.Capital == nil || c.Capital.Latitude == nil || *c.Capital.Latitude != 0 || c.Deep == nil || c.Deep.Tax == nil || c.Deep.Tax.Rate == nil || *c.Deep.Tax.Rate != 0 || c.Deep.TaxIDFormat == nil || *c.Deep.TaxIDFormat != "FORMAT" {
 			t.Fatal("Historical shape adapter lost zero or facts")
 		}
 	}
 }
 func TestCountryDeepModesAndCompactFlags(t *testing.T) {
-	for _, body := range []string{`{"country":"US","flag":"🇺🇸","capital":{"name":null,"lat":null,"lon":null}}`, `{"country":"US","flag":"🇺🇸","capital":{"name":null,"lat":null,"lon":null},"deep":{}}`} {
+	for _, body := range []string{`{"country":"US","flag":"🇺🇸","capital":{"name":null,"latitude":null,"longitude":null}}`, `{"country":"US","flag":"🇺🇸","capital":{"name":null,"latitude":null,"longitude":null},"deep":{}}`} {
 		var c Country
 		if err := json.Unmarshal([]byte(body), &c); err != nil {
 			t.Fatal(err)
