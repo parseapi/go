@@ -1702,3 +1702,28 @@ type StateCapital struct {
 	Lat  *float64 `json:"lat"`
 	Lon  *float64 `json:"lon"`
 }
+
+type Currency struct {
+	_ [0]func()
+	Currency string `json:"currency"`
+	ISONumeric *int `json:"iso_numeric"`
+	Name string `json:"name"`
+	NamePlural *string `json:"name_plural"`
+	Symbol *string `json:"symbol"`
+	SymbolNative *string `json:"symbol_native"`
+	Digits *int `json:"digits"`
+	Countries []string `json:"countries"`
+	Deep *CurrencyDeep `json:"deep,omitempty"`
+}
+
+type CurrencyRate struct {
+	_         [0]func()
+	Base      string   `json:"base"`
+	Quote     string   `json:"quote"`
+	Rate      float64  `json:"rate"`
+	Date      string   `json:"date"`
+	Amount    *float64 `json:"amount,omitempty"`
+	Converted *float64 `json:"converted,omitempty"`
+}
+
+type CurrencyDeep struct { _ [0]func() }

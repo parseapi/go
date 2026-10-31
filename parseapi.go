@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	version         = "1.10.10"
+	version         = "1.11.0"
 	defaultBaseURL  = "https://api.parseapi.com"
 	defaultTimeout  = 10 * time.Second
 	defaultRetries  = 2
@@ -2419,4 +2419,53 @@ func cityErrorCandidates(rows []json.RawMessage) []CityAmbiguityCandidate {
 		}
 	}
 	return out
+}
+
+// CurrencyOptions reserves optional settings for Currency.
+type CurrencyOptions struct {
+	// Lang selects translated display names for this request.
+	Lang string
+	_    [0]func()
+	Deep bool
+}
+
+// CurrencyRateOptions configures CurrencyRate. Omitted fields use API defaults.
+type CurrencyRateOptions struct {
+	_      [0]func()
+	Date   string
+	Amount *float64
+}
+
+// Currency calls /currency/{code}.
+func (c *Client) Currency(ctx context.Context, code string, options ...CurrencyOptions) (*Currency, error) {
+	opts, err := oneOption(options)
+	if err != nil {
+		return nil, err
+	}
+	deep := ""
+	if opts.Deep {
+		deep = "true"
+	}
+	out := &Currency{}
+	if err := c.get(ctx, "/currency/"+seg(code), values("lang", opts.Lang, "deep", deep), nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// CurrencyRate calls /currency/{base}/{quote}.
+func (c *Client) CurrencyRate(ctx context.Context, base string, quote string, options ...CurrencyRateOptions) (*CurrencyRate, error) {
+	opts, err := oneOption(options)
+	if err != nil {
+		return nil, err
+	}
+	amount := ""
+	if opts.Amount != nil {
+		amount = f(*opts.Amount)
+	}
+	out := &CurrencyRate{}
+	if err := c.get(ctx, "/currency/"+seg(base)+"/"+seg(quote), values("date", opts.Date, "amount", amount), nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
