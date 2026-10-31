@@ -452,3 +452,19 @@ Coverage by country and available fields is described at https://parseapi.com/ci
 
 
 Conditional `If-None-Match` reads and GeoJSON currently use HTTP directly. A matching City ETag returns 304 without a body; ordinary billing and rate limits apply. These JSON client methods do not supply conditional-cache handling.
+
+## ISO code fields
+
+ISO representations use explicit JSON names. Primary codes remain `country`,
+`state`, `language` and `currency`. Existing native members keep their source
+compatibility through these wire mappings:
+
+| Fact | JSON field | Native member |
+| --- | --- | --- |
+| Country or Language three-letter code | `iso_alpha3` | `ISO3` |
+| Country numeric code | `iso_numeric` | `Numeric` |
+| Full subdivision code, such as `US-CA` | `iso_subdivision` | `ISO` |
+
+Response decoders accept the current and earlier wire spellings. An explicit
+current null keeps its meaning when an earlier spelling also appears.
+JSON encoding uses the canonical ISO field names.

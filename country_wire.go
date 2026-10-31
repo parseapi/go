@@ -38,6 +38,8 @@ func (country *Country) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
+	isoWireAlias(raw, "iso_alpha3", "iso3")
+	isoWireAlias(raw, "iso_numeric", "numeric")
 	_, present := raw["name_full"]
 	if !present {
 		if legacy, ok := raw["full_name"]; ok {
@@ -45,6 +47,13 @@ func (country *Country) UnmarshalJSON(data []byte) error {
 		}
 	}
 	countryFlag(raw)
+	if _, present := raw["capital"]; !present {
+		_, lat := raw["capital_lat"]
+		_, lon := raw["capital_lon"]
+		if lat || lon {
+			raw["capital"] = json.RawMessage("null")
+		}
+	}
 	if value, ok := raw["capital"]; ok && len(value) > 0 && value[0] != '{' && string(value) != "null" {
 		capital := map[string]json.RawMessage{"name": value, "lat": json.RawMessage("null"), "lon": json.RawMessage("null")}
 		if value, ok := raw["capital_lat"]; ok {
@@ -113,6 +122,8 @@ func (detail *CountryDeep) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
+	isoWireAlias(raw, "iso_alpha3", "iso3")
+	isoWireAlias(raw, "iso_numeric", "numeric")
 	value, present := raw["tax"]
 	_, rate := raw["tax_rate"]
 	_, format := raw["tax_id_format"]

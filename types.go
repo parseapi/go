@@ -81,8 +81,8 @@ type Country struct {
 	Languages []string     `json:"languages"`
 	Deep      *CountryDeep `json:"deep,omitempty"`
 	Timezones []string     `json:"timezones"`
-	ISO3      *string      `json:"iso3,omitempty"`
-	Numeric   *int         `json:"numeric,omitempty"`
+	ISO3      *string      `json:"iso_alpha3,omitempty"`
+	Numeric   *int         `json:"iso_numeric,omitempty"`
 
 	NameFull *string `json:"name_full,omitempty"`
 	// Deprecated: use NameFull. Retained as a source-compatible adapter.
@@ -126,17 +126,22 @@ type CountryStates struct {
 
 type State struct {
 	_           [0]func()
-	State       string     `json:"state"`
-	Name        string     `json:"name"`
-	NameLocal   *string    `json:"name_local"`
-	Type        *string    `json:"type"`
-	Country     string     `json:"country"`
-	CountryName *string    `json:"country_name"`
-	Latitude    *float64   `json:"latitude"`
-	Longitude   *float64   `json:"longitude"`
-	Timezones   []string   `json:"timezones"`
-	ISO3166_2   *string    `json:"iso_3166_2"`
-	Deep        *StateDeep `json:"deep,omitempty"`
+	State       string        `json:"state"`
+	Name        string        `json:"name"`
+	NameLocal   *string       `json:"name_local"`
+	Type        *string       `json:"type"`
+	Country     string        `json:"country"`
+	CountryName *string       `json:"country_name"`
+	Latitude    *float64      `json:"latitude"`
+	Longitude   *float64      `json:"longitude"`
+	Timezones   []string      `json:"timezones"`
+	ISO         *string       `json:"iso_subdivision"`
+	FIPS        *string       `json:"fips"`
+	AreaCodes   []string      `json:"area_codes"`
+	Capital     *StateCapital `json:"capital"`
+	Deep        *StateDeep    `json:"deep,omitempty"`
+	// Deprecated: retained native member for the released ISO subdivision field.
+	ISO31662 *string `json:"-"`
 }
 
 type StateDistrictItem struct {
@@ -588,6 +593,8 @@ type Language struct {
 	Script    *string       `json:"script"`
 	Direction string        `json:"direction"`
 	Deep      *LanguageDeep `json:"deep,omitempty"`
+	ISO3      *string       `json:"iso_alpha3,omitempty"`
+	Countries []string      `json:"countries"`
 }
 
 // Name is a parsed person name. Junk input returns Valid false, never an error.
@@ -1069,8 +1076,8 @@ type CountryDeep struct {
 	InternetUsers   *float64 `json:"internet_users,omitempty"`
 
 	_          [0]func()
-	ISO3       *string  `json:"iso3,omitempty"`
-	Numeric    *int     `json:"numeric,omitempty"`
+	ISO3       *string  `json:"iso_alpha3,omitempty"`
+	Numeric    *int     `json:"iso_numeric,omitempty"`
 	FullName   *string  `json:"full_name,omitempty"`
 	Demonym    *string  `json:"demonym,omitempty"`
 	Capital    *string  `json:"capital,omitempty"`
@@ -1135,15 +1142,14 @@ type StateDeep struct {
 	_          [0]func()
 	Population *int64 `json:"population"`
 	// Deprecated: no longer returned; retained for source compatibility and omitted from JSON.
-	PopulationPeriod *string  `json:"-"`
-	Area             *float64 `json:"area"`
-	FIPS             *string  `json:"fips"`
-	Capital          *string  `json:"capital"`
-	AreaCodes        []string `json:"area_codes"`
-	// Levy name, such as VAT, GST or sales tax. Null when unknown or not applicable.
-	Tax *string `json:"tax"`
-	// State or province reference rate in percent. Country, state and postal rates are alternative references, not additive.
-	TaxRate *float64 `json:"tax_rate"`
+	PopulationPeriod *string   `json:"-"`
+	Area             *float64  `json:"area"`
+	Tax              *StateTax `json:"tax"`
+	// Historical Deep members remain readable for existing source consumers.
+	FIPS      *string  `json:"-"`
+	Capital   *string  `json:"-"`
+	AreaCodes []string `json:"-"`
+	TaxRate   *float64 `json:"-"`
 }
 
 type DistrictDeep struct {
@@ -1255,9 +1261,10 @@ type NAICSDeep struct {
 
 
 type LanguageDeep struct {
-	_         [0]func()
-	Iso3      *string  `json:"iso3"`
-	Countries []string `json:"countries"`
+	_ [0]func()
+	// Historical Deep read adapters; canonical responses keep these facts in Core.
+	ISO3      *string  `json:"-"`
+	Countries []string `json:"-"`
 }
 
 type NameDeep struct {
@@ -1677,4 +1684,21 @@ type CityNearbyCoords struct {
 	Unit       string         `json:"unit"`
 	Data       []CityResource `json:"data"`
 	NextCursor *string        `json:"next_cursor"`
+}
+
+
+
+type StateTax struct {
+	_    [0]func()
+	Name *string `json:"name"`
+	// Reference rate in percent.
+	Rate *float64 `json:"rate"`
+}
+
+
+type StateCapital struct {
+	_    [0]func()
+	Name *string  `json:"name"`
+	Lat  *float64 `json:"lat"`
+	Lon  *float64 `json:"lon"`
 }
