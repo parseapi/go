@@ -142,7 +142,9 @@ if first.Next != nil {
 }
 ```
 
-Directory `deep` adds detail to each profile in the same pooled request on every plan. Omitted deep, empty deep and partial detail remain distinct; description, logo, social_profiles, phone_numbers, email_addresses, domains, founded, employees, registrations and sources may be absent on older server releases. Sources attribute only their listed selected enrichment fields. Founding precision is preserved separately from incorporation. Missing listings do not establish private ownership, and a domain match does not prove legal identity. Coverage describes the returned edition, not every company worldwide.
+Directory `deep` adds detail to each profile on paid plans in the same pooled request. Existing accounts retain their current Deep access. Omitted deep, empty deep and partial detail remain distinct; description, logo, social_profiles, phone_numbers, email_addresses, domains, founded, employees, registrations and sources may be absent on older server releases. Sources attribute only their listed selected enrichment fields. Founding precision is preserved separately from incorporation. Missing listings do not establish private ownership, and a domain match does not prove legal identity. Coverage describes the returned edition, not every company worldwide.
+
+The public-directory service retires national-number Company lookups in both API versions. Use the directory methods with API 2.0.0.
 
 Company directory social profiles contain `platform`, `url` and `handle`; unknown metadata stays null. Phone and email records use `type` for the source-reported purpose. Earlier response fields remain readable by the client.
 
@@ -207,7 +209,7 @@ Source deep adds `standard_offset`, `standard_offset_seconds`, signed `dst_offse
 
 ## Place statistics and optional detail
 
-Country Core contains the everyday reference: `name`, `name_full`, `name_local`, demonym and country codes, continent, region and subregion, currency, calling code, `flag`, language and timezone codes, borders, bloc memberships and `capital: { name, lat, lon }`. Paid Deep adds specialist detail, including population, total area and national statistics. `gdp_usd` and `gdp_per_capita_usd` are current US dollars; `population_growth_percent`, `urban_population_percent` and `internet_users_percent` use a 0–100 percent scale (growth can be negative or exceed 100). GDP per person and these three percentages round once to two decimals in the API response. `elevation_average` is average terrain elevation in meters; `lowest_point.elevation` and `highest_point.elevation` keep their point-specific meaning. Unknown stays null and a known zero stays zero. Country tax references are grouped once as `deep.tax: { name, rate }`; the rate remains a percentage. Read capital from the Core object and read the tax name and rate from the Deep tax object.
+Country Core contains the everyday reference: `name`, `name_full`, `name_local`, demonym and country codes, continent, region and subregion, currency, calling code, `flag`, language and timezone codes, borders, bloc memberships and `capital: { name, latitude, longitude }`. Paid Deep adds specialist detail, including population, total area and national statistics. `gdp_usd` and `gdp_per_capita_usd` are current US dollars; `population_growth_percent`, `urban_population_percent` and `internet_users_percent` use a 0–100 percent scale (growth can be negative or exceed 100). GDP per person and these three percentages round once to two decimals in the API response. `elevation_average` is average terrain elevation in meters; `lowest_point.elevation` and `highest_point.elevation` keep their point-specific meaning. Unknown stays null and a known zero stays zero. Country tax references are grouped once as `deep.tax: { name, rate }`; the rate remains a percentage. Read capital from the Core object and read the tax name and rate from the Deep tax object.
 
 Read the canonical native member as `NameFull`; `FullName` remains a source adapter. JSON encoding writes only `name_full`. Historical Deep fields remain readable in earlier responses; they are not added to the current wire result.
 
@@ -229,7 +231,7 @@ if place.Deep != nil && place.Deep.PropertyTax != nil {
 
 Read `population` as the source’s count for that place boundary. Keep missing or null values unknown and preserve a known zero. State district lists include each district’s population. Postal nearby and distance detail remains metropolitan associations only. Continent population stays in core.
 
-Point returns the timezone ID with the core location. Its optional deep detail adds terrain and compact nearest-city context on every plan. A nearest city is null when none is within 200 km.
+Point returns the timezone ID with the core location. Its optional Deep adds terrain, compact nearest-city context and supported electoral detail on paid plans. Existing accounts retain their current Deep access. A nearest city is null when none is within 200 km.
 
 Weather returns current conditions by default. Paid deep adds specialist current measurements, forecasts and related detail. A past `date` is a UTC day and requires deep: it adds `deep.history` alongside current conditions. Date alone does not request history.
 
@@ -255,10 +257,11 @@ The default call returns the common answer. Request more detail with `parse.Coun
 | Domain | Registration dates, registrar, status and DNSSEC, included with a paid plan. Use `DNS` for DNS records and `MX` for mail routing. |
 | Email | A metered mailbox check with deliverability, catch-all, status, reason and address hints, using included email checks or enabled on-demand usage. |
 | Country, State, City, District, Postal | Reference profiles included with a paid plan; place identity and coordinates stay core. |
-| Industry, Company (national number) | Paid technical or registration profiles. Industry hierarchy stays core. |
+| Industry | Definition, named children and exclusions on paid plans. The immediate parent stays in Core. |
 | Name, Weather | Paid name context or weather detail; parsing and current conditions stay core. |
-| Phone | Numbering-plan or bank structure detail in the same pooled request on every plan. |
-| Time, Date, Language, Emoji, Point | Optional reference detail in the same pooled request on every plan. |
+| Phone | Numbering-plan state and timezone on paid plans in the same pooled request. Existing accounts retain their current Deep access. |
+| Time, Date, Emoji, Point | Optional detail on paid plans in the same pooled request. Existing accounts retain their current Deep access. |
+| Language | All language facts are in Core; requested Deep is empty. |
 | Carrier, HLR | Available place or network detail from the same metered core unit, including Free included units. |
 
 Email deep includes mailbox status and the reason for the result, plus a suggested first name, no-reply flag, plus-address tag and mail service. The suggested name is not a verified identity. Unavailable details are null.
@@ -309,9 +312,10 @@ and a CDN SVG `logo`. Brand detection uses reviewed network rules independently
 of issuer records. Unknown or ambiguous prefixes return null brand fields and a
 generic logo; a known network without reviewed artwork also uses the generic logo.
 
-Optional Deep adds `prefix`, `issuer`, `country`, `type` and `prepaid`, included
-in the same pooled request on every plan. Six or more digits enable directory
-matching. Fewer digits return all-null Deep fields. Compare `deep.prefix` with
+Optional Deep adds `prefix`, `issuer`, `country`, `type` and `prepaid` on paid plans
+in the same pooled request. Existing accounts retain their current Deep access.
+Requested but locked Deep is `{}`. Six or more digits enable directory
+matching. With Deep access, fewer digits return all-null Deep fields. Compare `deep.prefix` with
 `bin`: equal is an exact recorded match; shorter is broader; null is no match.
 The longest row wins, including null fields. `prepaid: null` means unknown, not
 false. This is partial reference data, not card validity or payment acceptance.
