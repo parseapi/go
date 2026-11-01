@@ -700,11 +700,23 @@ type Elevation struct {
 	Resolution  *float64 `json:"resolution"`
 }
 
+// PointElectoral is the supported electoral district at the requested point.
+type PointElectoral struct {
+	_ [0]func()
+	// Code preserves leading zeros.
+	Code     string  `json:"code"`
+	Name     *string `json:"name"`
+	Congress *int    `json:"congress"`
+}
+
 type PointDeep struct {
-	_           [0]func()
-	City        *PointCity `json:"city"`
-	ElevationFt *float64   `json:"elevation_ft"`
-	Resolution  *float64   `json:"resolution"`
+	_         [0]func()
+	City      *PointCity `json:"city"`
+	Elevation *float64   `json:"elevation"`
+	// Electoral is nil for unsupported points and older responses.
+	Electoral   *PointElectoral `json:"electoral"`
+	ElevationFt *float64        `json:"elevation_ft"`
+	Resolution  *float64        `json:"resolution"`
 }
 
 type Point struct {

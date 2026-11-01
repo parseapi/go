@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	version         = "1.11.2"
+	version         = "1.11.3"
 	defaultBaseURL  = "https://api.parseapi.com"
 	defaultTimeout  = 10 * time.Second
 	defaultRetries  = 2
@@ -1614,12 +1614,12 @@ type PointOptions struct {
 	// Lang selects translated display names for this request.
 	Lang string
 	_    [0]func()
-	// Add terrain and compact nearest-city context on every plan. The timezone ID stays in core.
+	// Add terrain and compact nearest-city context on paid plans or with retained Deep access. The timezone ID stays in core.
 	Deep bool
 }
 
 // Point resolves the country, state, district and timezone at coordinates. Deep adds terrain and compact
-// nearest-city context on every plan. The timezone ID stays in core. The nearest city is null when
+// nearest-city context on paid plans or with retained Deep access. The timezone ID stays in core. The nearest city is null when
 // none is within 200 km.
 func (c *Client) Point(ctx context.Context, lat float64, lon float64, options ...PointOptions) (*Point, error) {
 	opts, err := oneOption(options)
