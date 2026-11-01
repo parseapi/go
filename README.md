@@ -213,7 +213,9 @@ Read the canonical native member as `NameFull`; `FullName` remains a source adap
 
 Australian postal lookups include core `localities` with suburb choices (`city`, `state`, `state_name`) on every plan. Null or an omitted field means unknown, while `[]` means the reviewed reference has no eligible choices. `city` stays null when the source is ambiguous, even if there is only one eligible choice. Let the user select their suburb and keep manual entry available. These are geographic choices, not mailing-address verification. [G-NAF source, adaptations and licence](https://parseapi.com/legal/attribution#postal-au).
 
-Postal and District paid profiles include `deep.property_tax` where supported. It contains `annual_median`, `currency` and `period`: median annual property tax payable on owner-occupied homes in the statistical area. The amount is adjusted to the final year of the reporting period (`YYYY-YYYY`). This is an area statistic, not a rate or an individual property bill. Unsupported, missing and censored estimates are null.
+Postal paid profiles include compact `deep.property_tax: { annual_median }` where supported; `deep.currency` supplies the currency. District keeps the richer property-tax record with `annual_median`, `currency` and `period` (`YYYY-YYYY`). Both are area estimates of annual tax payable on owner-occupied homes, not a rate or an individual property bill. Unsupported, missing and censored estimates are null. Postal readers also accept earlier nested currency and period values when present.
+
+Weather minute forecasts use `precipitation_rate` (mm/hour) and `precipitation_rate_in` (inches/hour). History precipitation remains an accumulated amount. Go readers accept earlier minute keys when the canonical key is absent; canonical null stays unknown.
 
 ```go
 place, err := parse.Postal(ctx, "28202", parseapi.PostalOptions{Country: "US", Deep: true})
@@ -221,7 +223,7 @@ if err != nil {
     log.Fatal(err)
 }
 if place.Deep != nil && place.Deep.PropertyTax != nil {
-    fmt.Println(place.Deep.PropertyTax.AnnualMedian, place.Deep.PropertyTax.Currency, place.Deep.PropertyTax.Period)
+    fmt.Println(place.Deep.PropertyTax.AnnualMedian, place.Deep.Currency)
 }
 ```
 

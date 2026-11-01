@@ -769,11 +769,11 @@ type WeatherHour struct {
 }
 
 type WeatherMinute struct {
-	_               [0]func()
-	At              string   `json:"at"`
-	Precipitation   *float64 `json:"precipitation"`
-	PrecipitationIn *float64 `json:"precipitation_in"`
-	Type            *string  `json:"type"`
+	_                   [0]func()
+	At                  string   `json:"at"`
+	PrecipitationRate   *float64 `json:"precipitation_rate"`
+	PrecipitationRateIn *float64 `json:"precipitation_rate_in"`
+	Type                *string  `json:"type"`
 }
 
 type WeatherDay struct {
@@ -1222,7 +1222,7 @@ type PostalDeep struct {
 	// Special component of the ZIP reference rate, in percent. Null when unknown.
 	TaxRateSpecial *float64 `json:"tax_rate_special"`
 	// Median annual property tax payable on owner-occupied homes in this statistical area. Null when unsupported, missing or censored.
-	PropertyTax *PropertyTax `json:"property_tax"`
+	PropertyTax *PostalPropertyTax `json:"property_tax"`
 }
 
 
@@ -1407,6 +1407,16 @@ type NAICSSearchResult struct {
 	// Match is search evidence, absent on direct lookup and older responses.
 	Match *NAICSMatch `json:"match"`
 	Deep  *NAICSDeep  `json:"deep,omitempty"`
+}
+
+// PostalPropertyTax is the compact Postal estimate; currency is in PostalDeep.Currency.
+type PostalPropertyTax struct {
+	_ [0]func()
+	// Median annual tax payable, not a tax rate or a specific property bill.
+	AnnualMedian float64 `json:"annual_median"`
+	// Legacy richer responses only; nil when absent from the compact record.
+	Currency *string `json:"currency,omitempty"`
+	Period   *string `json:"period,omitempty"`
 }
 
 // PropertyTax is an area estimate, not a specific property bill.
