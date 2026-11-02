@@ -14,7 +14,6 @@ const companyDirectoryProfile = `{"id":"co_222222222222","name":"Example","count
 
 const companyDirectorySearch = `{"companies":[{"id":"co_222222222222","name":"Example","country":"US","website":null,"listings":[{"exchange":"Future Exchange","symbol":"A/B"}],"address":null,"deep":{"legal_name":"Example Inc.","aliases":[],"jurisdiction":{"country":"US","state":null},"status":"future-status","websites":[{"domain":"example.com","url":null}],"identifiers":[{"type":"registration","authority":"future:registry","value":"0000123"}],"incorporated":null,"addresses":[{"type":"future-role","street":null,"city":"Example City","state":null,"postal":null,"country":"US"}],"industries":[{"type":"future-scheme","code":"001","name":null}],"parent":null,"description":null,"logo":null,"socials":[],"founded":{"value":"2006","precision":"year"},"sources":[{"type":"website","url":"https://example.com/","fields":["founded"],"observed_at":"2026-09-23T17:35:06.956Z","updated_at":null,"future":true}],"future":true},"future":true,"match":{"field":"future-field","value":"0000123","type":"future-scheme","authority":null,"exchange":null,"future":true}}],"next":"opaque+/="}`
 
-const companyDirectoryCoverage = `{"scope":"sample","label":"Company directory","description":"Edition profiles","snapshot_at":"2026-09-23T17:35:06.956Z","companies":0,"countries":[],"with_website":0,"with_listings":0,"with_address":0,"future":true}`
 
 func TestCompanyDirectoryMethodsAndQueryEncoding(t *testing.T) {
 	ctx := context.Background()
@@ -66,11 +65,6 @@ func TestCompanyDirectoryMethodsAndQueryEncoding(t *testing.T) {
 			t.Fatal("lost cursor/match/deep")
 		}
 	}
-	client, call = newTestClient(t, okJSON(companyDirectoryCoverage))
-	counts, err := client.CompanyCoverage(ctx)
-	if err != nil || counts.Companies != 0 || counts.Countries == nil || call.path != "/company/directory/coverage" || call.rawQry != "" {
-		t.Fatal("bad coverage", err)
-	}
 }
 
 func TestCompanyDirectoryEmptyPartialAndFutureResponses(t *testing.T) {
@@ -114,9 +108,6 @@ func TestCompanyDirectoryServerValidationAndOptionGuards(t *testing.T) {
 	}
 	if _, err := client.CompanySearch(context.Background(), CompanySearchOptions{}, CompanySearchOptions{}); err == nil {
 		t.Fatal("multiple search options accepted")
-	}
-	if _, err := client.CompanyCoverage(context.Background(), CompanyCoverageOptions{}, CompanyCoverageOptions{}); err == nil {
-		t.Fatal("multiple coverage options accepted")
 	}
 }
 

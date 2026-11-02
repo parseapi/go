@@ -147,6 +147,8 @@ type CompanyPhoneNumber struct {
 	_      [0]func()
 	Number string  `json:"number"`
 	Type   *string `json:"type,omitempty"`
+	Country *string `json:"country,omitempty"`
+	E164 *string `json:"e164,omitempty"`
 }
 
 // CompanyEmailAddress preserves a source-recorded address and purpose.
@@ -200,27 +202,27 @@ type CompanyMatch struct {
 
 // CompanyProfile is a directory profile, distinct from national company-number validation.
 type CompanyProfile struct {
-	_        [0]func()
-	ID       string                  `json:"id"`
-	Name     string                  `json:"name"`
-	Country  *string                 `json:"country,omitempty"`
-	Website  *string                 `json:"website,omitempty"`
-	Listings []CompanyProfileListing `json:"listings"`
-	Address  *CompanyProfileAddress  `json:"address,omitempty"`
-	Deep     *CompanyProfileDeep     `json:"deep,omitempty"`
+	_              [0]func()
+	ID             string                      `json:"id"`
+	Name           string                      `json:"name"`
+	Country        *string                     `json:"country,omitempty"`
+	Website        *string                     `json:"website,omitempty"`
+	Listings       []CompanyProfileListing     `json:"listings"`
+	Address        *CompanyProfileAddress      `json:"address,omitempty"`
+	Deep           *CompanyProfileDeep         `json:"deep,omitempty"`
 }
 
 // CompanyCandidate is a directory search profile with match evidence; a match is not proof of legal identity.
 type CompanyCandidate struct {
-	_        [0]func()
-	ID       string                  `json:"id"`
-	Name     string                  `json:"name"`
-	Country  *string                 `json:"country,omitempty"`
-	Website  *string                 `json:"website,omitempty"`
-	Listings []CompanyProfileListing `json:"listings"`
-	Address  *CompanyProfileAddress  `json:"address,omitempty"`
-	Deep     *CompanyProfileDeep     `json:"deep,omitempty"`
-	Match    CompanyMatch            `json:"match"`
+	_              [0]func()
+	ID             string                      `json:"id"`
+	Name           string                      `json:"name"`
+	Country        *string                     `json:"country,omitempty"`
+	Website        *string                     `json:"website,omitempty"`
+	Listings       []CompanyProfileListing     `json:"listings"`
+	Address        *CompanyProfileAddress      `json:"address,omitempty"`
+	Deep           *CompanyProfileDeep         `json:"deep,omitempty"`
+	Match          CompanyMatch                `json:"match"`
 }
 
 // CompanySearch is one page of company candidates. Reuse next with the same selector, filters and limit.
@@ -228,18 +230,4 @@ type CompanySearch struct {
 	_         [0]func()
 	Companies []CompanyCandidate `json:"companies"`
 	Next      *string            `json:"next,omitempty"`
-}
-
-// CompanyCoverage contains counts for this directory edition, not complete country or worldwide coverage.
-type CompanyCoverage struct {
-	_            [0]func()
-	Scope        string   `json:"scope"`
-	Label        string   `json:"label"`
-	Description  string   `json:"description"`
-	SnapshotAt   string   `json:"snapshot_at"`
-	Companies    int64    `json:"companies"`
-	Countries    []string `json:"countries"`
-	WithWebsite  int64    `json:"with_website"`
-	WithListings int64    `json:"with_listings"`
-	WithAddress  int64    `json:"with_address"`
 }

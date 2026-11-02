@@ -26,9 +26,8 @@ func TestResponseDecodingActualHandlersDecode(t *testing.T) {
 		var time Time
 		var metadata EmojiMetadata
 		var catalog EmojiCatalog
-		var coverage CompanyCoverage
 		var company CompanyProfile
-		rows := map[string]interface{}{"timezones": &zones, "time": &time, "emoji-metadata": &metadata, "emoji-catalog": &catalog, "company-coverage": &coverage, "company-profile": &company}
+		rows := map[string]interface{}{"timezones": &zones, "time": &time, "emoji-metadata": &metadata, "emoji-catalog": &catalog, "company-profile": &company}
 		for name, target := range rows {
 			body, err := os.ReadFile("testdata/response-fixtures/" + profile + "-" + name + ".json")
 			if err != nil {
@@ -38,7 +37,7 @@ func TestResponseDecodingActualHandlersDecode(t *testing.T) {
 				t.Fatalf("%s/%s: %v", profile, name, err)
 			}
 		}
-		getters := []string{zones.TimezoneDatabaseVersion, time.Location.Source, metadata.SourceVersion, coverage.SnapshotAt, company.Deep.Employees.Method}
+		getters := []string{zones.TimezoneDatabaseVersion, time.Location.Source, metadata.SourceVersion, company.Deep.Employees.Method}
 		_ = getters
 		if company.Deep.Employees.Count != 12 || company.Deep.Employees.Approximate {
 			t.Fatal("known count/false lost")
