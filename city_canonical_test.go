@@ -13,32 +13,32 @@ import (
 func TestCityCanonicalSparseTransportAndFilters(t *testing.T) {
 	ctx := context.Background()
 	id := "city_7aj899nvwyku"
-	c, call := newTestClient(t, okJSON(`{"object":"list","data":[{"id":"city_7aj899nvwyku","object":"city","name":"Vienna"}],"has_more":true,"url":"/city","next_cursor":"opaque+/="}`))
+	c, call := newTestClient(t, okJSON(`{"cities":[{"id":"city_7aj899nvwyku","name":"Vienna"}],"has_more":true,"url":"/city","next_cursor":"opaque+/="}`))
 	low, zero := float64(-10), float64(0)
 	pop := int64(0)
 	result, err := c.CityList(ctx, CityListOptions{Countries: []string{"AT", "CH"}, ExcludeCountries: []string{"JP"}, Timezones: []string{"Europe/Vienna"}, MinElevation: &low, MaxElevation: &zero, MinPopulation: &pop, Sort: "-population,+name", Cursor: "opaque+/="})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if result.Object != "list" || result.NextCursor == nil || result.Data[0].ID != id || result.Data[0].Country != nil || result.Data[0].Name == nil {
+	if result.NextCursor == nil || result.Cities[0].ID != id || result.Cities[0].Country != "" || result.Cities[0].Name == "" {
 		t.Fatalf("sparse result %#v", result)
 	}
 	q, _ := url.ParseQuery(call.rawQry)
-	for k, v := range map[string]string{"format": "list", "countries": "AT,CH", "exclude_countries": "JP", "timezones": "Europe/Vienna", "min_elevation": "-10", "max_elevation": "0", "min_population": "0", "sort": "-population,+name", "cursor": "opaque+/="} {
+	for k, v := range map[string]string{"countries": "AT,CH", "exclude_countries": "JP", "timezones": "Europe/Vienna", "min_elevation": "-10", "max_elevation": "0", "min_population": "0", "sort": "-population,+name", "cursor": "opaque+/="} {
 		if q.Get(k) != v {
 			t.Fatalf("%s=%q want%q", k, q.Get(k), v)
 		}
 	}
 	c, call = newTestClient(t, okJSON(`{"id":"city_7aj899nvwyku","object":"city","name_local":"Wien"}`))
-	resource, err := c.CityResource(ctx, "Vienna", CityResourceOptions{Country: "AT"})
+	resource, err := c.City(ctx, "Vienna", CityOptions{Country: "AT"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if resource.NameLocal == nil || *resource.NameLocal != "Wien" || resource.Country != nil {
+	if resource.NameLocal == nil || *resource.NameLocal != "Wien" || resource.Country != "" {
 		t.Fatal("lost sparse native fields")
 	}
 	q, _ = url.ParseQuery(call.rawQry)
-	if q.Get("format") != "resource" || q.Has("fields") {
+	if q.Has("format") || q.Has("fields") {
 		t.Fatal(q)
 	}
 	_, err = c.City(ctx, "Vienna")
@@ -70,14 +70,14 @@ func TestCityCanonicalRelationsDistanceAndNewWrappers(t *testing.T) {
 	if _, err = c.CitySiblings(ctx, id); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = c.CitySearchList(ctx, "Vi", CitySearchListOptions{}); err != nil {
+	if _, err = c.CitySearch(ctx, "Vi", CitySearchOptions{}); err != nil {
 		t.Fatal(err)
 	}
 	q, _ := url.ParseQuery(call.rawQry)
-	if q.Get("format") != "list" {
+	if q.Has("format") {
 		t.Fatal(q)
 	}
-	if _, err = c.CityNearbyList(ctx, "Vienna"); err != nil {
+	if _, err = c.CityNearby(ctx, "Vienna"); err != nil {
 		t.Fatal(err)
 	}
 	if call.path != "/city/Vienna/nearby" {
@@ -131,18 +131,18 @@ func TestCityCanonicalBounded409CandidatesAndOrdinaryErrors(t *testing.T) {
 
 func TestCityExplicitMatchingRetainsSuggestionEvidence(t *testing.T) {
 	c, call := newTestClient(t, okJSON(`{"object":"list","data":[{"id":"city_7aj899nvwyku","object":"city","match":{"type":"fuzzy","source":"name","value":"Vienna","language":null,"edit_distance":1}}],"has_more":false,"url":"/city","next_cursor":null}`))
-	page, err := c.CitySearchList(context.Background(), "Viena", CitySearchListOptions{Match: "fuzzy", MaxDistance: 1})
+	page, err := c.CitySearch(context.Background(), "Viena", CitySearchOptions{Match: "fuzzy", MaxDistance: 1})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if page.Data[0].Match == nil || page.Data[0].Match.EditDistance == nil || *page.Data[0].Match.EditDistance != 1 {
+	if page.Cities[0].Match == nil || page.Cities[0].Match.EditDistance == nil || *page.Cities[0].Match.EditDistance != 1 {
 		t.Fatal("lost suggestion evidence")
 	}
 	if call.path != "/city/search" {
 		t.Fatal("explicit matching endpoint", call.path)
 	}
 	q, _ := url.ParseQuery(call.rawQry)
-	if q.Get("match") != "fuzzy" || q.Get("max_distance") != "1" || q.Get("format") != "list" {
+	if q.Get("match") != "fuzzy" || q.Get("max_distance") != "1" || q.Has("format") {
 		t.Fatal(q)
 	}
 	_, err = c.CitySearch(context.Background(), "Vi")
@@ -156,7 +156,7 @@ func TestCityExplicitMatchingRetainsSuggestionEvidence(t *testing.T) {
 
 func TestCityReviewedRomanizationOptIn(t *testing.T) {
 	c, call := newTestClient(t, okJSON(`{"id":"city_7aj899nvwyku","object":"city","name_romanized":"Kitakyūshū","romanization_language":"ja-Latn"}`))
-	row, e := c.CityIDResource(context.Background(), "city_7aj899nvwyku", CityIDResourceOptions{Romanized: true})
+	row, e := c.CityID(context.Background(), "city_7aj899nvwyku", CityIDOptions{Romanized: true})
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -168,7 +168,7 @@ func TestCityReviewedRomanizationOptIn(t *testing.T) {
 		t.Fatal(q)
 	}
 	c, _ = newTestClient(t, okJSON(`{"id":"city_7aj899nvwyku","object":"city","name_romanized":null,"romanization_language":null}`))
-	row, e = c.CityIDResource(context.Background(), "city_7aj899nvwyku", CityIDResourceOptions{Romanized: true})
+	row, e = c.CityID(context.Background(), "city_7aj899nvwyku", CityIDOptions{Romanized: true})
 	if e != nil || row.NameRomanized != nil || row.RomanizationLanguage != nil {
 		t.Fatal(row, e)
 	}

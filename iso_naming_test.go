@@ -7,7 +7,7 @@ import (
 )
 
 func TestISOWireNamesAcceptReleasedAndCanonicalResponses(t *testing.T) {
-	for _, body := range []string{`{"iso3":"USA","numeric":840}`, `{"iso_alpha3":"USA","iso_numeric":840}`} {
+	for _, body := range []string{`{"iso_alpha3":"USA","iso_numeric":840}`} {
 		var country Country
 		if err := json.Unmarshal([]byte(body), &country); err != nil {
 			t.Fatal(err)
@@ -27,7 +27,7 @@ func TestISOWireNamesAcceptReleasedAndCanonicalResponses(t *testing.T) {
 			t.Fatalf("Historical Country Deep lost: %s %v", body, err)
 		}
 	}
-	for _, body := range []string{`{"iso3":"hrv"}`, `{"iso_alpha3":"hrv"}`} {
+	for _, body := range []string{`{"iso_alpha3":"hrv"}`} {
 		var value Language
 		if err := json.Unmarshal([]byte(body), &value); err != nil || value.ISO3 == nil || *value.ISO3 != "hrv" {
 			t.Fatalf("Language: %s %v", body, err)
@@ -37,7 +37,7 @@ func TestISOWireNamesAcceptReleasedAndCanonicalResponses(t *testing.T) {
 			t.Fatalf("Language wire: %s", encoded)
 		}
 	}
-	for _, body := range []string{`{"iso":"US-CA"}`, `{"iso_3166_2":"US-CA"}`, `{"iso_subdivision":"US-CA"}`} {
+	for _, body := range []string{`{"iso_subdivision":"US-CA"}`} {
 		var value State
 		if err := json.Unmarshal([]byte(body), &value); err != nil || value.ISO == nil || *value.ISO != "US-CA" {
 			t.Fatalf("State: %s %v", body, err)
@@ -47,17 +47,27 @@ func TestISOWireNamesAcceptReleasedAndCanonicalResponses(t *testing.T) {
 			t.Fatalf("State wire: %s", encoded)
 		}
 	}
+	for _, body := range []string{`{"numeric":0}`, `{"iso_numeric":0}`} {
+		var core Currency
+		if err := json.Unmarshal([]byte(body), &core); err != nil || core.ISONumeric == nil || *core.ISONumeric != 0 {
+			t.Fatalf("Currency Core zero: %s %v", body, err)
+		}
+		for _, value := range []any{core} {
+			encoded, _ := json.Marshal(value)
+			if !strings.Contains(string(encoded), `"iso_numeric":0`) || strings.Contains(string(encoded), `"numeric":`) {
+				t.Fatalf("Currency wire: %s", encoded)
+			}
+		}
+	}
 }
 
 func TestISOCandidatesRespectExplicitCanonicalNull(t *testing.T) {
 	for _, body := range []string{`{"iso3":"USA","numeric":840,"iso_alpha3":null,"iso_numeric":null}`, `{"iso_alpha3":null,"iso_numeric":null,"iso3":"USA","numeric":840}`} {
 		var value Country
 		var deep CountryDeep
+		if err := json.Unmarshal([]byte(body), &deep); err != nil || deep.ISO3 != nil || deep.Numeric != nil { t.Fatalf("Country detail explicit null: %s %v", body, err) }
 		if err := json.Unmarshal([]byte(body), &value); err != nil || value.ISO3 != nil || value.Numeric != nil {
 			t.Fatalf("Country explicit null: %s %v", body, err)
-		}
-		if err := json.Unmarshal([]byte(body), &deep); err != nil || deep.ISO3 != nil || deep.Numeric != nil {
-			t.Fatalf("Country Deep explicit null: %s %v", body, err)
 		}
 	}
 	for _, body := range []string{`{"iso_alpha3":null,"iso3":"hrv"}`, `{"iso3":"hrv","iso_alpha3":null}`} {
@@ -70,6 +80,12 @@ func TestISOCandidatesRespectExplicitCanonicalNull(t *testing.T) {
 		var value State
 		if err := json.Unmarshal([]byte(body), &value); err != nil || value.ISO != nil {
 			t.Fatalf("State explicit null: %s %v", body, err)
+		}
+	}
+	for _, body := range []string{`{"iso_numeric":null,"numeric":840}`, `{"numeric":840,"iso_numeric":null}`} {
+		var value Currency
+		if err := json.Unmarshal([]byte(body), &value); err != nil || value.ISONumeric != nil {
+			t.Fatalf("Currency Core explicit null: %s %v", body, err)
 		}
 	}
 }
@@ -94,12 +110,8 @@ func TestHistoricalDeepReadMembersRemainAvailable(t *testing.T) {
 	}
 }
 
-func TestHistoricalCountryCoordinatesRemainReadableWithoutCapitalName(t *testing.T) {
-	var country Country
-	if err := json.Unmarshal([]byte(`{"country":"US","iso3":"USA","capital_lat":0,"capital_lon":null}`), &country); err != nil {
-		t.Fatal(err)
-	}
-	if country.CapitalLat == nil || *country.CapitalLat != 0 || country.CapitalLon != nil || country.Capital == nil || country.Capital.Name != nil {
-		t.Fatalf("Historical standalone coordinates changed: %#v", country)
-	}
+func TestCountryCoordinatesKeepUnknownNameAndZero(t *testing.T) {
+ var country Country
+ if err:=json.Unmarshal([]byte(`{"country":"US","iso_alpha3":"USA","capital":{"name":null,"latitude":0,"longitude":null}}`),&country);err!=nil{t.Fatal(err)}
+ if country.Capital==nil || country.Capital.Latitude==nil || *country.Capital.Latitude!=0 || country.Capital.Longitude!=nil || country.Capital.Name!=nil{t.Fatal("Capital null/zero changed")}
 }

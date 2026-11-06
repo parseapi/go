@@ -10,11 +10,10 @@ import (
 	"testing"
 )
 
-const companyDirectoryProfile = `{"id":"co_222222222222","name":"Example","country":"US","website":null,"listings":[{"exchange":"Future Exchange","symbol":"A/B"}],"address":null,"deep":{"legal_name":"Example Inc.","aliases":[],"jurisdiction":{"country":"US","state":null},"status":"future-status","websites":[{"domain":"example.com","url":null}],"identifiers":[{"type":"registration","authority":"future:registry","value":"0000123"}],"incorporated":null,"addresses":[{"type":"future-role","street":null,"city":"Example City","state":null,"postal":null,"country":"US"}],"industries":[{"type":"future-scheme","code":"001","name":null}],"parent":null,"description":null,"logo":null,"socials":[],"founded":{"value":"2006","precision":"year"},"sources":[{"type":"website","url":"https://example.com/","fields":["founded"],"observed_at":"2026-09-23T17:35:06.956Z","updated_at":null,"future":true}],"future":true},"future":true}`
+const companyDirectoryProfile = `{"id":"co_222222222222","name":"Example","country":"US","website":null,"listings":[{"exchange":"Future Exchange","symbol":"A/B"}],"address":null,"future":true,"legal_name":"Example Inc.","aliases":[],"jurisdiction":{"country":"US","state":null},"status":"future-status","websites":[{"domain":"example.com","url":null}],"identifiers":[{"type":"registration","authority":"future:registry","value":"0000123"}],"incorporated":null,"addresses":[{"type":"future-role","street":null,"city":"Example City","state":null,"postal":null,"country":"US"}],"industries":[{"type":"future-scheme","code":"001","name":null}],"parent":null,"description":null,"logo":null,"socials":[],"founded":{"value":"2006","precision":"year"},"sources":[{"type":"website","url":"https://example.com/","fields":["founded"],"observed_at":"2026-09-23T17:35:06.956Z","updated_at":null,"future":true}]}`
 
-const companyDirectorySearch = `{"companies":[{"id":"co_222222222222","name":"Example","country":"US","website":null,"listings":[{"exchange":"Future Exchange","symbol":"A/B"}],"address":null,"deep":{"legal_name":"Example Inc.","aliases":[],"jurisdiction":{"country":"US","state":null},"status":"future-status","websites":[{"domain":"example.com","url":null}],"identifiers":[{"type":"registration","authority":"future:registry","value":"0000123"}],"incorporated":null,"addresses":[{"type":"future-role","street":null,"city":"Example City","state":null,"postal":null,"country":"US"}],"industries":[{"type":"future-scheme","code":"001","name":null}],"parent":null,"description":null,"logo":null,"socials":[],"founded":{"value":"2006","precision":"year"},"sources":[{"type":"website","url":"https://example.com/","fields":["founded"],"observed_at":"2026-09-23T17:35:06.956Z","updated_at":null,"future":true}],"future":true},"future":true,"match":{"field":"future-field","value":"0000123","type":"future-scheme","authority":null,"exchange":null,"future":true}}],"next":"opaque+/="}`
+const companyDirectorySearch = `{"companies":[{"id":"co_222222222222","name":"Example","country":"US","website":null,"listings":[{"exchange":"Future Exchange","symbol":"A/B"}],"address":null,"future":true,"match":{"field":"future-field","value":"0000123","type":"future-scheme","authority":null,"exchange":null,"future":true},"legal_name":"Example Inc.","aliases":[],"jurisdiction":{"country":"US","state":null},"status":"future-status","websites":[{"domain":"example.com","url":null}],"identifiers":[{"type":"registration","authority":"future:registry","value":"0000123"}],"incorporated":null,"addresses":[{"type":"future-role","street":null,"city":"Example City","state":null,"postal":null,"country":"US"}],"industries":[{"type":"future-scheme","code":"001","name":null}],"parent":null,"description":null,"logo":null,"socials":[],"founded":{"value":"2006","precision":"year"},"sources":[{"type":"website","url":"https://example.com/","fields":["founded"],"observed_at":"2026-09-23T17:35:06.956Z","updated_at":null,"future":true}]}],"next":"opaque+/="}`
 
-const companyDirectoryCoverage = `{"scope":"sample","label":"Company directory","description":"Edition profiles","snapshot_at":"2026-09-23T17:35:06.956Z","companies":0,"countries":[],"with_website":0,"with_listings":0,"with_address":0,"future":true}`
 
 func TestCompanyDirectoryMethodsAndQueryEncoding(t *testing.T) {
 	ctx := context.Background()
@@ -26,13 +25,13 @@ func TestCompanyDirectoryMethodsAndQueryEncoding(t *testing.T) {
 	if call.path != "/company/id/co_%2F%20%3F" || call.rawQry != "deep=true" {
 		t.Fatalf("bad ID route: %#v", call)
 	}
-	if profile.Deep.Identifiers[0].Value != "0000123" || *profile.Deep.Status != "future-status" || profile.Deep.Socials == nil || len(profile.Deep.Socials) != 0 {
+	if profile.Identifiers[0].Value != "0000123" || *profile.Status != "future-status" || profile.Socials == nil || len(profile.Socials) != 0 {
 		t.Fatalf("lost profile values: %#v", profile)
 	}
-	if profile.Deep.Founded.Precision != "year" || profile.Deep.Sources[0].UpdatedAt != nil || profile.Deep.Jurisdiction.State != nil {
+	if profile.Founded.Precision != "year" || profile.Sources[0].UpdatedAt != nil || profile.Jurisdiction.State != nil {
 		t.Fatal("lost precision/nulls")
 	}
-	if call.header.Get("Parse-Version") != "2.0.0" || call.header.Get("X-API-Key") != "test_key_123" {
+	if call.header.Get("X-API-Version") != "2.1.0" || call.header.Get("X-API-Key") != "test_key_123" {
 		t.Fatal("request contract changed")
 	}
 	_, err = client.CompanyID(ctx, "co_222222222222")
@@ -62,35 +61,30 @@ func TestCompanyDirectoryMethodsAndQueryEncoding(t *testing.T) {
 		if call.path != "/company" || !reflect.DeepEqual(got, tc.want) {
 			t.Fatalf("bad search: %#v", call)
 		}
-		if result.Next == nil || *result.Next != "opaque+/=" || *result.Companies[0].Match.Field != "future-field" || result.Companies[0].Deep == nil {
+		if result.Next == nil || *result.Next != "opaque+/=" || *result.Companies[0].Match.Field != "future-field" {
 			t.Fatal("lost cursor/match/deep")
 		}
-	}
-	client, call = newTestClient(t, okJSON(companyDirectoryCoverage))
-	counts, err := client.CompanyCoverage(ctx)
-	if err != nil || counts.Companies != 0 || counts.Countries == nil || call.path != "/company/directory/coverage" || call.rawQry != "" {
-		t.Fatal("bad coverage", err)
 	}
 }
 
 func TestCompanyDirectoryEmptyPartialAndFutureResponses(t *testing.T) {
-	for _, suffix := range []string{"", `,"deep":{}`, `,"deep":{"legal_name":"Old name"}`, `,"deep":{"description":null,"socials":null,"sources":null,"employees":null}`} {
+	for _, suffix := range []string{"", ``, `,"legal_name":"Old name"`, `,"description":null,"socials":null,"sources":null,"employees":null`} {
 		var value CompanyProfile
 		if err := json.Unmarshal([]byte(`{"id":"co_222222222222","name":"Example","country":null,"website":null,"listings":[],"address":null`+suffix+`}`), &value); err != nil {
 			t.Fatal(err)
 		}
-		if suffix == "" && value.Deep != nil {
+		if suffix == "" && (value.Employees != nil || value.Founded != nil) {
 			t.Fatal("invented deep")
 		}
-		if value.Deep != nil && (value.Deep.Socials != nil || value.Deep.Sources != nil || value.Deep.Founded != nil || value.Deep.Employees != nil) {
+		if value.Socials != nil || value.Sources != nil || value.Founded != nil || value.Employees != nil {
 			t.Fatal("invented rich observation")
 		}
 	}
 	var value CompanyProfile
-	if err := json.Unmarshal([]byte(`{"id":"co_222222222222","name":"Example","deep":{"socials":[],"sources":[],"founded":{"value":"spring 2006","precision":"season"}}}`), &value); err != nil {
+	if err := json.Unmarshal([]byte(`{"id":"co_222222222222","name":"Example","socials":[],"sources":[],"founded":{"value":"spring 2006","precision":"season"}}`), &value); err != nil {
 		t.Fatal(err)
 	}
-	if value.Deep.Socials == nil || value.Deep.Sources == nil || value.Deep.Founded.Precision != "season" {
+	if value.Socials == nil || value.Sources == nil || value.Founded.Precision != "season" {
 		t.Fatal("lost empty/open fields")
 	}
 	var empty CompanySearch
@@ -115,9 +109,6 @@ func TestCompanyDirectoryServerValidationAndOptionGuards(t *testing.T) {
 	if _, err := client.CompanySearch(context.Background(), CompanySearchOptions{}, CompanySearchOptions{}); err == nil {
 		t.Fatal("multiple search options accepted")
 	}
-	if _, err := client.CompanyCoverage(context.Background(), CompanyCoverageOptions{}, CompanyCoverageOptions{}); err == nil {
-		t.Fatal("multiple coverage options accepted")
-	}
 }
 
 func TestCompanyDirectoryEmployeeObservations(t *testing.T) {
@@ -132,7 +123,7 @@ func TestCompanyDirectoryEmployeeObservations(t *testing.T) {
 		{`{"count":7,"basis":"future_basis","as_of":"2026-01-15","scope":"future_scope","method":"future_method","approximate":false,"future":null}`, 7, "2026-01-15", "future_scope", "future_method", false},
 	}
 	for _, tc := range cases {
-		profileJSON := `{"id":"co_222222222222","name":"Example","deep":{"employees":` + tc.json + `}}`
+		profileJSON := `{"id":"co_222222222222","name":"Example","employees":` + tc.json + `}`
 		client, _ := newTestClient(t, okJSON(profileJSON))
 		profile, err := client.CompanyID(context.Background(), "co_222222222222", CompanyIDOptions{Deep: true})
 		if err != nil {
@@ -143,7 +134,7 @@ func TestCompanyDirectoryEmployeeObservations(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		for _, got := range []*CompanyProfileEmployees{profile.Deep.Employees, page.Companies[0].Deep.Employees} {
+		for _, got := range []*CompanyProfileEmployees{profile.Employees, page.Companies[0].Employees} {
 			expectedBasis := map[int64]string{12500: "full_time_equivalent", 7: "future_basis"}[tc.count]
 			if (expectedBasis == "" && got.Basis != nil) || (expectedBasis != "" && (got.Basis == nil || *got.Basis != expectedBasis)) {
 				t.Fatalf("lost employee basis: %#v", got.Basis)
@@ -157,8 +148,8 @@ func TestCompanyDirectoryEmployeeObservations(t *testing.T) {
 
 func TestCompanyRegistrationsPreserveSourceRolesAndNullableFacts(t *testing.T) {
 	const row = `{"authority":"RA000599","number":"0001234567","jurisdiction":{"country":"US","state":"CO"},"role":"domestic","legal_form":{"code":"DNC","name":"Domestic Non-profit Corporation"},"status":"Good Standing","formation_date":"2004-02-29","address":{"kind":"principal","line1":"12 Main St.","line2":"Suite 2","city":"Example","state":"CO","postal":"00123-0001","country_raw":"US"},"future":"retained"}`
-	for _, deep := range []string{`{}`, `{"registrations":null}`, `{"registrations":[]}`, `{"registrations":[` + row + `]}`} {
-		profileJSON := `{"id":"co_222222222222","name":"Example","deep":` + deep + `}`
+	for _, deep := range []string{`{"registrations":null}`, `{"registrations":[]}`, `{"registrations":[` + row + `]}`} {
+		profileJSON := `{"id":"co_222222222222","name":"Example",` + deep[1:len(deep)-1] + `}`
 		client, _ := newTestClient(t, okJSON(profileJSON))
 		profile, err := client.CompanyID(context.Background(), "co_222222222222", CompanyIDOptions{Deep: true})
 		if err != nil {
@@ -169,7 +160,7 @@ func TestCompanyRegistrationsPreserveSourceRolesAndNullableFacts(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		for _, d := range []*CompanyProfileDeep{profile.Deep, page.Companies[0].Deep} {
+		for _, d := range []CompanyProfile{{Registrations: profile.Registrations}, {Registrations: page.Companies[0].Registrations}} {
 			if len(d.Registrations) > 0 {
 				r := d.Registrations[0]
 				if r.Number != "0001234567" || r.Jurisdiction.Country != "US" || r.FormationDate == nil || *r.FormationDate != "2004-02-29" || r.Address == nil || *r.Address.Postal != "00123-0001" || r.Address.Kind != "principal" {

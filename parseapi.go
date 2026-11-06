@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	version         = "1.11.4"
+	version         = "1.12.0"
 	defaultBaseURL  = "https://api.parseapi.com"
 	defaultTimeout  = 10 * time.Second
 	defaultRetries  = 2
@@ -27,7 +27,7 @@ const (
 )
 
 // The response types' wire contract. Changes require a reviewed major SDK release.
-const apiVersion = "2.0.0"
+const apiVersion = "2.1.0"
 
 var retryStatus = map[int]bool{429: true, 500: true, 502: true, 503: true, 504: true}
 
@@ -202,6 +202,9 @@ func (c Client) String() string {
 func (c Client) GoString() string { return c.String() }
 
 func meteredRequest(path string, query url.Values) bool {
+	if path == "/email/verify" {
+		return true
+	}
 	for _, product := range []string{"carrier", "caller", "hlr", "litigator", "reassigned"} {
 		if strings.HasPrefix(path, "/"+product+"/") {
 			return true
@@ -248,7 +251,7 @@ func (c *Client) request(ctx context.Context, method, path string, query url.Val
 			req.Header.Set("Content-Type", "application/json")
 		}
 		req.Header.Set("X-API-Key", c.apiKey)
-		req.Header.Set("Parse-Version", apiVersion)
+		req.Header.Set("X-API-Version", apiVersion)
 		req.Header.Set("User-Agent", "parseapi-go/"+version)
 		for name, value := range headers {
 			req.Header.Set(name, value)
@@ -431,14 +434,6 @@ func (c *Client) ContinentCountries(ctx context.Context, code string, options ..
 	return out, nil
 }
 
-
-
-
-
-
-
-
-
 // CountryOptions reserves optional settings for Country.
 type CountryOptions struct {
 	// Lang selects translated display names for this request.
@@ -565,6 +560,7 @@ func (c *Client) District(ctx context.Context, code string, options ...DistrictO
 
 // CityOptions configures City. Omitted fields use API defaults.
 type CityOptions struct {
+	Romanized bool
 	// Lang selects translated display names for this request.
 	Lang      string
 	_         [0]func()
@@ -589,7 +585,7 @@ func (c *Client) City(ctx context.Context, name string, options ...CityOptions) 
 		deep = "true"
 	}
 	out := &City{}
-	if err := c.get(ctx, "/city/"+seg(name), values("lang", opts.Lang, "country", opts.Country, "state", opts.State, "deep", deep, "type", opts.Type, "grain", opts.Grain, "hierarchy", cityFlag(opts.Hierarchy), "aliases", cityFlag(opts.Aliases), "ambiguity", opts.Ambiguity), nil, out); err != nil {
+	if err := c.get(ctx, "/city/"+seg(name), values("romanized", cityFlag(opts.Romanized), "lang", opts.Lang, "country", opts.Country, "state", opts.State, "deep", deep, "type", opts.Type, "grain", opts.Grain, "hierarchy", cityFlag(opts.Hierarchy), "aliases", cityFlag(opts.Aliases), "ambiguity", opts.Ambiguity), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -597,6 +593,7 @@ func (c *Client) City(ctx context.Context, name string, options ...CityOptions) 
 
 // CityIDOptions reserves optional settings for CityID.
 type CityIDOptions struct {
+	Romanized bool
 	// Lang selects translated display names for this request.
 	Lang      string
 	_         [0]func()
@@ -615,7 +612,7 @@ func (c *Client) CityID(ctx context.Context, id string, options ...CityIDOptions
 		deep = "true"
 	}
 	out := &City{}
-	if err := c.get(ctx, "/city/id/"+seg(id), values("lang", opts.Lang, "deep", deep, "hierarchy", cityFlag(opts.Hierarchy)), nil, out); err != nil {
+	if err := c.get(ctx, "/city/id/"+seg(id), values("romanized", cityFlag(opts.Romanized), "lang", opts.Lang, "deep", deep, "hierarchy", cityFlag(opts.Hierarchy)), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -636,10 +633,10 @@ type CitySearchOptions struct {
 	Aliases          bool
 	MinPopulation    *int64
 	MaxPopulation    *int64
-	Timezone         string
+
 	BBox             string
 	Sort             string
-	Order            string
+
 	Page             bool
 	Cursor           string
 	Countries        []string
@@ -667,7 +664,7 @@ func (c *Client) CitySearch(ctx context.Context, query string, options ...CitySe
 	}
 	out := &CitySearch{}
 	params := values("lang", opts.Lang, "q", query, "country", opts.Country, "state", opts.State, "limit", limit, "deep", deep, "type", opts.Type, "grain", opts.Grain, "hierarchy", cityFlag(opts.Hierarchy), "aliases", cityFlag(opts.Aliases))
-	cityCollectionQuery(params, opts.MinPopulation, opts.MaxPopulation, opts.Timezone, opts.BBox, opts.Sort, opts.Order, opts.Page, opts.Cursor)
+	cityCollectionQuery(params, opts.MinPopulation, opts.MaxPopulation, opts.BBox, opts.Sort, opts.Page, opts.Cursor)
 	cityExtraQuery(params, opts.Countries, opts.ExcludeCountries, opts.Timezones, opts.MinElevation, opts.MaxElevation)
 	if opts.Match != "" {
 		params.Set("match", opts.Match)
@@ -683,7 +680,7 @@ func (c *Client) CitySearch(ctx context.Context, query string, options ...CitySe
 		if err := c.get(ctx, "/city/search", params, nil, &page); err != nil {
 			return nil, err
 		}
-		page.Cities = page.Data
+		if page.Data != nil { page.Cities = page.Data }
 		return &page.CitySearch, nil
 	}
 	if err := c.get(ctx, "/city", params, nil, out); err != nil {
@@ -694,6 +691,7 @@ func (c *Client) CitySearch(ctx context.Context, query string, options ...CitySe
 
 // CityNearestOptions reserves optional settings for CityNearest.
 type CityNearestOptions struct {
+	Romanized bool
 	// Lang selects translated display names for this request.
 	Lang      string
 	_         [0]func()
@@ -716,7 +714,7 @@ func (c *Client) CityNearest(ctx context.Context, lat float64, lon float64, opti
 		deep = "true"
 	}
 	out := &CityNearest{}
-	if err := c.get(ctx, "/city", values("lang", opts.Lang, "lat", f(lat), "lon", f(lon), "deep", deep, "country", opts.Country, "state", opts.State, "type", opts.Type, "grain", opts.Grain, "hierarchy", cityFlag(opts.Hierarchy)), nil, out); err != nil {
+	if err := c.get(ctx, "/city", values("romanized", cityFlag(opts.Romanized), "lang", opts.Lang, "lat", f(lat), "lon", f(lon), "deep", deep, "country", opts.Country, "state", opts.State, "type", opts.Type, "grain", opts.Grain, "hierarchy", cityFlag(opts.Hierarchy)), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -740,10 +738,10 @@ type CityNearbyOptions struct {
 	Ambiguity        string
 	MinPopulation    *int64
 	MaxPopulation    *int64
-	Timezone         string
+
 	BBox             string
 	Sort             string
-	Order            string
+
 	Page             bool
 	Cursor           string
 	Countries        []string
@@ -773,7 +771,7 @@ func (c *Client) CityNearby(ctx context.Context, name string, options ...CityNea
 	}
 	out := &CityNearby{}
 	query := values("lang", opts.Lang, "country", opts.Country, "state", opts.State, "radius", radius, "unit", opts.Unit, "limit", limit, "deep", deep, "type", opts.Type, "grain", opts.Grain, "hierarchy", cityFlag(opts.Hierarchy), "aliases", cityFlag(opts.Aliases), "ambiguity", opts.Ambiguity)
-	cityCollectionQuery(query, opts.MinPopulation, opts.MaxPopulation, opts.Timezone, opts.BBox, opts.Sort, opts.Order, opts.Page, opts.Cursor)
+	cityCollectionQuery(query, opts.MinPopulation, opts.MaxPopulation, opts.BBox, opts.Sort, opts.Page, opts.Cursor)
 	cityExtraQuery(query, opts.Countries, opts.ExcludeCountries, opts.Timezones, opts.MinElevation, opts.MaxElevation)
 	if err := c.get(ctx, "/city/"+seg(name)+"/nearby", query, nil, out); err != nil {
 		return nil, err
@@ -880,34 +878,15 @@ func (c *Client) Email(ctx context.Context, email string, options ...EmailOption
 	if err != nil {
 		return nil, err
 	}
-	deep := ""
 	if opts.Deep {
-		deep = "true"
+		return c.EmailVerify(ctx, email)
 	}
 	out := &Email{}
-	if err := c.get(ctx, "/email/"+seg(email), values("deep", deep), nil, out); err != nil {
+	if err := c.get(ctx, "/email/"+seg(email), nil, nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // PhoneOptions configures Phone. Omitted fields use API defaults.
 type PhoneOptions struct {
@@ -1075,7 +1054,6 @@ func (c *Client) ASN(ctx context.Context, asn string, options ...ASNOptions) (*A
 	return out, nil
 }
 
-
 // Card looks up a 2-11 digit card prefix. Preserve leading zeros in the string.
 func (c *Client) Card(ctx context.Context, bin string) (*Card, error) {
 	return c.CardWithOptions(ctx, bin, CardOptions{})
@@ -1173,9 +1151,6 @@ func (c *Client) UserAgent(ctx context.Context, ua string, options ...UserAgentO
 	return out, nil
 }
 
-
-
-
 // NAICSOptions reserves optional settings for Industry.
 type NAICSOptions struct {
 	_    [0]func()
@@ -1227,9 +1202,6 @@ func (c *Client) IndustrySearch(ctx context.Context, query string, options ...NA
 	return out, nil
 }
 
-
-
-
 // LanguageOptions reserves optional settings for Language.
 type LanguageOptions struct {
 	// Lang selects translated display names for this request.
@@ -1280,8 +1252,6 @@ func (c *Client) Name(ctx context.Context, name string, options ...NameOptions) 
 	}
 	return out, nil
 }
-
-
 
 // TimeOptions configures Time. With To, offsetless At is source wall time.
 type TimeOptions struct {
@@ -1642,13 +1612,13 @@ type WeatherOptions struct {
 	_ [0]func()
 	// Add specialist current measurements, forecasts and related detail on paid plans.
 	Deep bool
-	// Past UTC day (YYYY-MM-DD). Requires paid deep and adds deep.history alongside current conditions.
+	// Past UTC day (YYYY-MM-DD). Requires paid deep and adds history alongside current conditions.
 	Date string
 }
 
 // Weather gets current conditions in metric and imperial units. Paid deep adds specialist current
 // measurements, forecasts and related detail. With deep, date selects a past UTC day (YYYY-MM-DD)
-// in deep.history alongside current conditions. Date alone does not request history.
+// in history alongside current conditions. Date alone does not request history.
 func (c *Client) Weather(ctx context.Context, lat float64, lon float64, options ...WeatherOptions) (*Weather, error) {
 	opts, err := oneOption(options)
 	if err != nil {
@@ -1737,11 +1707,9 @@ func (c *Client) EmojiBrowse(ctx context.Context, options ...EmojiBrowseOptions)
 	return out, nil
 }
 
-// EmojiCatalogOptions configures the complete JSON export. Deep defaults true.
+// EmojiCatalogOptions configures the complete JSON export. One compact JSON representation.
 type EmojiCatalogOptions struct {
 	_                [0]func()
-	Profile          string
-	Deep             *bool
 	Lang             string
 	Category         string
 	Subcategory      string
@@ -1756,11 +1724,6 @@ func (c *Client) EmojiCatalog(ctx context.Context, options ...EmojiCatalogOption
 		return nil, err
 	}
 	params := emojiQuery(EmojiSearchOptions{Lang: opts.Lang, Category: opts.Category, Subcategory: opts.Subcategory, Version: opts.Version, MaxVersion: opts.MaxVersion, IncludeSkinTones: opts.IncludeSkinTones})
-	deep := opts.Deep == nil || *opts.Deep
-	params.Set("deep", strconv.FormatBool(deep))
-	if opts.Profile != "" {
-		params.Set("profile", opts.Profile)
-	}
 	out := &EmojiCatalog{}
 	if err := c.get(ctx, "/emoji/catalog", params, nil, out); err != nil {
 		return nil, err
@@ -1780,15 +1743,8 @@ func (c *Client) EmojiConvert(ctx context.Context, text, direction, shortcodeSou
 	return out, nil
 }
 
-// EmojiMetadata retrieves the corresponding catalog resource.
 
-func (c *Client) EmojiMetadata(ctx context.Context) (*EmojiMetadata, error) {
-	out := &EmojiMetadata{}
-	if err := c.get(ctx, "/emoji/metadata", nil, nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
+
 
 // EmojiCategories retrieves the corresponding catalog resource.
 
@@ -1920,7 +1876,6 @@ func (c *Client) Company(ctx context.Context, number string, options ...CompanyO
 	return out, nil
 }
 
-
 type IndustryOptions = NAICSOptions
 type IndustrySearchOptions = NAICSSearchOptions
 
@@ -1936,34 +1891,6 @@ func (c *Client) NAICSSearch(ctx context.Context, query string, options ...NAICS
 
 
 
-
-
-
-type BINOptions struct {
-	_    [0]func()
-	Deep bool
-}
-
-
-
-
-
-func (c *Client) BIN(ctx context.Context, bin string, options ...BINOptions) (*BIN, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	deep := ""
-	if opts.Deep {
-		deep = "true"
-	}
-	out := &BIN{}
-	if err := c.get(ctx, "/bin/"+seg(bin), values("deep", deep), nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // CityListOptions configures collection browsing. Cursor values are opaque.
 type CityListOptions struct {
 	Romanized        bool
@@ -1978,10 +1905,10 @@ type CityListOptions struct {
 	Hierarchy        bool
 	MinPopulation    *int64
 	MaxPopulation    *int64
-	Timezone         string
+
 	BBox             string
 	Sort             string
-	Order            string
+
 	Cursor           string
 	Countries        []string
 	ExcludeCountries []string
@@ -2001,9 +1928,9 @@ func (c *Client) CityList(ctx context.Context, options ...CityListOptions) (*Cit
 		limit = strconv.Itoa(opts.Limit)
 	}
 	query := values("browse", "true", "country", opts.Country, "state", opts.State, "limit", limit, "deep", cityFlag(opts.Deep), "lang", opts.Lang, "type", opts.Type, "grain", opts.Grain, "hierarchy", cityFlag(opts.Hierarchy))
-	cityCollectionQuery(query, opts.MinPopulation, opts.MaxPopulation, opts.Timezone, opts.BBox, opts.Sort, opts.Order, false, opts.Cursor)
+	cityCollectionQuery(query, opts.MinPopulation, opts.MaxPopulation, opts.BBox, opts.Sort, false, opts.Cursor)
 	cityExtraQuery(query, opts.Countries, opts.ExcludeCountries, opts.Timezones, opts.MinElevation, opts.MaxElevation)
-	cityResponseQuery(query, "list", opts.Romanized)
+	cityResponseQuery(query, "", opts.Romanized)
 	out := &CityList{}
 	if err := c.get(ctx, "/city", query, nil, out); err != nil {
 		return nil, err
@@ -2027,10 +1954,10 @@ type CityNearbyCoordsOptions struct {
 	Hierarchy        bool
 	MinPopulation    *int64
 	MaxPopulation    *int64
-	Timezone         string
+
 	BBox             string
 	Sort             string
-	Order            string
+
 	Cursor           string
 	Countries        []string
 	ExcludeCountries []string
@@ -2053,9 +1980,9 @@ func (c *Client) CityNearbyCoords(ctx context.Context, lat float64, lon float64,
 		limit = strconv.Itoa(opts.Limit)
 	}
 	query := values("nearby", "true", "lat", f(lat), "lon", f(lon), "radius", radius, "unit", opts.Unit, "country", opts.Country, "state", opts.State, "limit", limit, "deep", cityFlag(opts.Deep), "lang", opts.Lang, "type", opts.Type, "grain", opts.Grain, "hierarchy", cityFlag(opts.Hierarchy))
-	cityCollectionQuery(query, opts.MinPopulation, opts.MaxPopulation, opts.Timezone, opts.BBox, opts.Sort, opts.Order, false, opts.Cursor)
+	cityCollectionQuery(query, opts.MinPopulation, opts.MaxPopulation, opts.BBox, opts.Sort, false, opts.Cursor)
 	cityExtraQuery(query, opts.Countries, opts.ExcludeCountries, opts.Timezones, opts.MinElevation, opts.MaxElevation)
-	cityResponseQuery(query, "list", opts.Romanized)
+	cityResponseQuery(query, "", opts.Romanized)
 	out := &CityNearbyCoords{}
 	if err := c.get(ctx, "/city", query, nil, out); err != nil {
 		return nil, err
@@ -2063,14 +1990,14 @@ func (c *Client) CityNearbyCoords(ctx context.Context, lat float64, lon float64,
 	return out, nil
 }
 
-func cityCollectionQuery(query url.Values, minPopulation *int64, maxPopulation *int64, timezone, bbox, sort, order string, page bool, cursor string) {
+func cityCollectionQuery(query url.Values, minPopulation *int64, maxPopulation *int64, bbox, sort string, page bool, cursor string) {
 	if minPopulation != nil {
 		query.Set("min_population", strconv.FormatInt(*minPopulation, 10))
 	}
 	if maxPopulation != nil {
 		query.Set("max_population", strconv.FormatInt(*maxPopulation, 10))
 	}
-	for key, value := range values("timezone", timezone, "bbox", bbox, "sort", sort, "order", order, "page", cityFlag(page), "cursor", cursor) {
+	for key, value := range values("bbox", bbox, "sort", sort, "page", cityFlag(page), "cursor", cursor) {
 		query[key] = value
 	}
 }
@@ -2083,213 +2010,25 @@ func cityFlag(value bool) string {
 	return ""
 }
 
-type CityResourceOptions struct {
-	Romanized bool
-	// Lang selects translated display names for this request.
-	Lang      string
-	_         [0]func()
-	Country   string
-	State     string
-	Deep      bool
-	Type      string
-	Grain     string
-	Hierarchy bool
-	Aliases   bool
-	Ambiguity string
-}
 
-type CityIDResourceOptions struct {
-	Romanized bool
-	// Lang selects translated display names for this request.
-	Lang      string
-	_         [0]func()
-	Deep      bool
-	Hierarchy bool
-}
 
-type CityNearestResourceOptions struct {
-	Romanized bool
-	// Lang selects translated display names for this request.
-	Lang      string
-	_         [0]func()
-	Deep      bool
-	Country   string
-	State     string
-	Type      string
-	Grain     string
-	Hierarchy bool
-}
 
-type CitySearchListOptions struct {
-	Romanized bool
-	// Lang selects translated display names for this request.
-	Lang             string
-	_                [0]func()
-	Country          string
-	State            string
-	Limit            int
-	Deep             bool
-	Type             string
-	Grain            string
-	Hierarchy        bool
-	Aliases          bool
-	MinPopulation    *int64
-	MaxPopulation    *int64
-	Timezone         string
-	BBox             string
-	Sort             string
-	Order            string
-	Page             bool
-	Cursor           string
-	Countries        []string
-	ExcludeCountries []string
-	Timezones        []string
-	MinElevation     *float64
-	MaxElevation     *float64
-	Match            string
-	MaxDistance      int
-}
 
-type CityNearbyListOptions struct {
-	Romanized bool
-	// Lang selects translated display names for this request.
-	Lang             string
-	_                [0]func()
-	Country          string
-	State            string
-	Radius           float64
-	Unit             string
-	Limit            int
-	Deep             bool
-	Type             string
-	Grain            string
-	Hierarchy        bool
-	Aliases          bool
-	Ambiguity        string
-	MinPopulation    *int64
-	MaxPopulation    *int64
-	Timezone         string
-	BBox             string
-	Sort             string
-	Order            string
-	Page             bool
-	Cursor           string
-	Countries        []string
-	ExcludeCountries []string
-	Timezones        []string
-	MinElevation     *float64
-	MaxElevation     *float64
-}
 
-func (c *Client) CityResource(ctx context.Context, name string, options ...CityResourceOptions) (*CityResource, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	deep := ""
-	if opts.Deep {
-		deep = "true"
-	}
-	out := &CityResource{}
-	if err := c.get(ctx, "/city/"+seg(name), cityResponseQuery(values("lang", opts.Lang, "country", opts.Country, "state", opts.State, "deep", deep, "type", opts.Type, "grain", opts.Grain, "hierarchy", cityFlag(opts.Hierarchy), "aliases", cityFlag(opts.Aliases), "ambiguity", opts.Ambiguity), "resource", opts.Romanized), nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
 
-func (c *Client) CityIDResource(ctx context.Context, id string, options ...CityIDResourceOptions) (*CityResource, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	deep := ""
-	if opts.Deep {
-		deep = "true"
-	}
-	out := &CityResource{}
-	if err := c.get(ctx, "/city/id/"+seg(id), cityResponseQuery(values("lang", opts.Lang, "deep", deep, "hierarchy", cityFlag(opts.Hierarchy)), "resource", opts.Romanized), nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
 
-func (c *Client) CityNearestResource(ctx context.Context, lat float64, lon float64, options ...CityNearestResourceOptions) (*CityResource, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	deep := ""
-	if opts.Deep {
-		deep = "true"
-	}
-	out := &CityResource{}
-	if err := c.get(ctx, "/city", cityResponseQuery(values("lang", opts.Lang, "lat", f(lat), "lon", f(lon), "deep", deep, "country", opts.Country, "state", opts.State, "type", opts.Type, "grain", opts.Grain, "hierarchy", cityFlag(opts.Hierarchy)), "resource", opts.Romanized), nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
 
-func (c *Client) CitySearchList(ctx context.Context, query string, options ...CitySearchListOptions) (*CityList, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	limit := ""
-	if opts.Limit != 0 {
-		limit = strconv.Itoa(opts.Limit)
-	}
-	deep := ""
-	if opts.Deep {
-		deep = "true"
-	}
-	out := &CityList{}
-	params := values("lang", opts.Lang, "q", query, "country", opts.Country, "state", opts.State, "limit", limit, "deep", deep, "type", opts.Type, "grain", opts.Grain, "hierarchy", cityFlag(opts.Hierarchy), "aliases", cityFlag(opts.Aliases))
-	cityCollectionQuery(params, opts.MinPopulation, opts.MaxPopulation, opts.Timezone, opts.BBox, opts.Sort, opts.Order, opts.Page, opts.Cursor)
-	cityExtraQuery(params, opts.Countries, opts.ExcludeCountries, opts.Timezones, opts.MinElevation, opts.MaxElevation)
-	cityResponseQuery(params, "list", opts.Romanized)
-	if opts.Match != "" {
-		params.Set("match", opts.Match)
-	}
-	if opts.MaxDistance != 0 {
-		params.Set("max_distance", strconv.Itoa(opts.MaxDistance))
-	}
-	endpoint := "/city"
-	if opts.Match != "" || opts.MaxDistance != 0 {
-		endpoint = "/city/search"
-	}
-	if err := c.get(ctx, endpoint, params, nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
 
-func (c *Client) CityNearbyList(ctx context.Context, name string, options ...CityNearbyListOptions) (*CityList, error) {
-	opts, err := oneOption(options)
-	if err != nil {
-		return nil, err
-	}
-	radius := ""
-	if opts.Radius != 0 {
-		radius = f(opts.Radius)
-	}
-	limit := ""
-	if opts.Limit != 0 {
-		limit = strconv.Itoa(opts.Limit)
-	}
-	deep := ""
-	if opts.Deep {
-		deep = "true"
-	}
-	out := &CityList{}
-	query := values("lang", opts.Lang, "country", opts.Country, "state", opts.State, "radius", radius, "unit", opts.Unit, "limit", limit, "deep", deep, "type", opts.Type, "grain", opts.Grain, "hierarchy", cityFlag(opts.Hierarchy), "aliases", cityFlag(opts.Aliases), "ambiguity", opts.Ambiguity)
-	cityCollectionQuery(query, opts.MinPopulation, opts.MaxPopulation, opts.Timezone, opts.BBox, opts.Sort, opts.Order, opts.Page, opts.Cursor)
-	cityExtraQuery(query, opts.Countries, opts.ExcludeCountries, opts.Timezones, opts.MinElevation, opts.MaxElevation)
-	cityResponseQuery(query, "list", opts.Romanized)
-	if err := c.get(ctx, "/city/"+seg(name)+"/nearby", query, nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
+
+
+
+
+
+
+
+
+
+
 
 // CityChildren returns reviewed direct children. Coverage is partial.
 func (c *Client) CityChildren(ctx context.Context, id string, options ...CityRelationsOptions) (*CityRelations, error) {
@@ -2362,7 +2101,9 @@ func cityResponseQuery(q url.Values, format string, romanized ...bool) url.Value
 	if len(romanized) > 0 && romanized[0] {
 		q.Set("romanized", "true")
 	}
-	q.Set("format", format)
+	if format != "" {
+		q.Set("format", format)
+	}
 	return q
 }
 
@@ -2469,3 +2210,17 @@ func (c *Client) CurrencyRate(ctx context.Context, base string, quote string, op
 	}
 	return out, nil
 }
+
+// EmailVerify runs one explicit metered mailbox check. No automatic retries by default.
+func (c *Client) EmailVerify(ctx context.Context, email string, options ...EmailVerifyOptions) (*Email, error) {
+	if _, err := oneOption(options); err != nil {
+		return nil, err
+	}
+	out := &Email{}
+	if err := c.post(ctx, "/email/verify", map[string]string{"email": email}, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+type EmailVerifyOptions struct{ _ [0]func() }

@@ -12,7 +12,7 @@ import (
 
 func TestStackInventoryShapesAndEncoding(t *testing.T) {
 	var records []json.RawMessage
-	if err := json.Unmarshal([]byte(`[{"domain":"xn--bcher-kva.example","url":"https://xn--bcher-kva.example/","checked_at":null,"scope":"homepage","pages":0,"partial":null,"cms":null,"servers":null,"frameworks":null,"ecommerce":null,"analytics":null,"chat":null,"payments":null,"hosting":null,"future":true},{"domain":"xn--bcher-kva.example","url":"https://xn--bcher-kva.example/","checked_at":"2026-09-21T12:00:00Z","scope":"site","pages":2,"partial":false,"cms":[],"servers":[],"frameworks":[],"ecommerce":[],"analytics":[],"chat":[],"payments":[],"hosting":[],"future":true,"deep":{}},{"domain":"xn--bcher-kva.example","url":"https://xn--bcher-kva.example/","checked_at":"2026-09-21T12:00:00Z","scope":"site","pages":3,"partial":true,"cms":[{"technology":"wordpress","name":"WordPress","version":"6.8"},{"technology":"ghost","name":"Ghost","version":null}],"servers":[{"technology":"nginx","name":"nginx","version":"1.26.2"},{"technology":"apache","name":"Apache","version":null}],"frameworks":[{"technology":"nextjs","name":"Next.js","version":null,"future":true},{"technology":"react","name":"React","version":"19.1"}],"ecommerce":[{"technology":"woocommerce","name":"WooCommerce","version":null}],"analytics":[{"technology":"google-analytics","name":"Google Analytics","version":null}],"chat":[{"technology":"intercom","name":"Intercom","version":null}],"payments":[{"technology":"stripe","name":"Stripe","version":null}],"hosting":[{"technology":"vercel","name":"Vercel","version":null}],"future":true},{"domain":"xn--bcher-kva.example","url":"https://xn--bcher-kva.example/","checked_at":null,"scope":"future-scope","pages":0,"partial":null,"cms":null,"servers":null,"frameworks":null,"ecommerce":null,"analytics":null,"chat":null,"payments":null,"hosting":null,"future":true,"deep":{}},{"domain":"xn--bcher-kva.example","url":"https://xn--bcher-kva.example/","checked_at":"2026-09-21T12:00:00Z","scope":"homepage","pages":1,"partial":true,"cms":[],"servers":[],"frameworks":[{"technology":"nextjs","name":"Next.js","version":null,"future":true}],"ecommerce":[],"analytics":[],"chat":[],"payments":[],"hosting":[],"future":true,"deep":{}}]`), &records); err != nil {
+	if err := json.Unmarshal([]byte(`[{"domain":"xn--bcher-kva.example","url":"https://xn--bcher-kva.example/","checked_at":null,"scope":"homepage","pages":0,"partial":null,"cms":null,"servers":null,"frameworks":null,"ecommerce":null,"analytics":null,"chat":null,"payments":null,"hosting":null,"future":true},{"domain":"xn--bcher-kva.example","url":"https://xn--bcher-kva.example/","checked_at":"2026-09-21T12:00:00Z","scope":"site","pages":2,"partial":false,"cms":[],"servers":[],"frameworks":[],"ecommerce":[],"analytics":[],"chat":[],"payments":[],"hosting":[],"future":true},{"domain":"xn--bcher-kva.example","url":"https://xn--bcher-kva.example/","checked_at":"2026-09-21T12:00:00Z","scope":"site","pages":3,"partial":true,"cms":[{"technology":"wordpress","name":"WordPress","version":"6.8"},{"technology":"ghost","name":"Ghost","version":null}],"servers":[{"technology":"nginx","name":"nginx","version":"1.26.2"},{"technology":"apache","name":"Apache","version":null}],"frameworks":[{"technology":"nextjs","name":"Next.js","version":null,"future":true},{"technology":"react","name":"React","version":"19.1"}],"ecommerce":[{"technology":"woocommerce","name":"WooCommerce","version":null}],"analytics":[{"technology":"google-analytics","name":"Google Analytics","version":null}],"chat":[{"technology":"intercom","name":"Intercom","version":null}],"payments":[{"technology":"stripe","name":"Stripe","version":null}],"hosting":[{"technology":"vercel","name":"Vercel","version":null}],"future":true},{"domain":"xn--bcher-kva.example","url":"https://xn--bcher-kva.example/","checked_at":null,"scope":"future-scope","pages":0,"partial":null,"cms":null,"servers":null,"frameworks":null,"ecommerce":null,"analytics":null,"chat":null,"payments":null,"hosting":null,"future":true},{"domain":"xn--bcher-kva.example","url":"https://xn--bcher-kva.example/","checked_at":"2026-09-21T12:00:00Z","scope":"homepage","pages":1,"partial":true,"cms":[],"servers":[],"frameworks":[{"technology":"nextjs","name":"Next.js","version":null,"future":true}],"ecommerce":[],"analytics":[],"chat":[],"payments":[],"hosting":[],"future":true}]`), &records); err != nil {
 		t.Fatal(err)
 	}
 	for i, body := range records {
@@ -21,7 +21,7 @@ func TestStackInventoryShapesAndEncoding(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if captured.path != "/stack/b%C3%BCcher.example" || captured.rawQry != "deep=true&pretty=true" || captured.header.Get("Parse-Version") != "2.0.0" {
+		if captured.path != "/stack/b%C3%BCcher.example" || captured.rawQry != "deep=true&pretty=true" || captured.header.Get("X-API-Version") != "2.1.0" {
 			t.Fatalf("wrong request: %#v", captured)
 		}
 		if i == 0 || i == 3 {
@@ -46,26 +46,26 @@ func TestStackInventoryShapesAndEncoding(t *testing.T) {
 		}
 		switch i {
 		case 0:
-			if result.Frameworks != nil || result.CheckedAt != nil || result.Deep != nil {
+			if result.Frameworks != nil || result.CheckedAt != nil {
 				t.Fatal("unknown or omitted values changed")
 			}
 		case 1:
-			if result.Frameworks == nil || len(result.Frameworks) != 0 || result.Deep == nil || len(result.Deep) != 0 {
+			if result.Frameworks == nil || len(result.Frameworks) != 0 {
 				t.Fatal("empty result or generic deep lost")
 			}
 		case 2:
-			if result.CheckedAt == nil || len(result.CMS) != 2 || len(result.Servers) != 2 || len(result.Frameworks) != 2 || result.Deep != nil {
+			if result.CheckedAt == nil || len(result.CMS) != 2 || len(result.Servers) != 2 || len(result.Frameworks) != 2 {
 				t.Fatal("site inventory changed")
 			}
 			if result.CMS[0].Technology != "wordpress" || result.CMS[0].Name != "WordPress" || result.CMS[0].Version == nil || *result.CMS[0].Version != "6.8" || result.CMS[1].Technology != "ghost" || result.CMS[1].Version != nil || result.Servers[0].Version == nil || *result.Servers[0].Version != "1.26.2" || result.Servers[1].Technology != "apache" || result.Frameworks[0].Version != nil {
 				t.Fatal("inventory technology detail changed")
 			}
 		case 3:
-			if result.Frameworks != nil || result.Deep == nil || len(result.Deep) != 0 {
+			if result.Frameworks != nil {
 				t.Fatal("future/null fields changed")
 			}
 		case 4:
-			if result.Deep == nil || len(result.Deep) != 0 || result.Frameworks[0].Technology != "nextjs" || result.Frameworks[0].Version != nil {
+			if result.Frameworks[0].Technology != "nextjs" || result.Frameworks[0].Version != nil {
 				t.Fatal("generic deep changed core")
 			}
 		}
@@ -106,10 +106,10 @@ func TestStackDeadlineDefaultsAndExplicitSettings(t *testing.T) {
 					remaining = time.Until(at)
 				}
 				deadlines = append(deadlines, remaining)
-				return &http.Response{StatusCode: 200, Header: make(http.Header), Body: io.NopCloser(strings.NewReader(`{"domain":"example.com","url":"https://example.com/","checked_at":null,"scope":"homepage","pages":0,"partial":null,"cms":null,"servers":null,"frameworks":null,"ecommerce":null,"analytics":null,"chat":null,"payments":null,"hosting":null,"deep":{}}`))}, nil
+				return &http.Response{StatusCode: 200, Header: make(http.Header), Body: io.NopCloser(strings.NewReader(`{"domain":"example.com","url":"https://example.com/","checked_at":null,"scope":"homepage","pages":0,"partial":null,"cms":null,"servers":null,"frameworks":null,"ecommerce":null,"analytics":null,"chat":null,"payments":null,"hosting":null}`))}, nil
 			})
 			result, err := client.Stack(context.Background(), "example.com")
-			if err != nil || result.Frameworks != nil || result.Deep == nil || len(result.Deep) != 0 {
+			if err != nil || result.Frameworks != nil {
 				t.Fatalf("unavailable detail changed: %v %v", result, err)
 			}
 			if _, err := client.Domain(context.Background(), "example.com"); err != nil {

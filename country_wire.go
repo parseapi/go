@@ -32,89 +32,6 @@ func (item *ContinentCountryItem) UnmarshalJSON(data []byte) error {
 }
 
 // UnmarshalJSON accepts historical scalar capital/name spellings and current objects.
-func (country *Country) UnmarshalJSON(data []byte) error {
-	type wire Country
-	var raw map[string]json.RawMessage
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return err
-	}
-	isoWireAlias(raw, "iso_alpha3", "iso3")
-	isoWireAlias(raw, "iso_numeric", "numeric")
-	_, present := raw["name_full"]
-	if !present {
-		if legacy, ok := raw["full_name"]; ok {
-			raw["name_full"] = legacy
-		}
-	}
-	countryFlag(raw)
-	if _, present := raw["capital"]; !present {
-		_, lat := raw["capital_lat"]
-		_, lon := raw["capital_lon"]
-		if lat || lon {
-			raw["capital"] = json.RawMessage("null")
-		}
-	}
-	if value, ok := raw["capital"]; ok && len(value) > 0 && value[0] != '{' && string(value) != "null" {
-		capital := map[string]json.RawMessage{"name": value, "latitude": json.RawMessage("null"), "longitude": json.RawMessage("null")}
-		if value, ok := raw["capital_lat"]; ok {
-			capital["latitude"] = value
-		}
-		if value, ok := raw["capital_lon"]; ok {
-			capital["longitude"] = value
-		}
-		encoded, err := json.Marshal(capital)
-		if err != nil {
-			return err
-		}
-		raw["capital"] = encoded
-	} else if ok && string(value) == "null" {
-		_, lat := raw["capital_lat"]
-		_, lon := raw["capital_lon"]
-		if lat || lon {
-			capital := map[string]json.RawMessage{"name": value, "latitude": json.RawMessage("null"), "longitude": json.RawMessage("null")}
-			if lat {
-				capital["latitude"] = raw["capital_lat"]
-			}
-			if lon {
-				capital["longitude"] = raw["capital_lon"]
-			}
-			encoded, err := json.Marshal(capital)
-			if err != nil {
-				return err
-			}
-			raw["capital"] = encoded
-		}
-	}
-	normalized, err := json.Marshal(raw)
-	if err != nil {
-		return err
-	}
-	var result wire
-	if err = json.Unmarshal(normalized, &result); err != nil {
-		return err
-	}
-	*country = Country(result)
-	country.nameFullPresent = present
-	country.FullName = country.NameFull
-	country.Emoji = country.Flag
-	if country.Capital != nil {
-		country.CapitalLat = country.Capital.Latitude
-		country.CapitalLon = country.Capital.Longitude
-	}
-	return nil
-}
-
-func (country Country) MarshalJSON() ([]byte, error) {
-	type wire Country
-	name := country.NameFull
-	if !country.nameFullPresent && name == nil {
-		name = country.FullName
-	}
-	return json.Marshal(struct {
-		wire
-		NameFull *string `json:"name_full"`
-	}{wire: wire(country), NameFull: name})
-}
 
 func (detail *CountryDeep) UnmarshalJSON(data []byte) error {
 	type wire CountryDeep
@@ -205,3 +122,4 @@ func (value *StateCapital) UnmarshalJSON(data []byte) error {
 	*value = StateCapital(decoded)
 	return nil
 }
+

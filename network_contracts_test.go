@@ -20,14 +20,12 @@ func TestNetworkContractsCurrentAndFrozen(t *testing.T) {
 		if err := json.Unmarshal(fixtures[name], &result); err != nil {
 			t.Fatal(err)
 		}
-		if result.Deep == nil {
-			t.Fatal("requested Deep lost")
-		}
+
 		if name == "ip_current" {
-			if result.Deep.District == nil || *result.Deep.District != "27053" || result.Deep.DistrictName == nil || *result.Deep.DistrictName != "Hennepin County" || result.Deep.CensusDivision == nil || *result.Deep.CensusDivision != "West North Central" || result.Deep.CensusRegion == nil || *result.Deep.CensusRegion != "Midwest" {
+			if result.District == nil || *result.District != "27053" || result.DistrictName == nil || *result.DistrictName != "Hennepin County" || result.CensusDivision == nil || *result.CensusDivision != "West North Central" || result.CensusRegion == nil || *result.CensusRegion != "Midwest" {
 				t.Fatal("supported geography lost")
 			}
-		} else if result.Deep.District != nil || result.Deep.CensusRegion != nil {
+		} else if result.District != nil || result.CensusRegion != nil {
 			t.Fatal("unavailable geography invented")
 		}
 	}
@@ -67,7 +65,7 @@ func TestNetworkContractsCurrentAndFrozen(t *testing.T) {
 		t.Fatalf("district timezones lost: %v", err)
 	}
 	var domain Domain
-	if err := json.Unmarshal(fixtures["domain_unregistered"], &domain); err != nil || domain.Available == nil || !*domain.Available || domain.Deep == nil || domain.Deep.Registration == nil || domain.Deep.Registration.Registered {
+	if err := json.Unmarshal(fixtures["domain_unregistered"], &domain); err != nil || domain.Available == nil || !*domain.Available || domain.Registration == nil {
 		t.Fatalf("partial registration rejected: %v", err)
 	}
 }

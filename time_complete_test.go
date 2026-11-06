@@ -55,19 +55,19 @@ func TestTimeResolutionAndReservedSources(t *testing.T) {
 		}
 	}
 	var result Time
-	if err := json.Unmarshal([]byte(`{"deep":{"timezone_database_version":"2026c","resolution":{"kind":"gap","policy":"earlier","adjustment_seconds":-1800,"alternatives":[{"at":"1970-01-01T00:00:00.123+00:00","unix":0,"offset":"+00:00"},{"at":"1970-01-01T00:30:00.123+00:00","unix":1800,"offset":"+00:00"}],"future":true}}}`), &result); err != nil {
+	if err := json.Unmarshal([]byte(`{"timezone_database_version":"2026c","resolution":{"kind":"gap","policy":"earlier","adjustment_seconds":-1800,"alternatives":[{"at":"1970-01-01T00:00:00.123+00:00","unix":0,"offset":"+00:00"},{"at":"1970-01-01T00:30:00.123+00:00","unix":1800,"offset":"+00:00"}],"future":true}}`), &result); err != nil {
 		t.Fatal(err)
 	}
-	if result.Deep == nil || *result.Deep.TimezoneDatabaseVersion != "2026c" || *result.Deep.Resolution.AdjustmentSeconds != -1800 || *result.Deep.Resolution.Alternatives[0].Unix != 0 {
-		t.Fatalf("resolution not preserved: %+v", result.Deep)
+	if *result.TimezoneDatabaseVersion != "2026c" || *result.Resolution.AdjustmentSeconds != -1800 || *result.Resolution.Alternatives[0].Unix != 0 {
+		t.Fatalf("resolution not preserved: %+v", result)
 	}
-	for _, raw := range []string{`{"deep":{}}`, `{"deep":{"resolution":null}}`} {
+	for _, raw := range []string{`{}`, `{"resolution":null}`} {
 		var result Time
-		if err := json.Unmarshal([]byte(raw), &result); err != nil || result.Deep.Resolution != nil {
+		if err := json.Unmarshal([]byte(raw), &result); err != nil || result.Resolution != nil {
 			t.Fatalf("unknown resolution: %v", err)
 		}
 	}
-	if err := json.Unmarshal([]byte(`{"deep":{"resolution":{"kind":"unique","alternatives":[]}}}`), &result); err != nil || result.Deep.Resolution.Alternatives == nil {
+	if err := json.Unmarshal([]byte(`{"resolution":{"kind":"unique","alternatives":[]}}`), &result); err != nil || result.Resolution.Alternatives == nil {
 		t.Fatal("known empty alternatives lost")
 	}
 }

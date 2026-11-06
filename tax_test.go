@@ -7,25 +7,25 @@ import (
 
 func TestTaxReferenceFields(t *testing.T) {
 	var country Country
-	if err := json.Unmarshal([]byte(`{"country":"DE","deep":{"tax":"VAT","tax_rate":19,"tax_id_format":"DE999999999","tax_id_regex":"^DE[0-9]{9}$"}}`), &country); err != nil {
+	if err := json.Unmarshal([]byte(`{"country":"DE","tax":{"name":"VAT","rate":19}}`), &country); err != nil {
 		t.Fatal(err)
 	}
-	c := country.Deep
-	if c == nil || c.Tax == nil || c.Tax.Name == nil || *c.Tax.Name != "VAT" || c.TaxRate == nil || *c.TaxRate != 19 || c.TaxIDFormat == nil || *c.TaxIDFormat != "DE999999999" || c.TaxIDRegex == nil || *c.TaxIDRegex != "^DE[0-9]{9}$" {
+	c := &country
+	if c.Tax == nil || c.Tax.Name == nil || *c.Tax.Name != "VAT" || c.Tax.Rate == nil || *c.Tax.Rate != 19 {
 		t.Fatalf("country tax: %#v", c)
 	}
 	var postal Postal
-	if err := json.Unmarshal([]byte(`{"postal":"12345","country":"US","deep":{"tax":"Sales tax","tax_rate":7.9,"tax_rate_state":5,"tax_rate_county":0,"tax_rate_city":null,"tax_rate_special":2.9}}`), &postal); err != nil {
+	if err := json.Unmarshal([]byte(`{"postal":"12345","country":"US","tax":{"name":"Sales tax","rate":7.9,"rate_state":5,"rate_county":0,"rate_city":null,"rate_special":2.9}}`), &postal); err != nil {
 		t.Fatal(err)
 	}
-	p := postal.Deep
-	if p == nil || p.TaxRate == nil || *p.TaxRate != 7.9 || p.TaxRateState == nil || *p.TaxRateState != 5 || p.TaxRateCounty == nil || *p.TaxRateCounty != 0 || p.TaxRateCity != nil || p.TaxRateSpecial == nil || *p.TaxRateSpecial != 2.9 {
+	p := &postal
+	if p.Tax == nil || p.Tax.Rate == nil || *p.Tax.Rate != 7.9 || p.Tax.RateState == nil || *p.Tax.RateState != 5 || p.Tax.RateCounty == nil || *p.Tax.RateCounty != 0 || p.Tax.RateCity != nil || p.Tax.RateSpecial == nil || *p.Tax.RateSpecial != 2.9 {
 		t.Fatalf("postal tax: %#v", p)
 	}
 }
 
 func TestMissingAndNullTaxRemainUnknown(t *testing.T) {
-	for _, body := range []string{`{}`, `{"deep":{}}`, `{"deep":{"tax":null,"tax_rate":null}}`} {
+	for _, body := range []string{`{}`, `{}`, `{"tax":null,"tax_rate":null}`} {
 		var country Country
 		var postal Postal
 		if err := json.Unmarshal([]byte(body), &country); err != nil {
@@ -34,10 +34,10 @@ func TestMissingAndNullTaxRemainUnknown(t *testing.T) {
 		if err := json.Unmarshal([]byte(body), &postal); err != nil {
 			t.Fatal(err)
 		}
-		if country.Deep != nil && ((country.Deep.Tax != nil && (country.Deep.Tax.Name != nil || country.Deep.Tax.Rate != nil)) || country.Deep.TaxRate != nil || country.Deep.TaxIDFormat != nil || country.Deep.TaxIDRegex != nil) {
+		if country.Tax != nil && (country.Tax.Name != nil || country.Tax.Rate != nil) {
 			t.Fatal("unknown country tax became a known value")
 		}
-		if postal.Deep != nil && (postal.Deep.Tax != nil || postal.Deep.TaxRate != nil || postal.Deep.TaxRateSpecial != nil) {
+		if postal.Tax != nil {
 			t.Fatal("unknown postal tax became a known value")
 		}
 	}

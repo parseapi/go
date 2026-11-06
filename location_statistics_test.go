@@ -15,15 +15,16 @@ func TestLocationStatistics(t *testing.T) {
 			t.Fatalf("unknown statistic: %+v", place)
 		}
 	}
-	body := []byte(`{"population":0,"population_period":"2020-2024","property_tax":{"annual_median":0,"currency":"USD","period":"2020-2024"}}`)
+	body := []byte(`{"population":0,"population_period":"2020-2024","currency":"USD","property_tax":{"annual_median":0}}`)
 	var postal PostalDeep
 	var district DistrictDeep
-	for _, value := range []any{&postal, &district} {
-		if err := json.Unmarshal(body, value); err != nil {
-			t.Fatal(err)
-		}
+	if err := json.Unmarshal(body, &postal); err != nil {
+		t.Fatal(err)
 	}
-	if postal.Population == nil || *postal.Population != 0 || postal.PopulationPeriod != nil || postal.PropertyTax == nil || postal.PropertyTax.AnnualMedian != 0 || postal.PropertyTax.Currency == nil || *postal.PropertyTax.Currency != "USD" || postal.PropertyTax.Period == nil || *postal.PropertyTax.Period != "2020-2024" {
+	if err := json.Unmarshal([]byte(`{"property_tax":{"annual_median":0,"currency":"USD","period":"2020-2024"}}`), &district); err != nil {
+		t.Fatal(err)
+	}
+	if postal.Population == nil || *postal.Population != 0 || postal.PopulationPeriod != nil || postal.PropertyTax == nil || postal.PropertyTax.AnnualMedian != 0 || postal.Currency == nil || *postal.Currency != "USD" {
 		t.Fatalf("lost statistic: %+v", postal)
 	}
 	if district.PropertyTax == nil || district.PropertyTax.Period != "2020-2024" {

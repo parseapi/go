@@ -33,8 +33,6 @@ type CompanySearchOptions struct {
 	Deep         bool
 }
 
-// CompanyCoverageOptions configures the edition coverage request.
-type CompanyCoverageOptions struct{ _ [0]func() }
 
 // CompanyID retrieves an existing directory profile by its stable co_ ID.
 // National company-number validation remains Company.
@@ -77,14 +75,3 @@ func (c *Client) CompanySearch(ctx context.Context, options ...CompanySearchOpti
 	return out, nil
 }
 
-// CompanyCoverage returns counts for the directory edition, not global completeness.
-func (c *Client) CompanyCoverage(ctx context.Context, options ...CompanyCoverageOptions) (*CompanyCoverage, error) {
-	if _, err := oneOption(options); err != nil {
-		return nil, err
-	}
-	out := &CompanyCoverage{}
-	if err := c.get(ctx, "/company/directory/coverage", nil, nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}

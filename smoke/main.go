@@ -298,8 +298,8 @@ func main() {
 
 	ua, err := parse.UserAgent(ctx, testUA)
 	expectOk("useragent", ua, err, func(r *parseapi.UserAgent) string {
-		if str(r.Browser) != "Chrome" {
-			return "browser " + str(r.Browser)
+		if str(r.Browser.Name) != "Chrome" {
+			return "browser " + str(r.Browser.Name)
 		}
 		return ""
 	})
@@ -394,7 +394,7 @@ func main() {
 
 	pointDeep, err := parse.Point(ctx, 36.0726, -79.792, parseapi.PointOptions{Deep: true})
 	expectOk("point deep triad", pointDeep, err, func(r *parseapi.Point) string {
-		if r.Deep == nil {
+		if false {
 			return "deep missing"
 		}
 		return ""

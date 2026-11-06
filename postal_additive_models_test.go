@@ -16,10 +16,10 @@ func TestPostalAdditiveModels(t *testing.T) {
 		t.Fatal(err)
 	}
 	for name, postal := range cases {
-		if postal.Deep == nil || len(postal.Deep.Metros) != 1 {
+		if len(postal.Metros) != 1 {
 			t.Fatalf("%s: metro missing", name)
 		}
-		metro := postal.Deep.Metros[0]
+		metro := postal.Metros[0]
 		if metro.Share == nil || *metro.Share != 0.125 {
 			t.Fatalf("%s: legacy share changed", name)
 		}
@@ -29,13 +29,13 @@ func TestPostalAdditiveModels(t *testing.T) {
 			}
 		}
 	}
-	if *cases["current"].Type != "standard" || *cases["current"].Deep.Metros[0].SharePercent != 12.5 {
+	if *cases["current"].Type != "standard" || *cases["current"].Metros[0].SharePercent != 12.5 {
 		t.Fatal("current fields missing")
 	}
-	if *cases["zero"].Deep.Metros[0].SharePercent != 0 {
+	if *cases["zero"].Metros[0].SharePercent != 0 {
 		t.Fatal("zero lost")
 	}
-	if *cases["future"].Type != "future_custom" || *cases["future"].Deep.Metros[0].SharePercent != 100 {
+	if *cases["future"].Type != "future_custom" || *cases["future"].Metros[0].SharePercent != 100 {
 		t.Fatal("future type or endpoint percentage lost")
 	}
 	encoded, err := json.Marshal(cases["missing"])
@@ -46,7 +46,7 @@ func TestPostalAdditiveModels(t *testing.T) {
 	if err = json.Unmarshal(encoded, &roundtrip); err != nil {
 		t.Fatal(err)
 	}
-	if *roundtrip.Deep.Metros[0].Share != 0.125 {
+	if *roundtrip.Metros[0].Share != 0.125 {
 		t.Fatal("legacy roundtrip changed")
 	}
 }

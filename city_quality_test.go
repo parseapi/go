@@ -90,18 +90,18 @@ func TestCityQualityHierarchyDecoding(t *testing.T) {
 
 func TestCityQualityDatedPopulationPreservesUnknown(t *testing.T) {
 	var city City
-	if err := json.Unmarshal([]byte(`{"id":"city_pin","deep":{"population":0,"population_period":"2025","population_observed_on":"2025-12-31","population_basis":"registered_population"}}`), &city); err != nil {
+	if err := json.Unmarshal([]byte(`{"id":"city_pin","population":0,"population_period":"2025","population_observed_on":"2025-12-31","population_basis":"registered_population"}`), &city); err != nil {
 		t.Fatal(err)
 	}
-	if city.Deep.Population == nil || *city.Deep.Population != 0 || city.Deep.PopulationObservedOn == nil || *city.Deep.PopulationObservedOn != "2025-12-31" || city.Deep.PopulationBasis == nil || *city.Deep.PopulationBasis != "registered_population" {
+	if city.Population == nil || *city.Population != 0 || city.PopulationObservedOn == nil || *city.PopulationObservedOn != "2025-12-31" || city.PopulationBasis == nil || *city.PopulationBasis != "registered_population" {
 		t.Fatal("dated population metadata lost")
 	}
-	for _, body := range []string{`{"deep":{}}`, `{"deep":{"population_observed_on":null,"population_basis":null}}`} {
+	for _, body := range []string{`{}`, `{"population_observed_on":null,"population_basis":null}`} {
 		var old City
 		if err := json.Unmarshal([]byte(body), &old); err != nil {
 			t.Fatal(err)
 		}
-		if old.Deep.PopulationObservedOn != nil || old.Deep.PopulationBasis != nil {
+		if old.PopulationObservedOn != nil || old.PopulationBasis != nil {
 			t.Fatal("unknown observation metadata inferred")
 		}
 	}

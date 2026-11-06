@@ -6,7 +6,6 @@ import "context"
 // Nil means unknown. A non-nil empty Status is a known empty list.
 type DomainRegistrationResult struct {
 	_          [0]func()
-	Registered *bool    `json:"registered"`
 	Created    *string  `json:"created"`
 	Updated    *string  `json:"updated"`
 	Expires    *string  `json:"expires"`
@@ -26,8 +25,8 @@ type DomainResult struct {
 	_      [0]func()
 	Domain string `json:"domain"`
 	// True means unregistered, false means registered, nil means unknown.
-	Available *bool             `json:"available"`
-	Deep      *DomainResultDeep `json:"deep,omitempty"`
+	Available    *bool                     `json:"available"`
+	Registration *DomainRegistrationResult `json:"registration,omitempty"`
 }
 
 // DomainResult checks registration with explicit unknown availability and partial detail.

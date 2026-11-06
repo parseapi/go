@@ -161,7 +161,7 @@ func TestDisplayLanguageKeepsNativeNullAndInputOptions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if result.Country != "DE" || result.Name != "Allemagne" || result.NameLocal == nil || *result.NameLocal != "Deutschland" || result.CurrencyName != nil || result.Deep != nil {
+	if result.Country != "DE" || result.Name != "Allemagne" || result.NameLocal == nil || *result.NameLocal != "Deutschland" || result.CurrencyName != nil {
 		t.Fatalf("changed localized/native/null fields: %#v", result)
 	}
 	if _, err := client.Date(ctx, "03/04/2026", DateOptions{Format: "dmy", Lang: "en-US"}); err != nil {

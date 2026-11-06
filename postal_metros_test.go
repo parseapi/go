@@ -2,7 +2,6 @@ package parseapi
 
 import (
 	"encoding/json"
-	"strings"
 	"testing"
 )
 
@@ -18,7 +17,7 @@ func TestPostalMetrosObservationStates(t *testing.T) {
 		{"populated", `,"metros":[{"code":"12345","name":"Example area","type":"future-area-type","share":0.75,"residential_share":0,"business_share":1,"other_share":null,"future":true}]`, true, 1},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			field := `,"deep":{` + strings.TrimPrefix(tc.field, ",") + `}`
+			field := tc.field
 			member := `{"postal":"12345","country":"US","city":null,"future":true` + field + `}`
 			var postal Postal
 			var nearby PostalNearby
@@ -35,7 +34,7 @@ func TestPostalMetrosObservationStates(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			for _, metros := range [][]PostalMetro{postal.Deep.Metros, nearby.Deep.Metros, nearby.Nearby[0].Deep.Metros, distance.From.Deep.Metros, distance.To.Deep.Metros} {
+			for _, metros := range [][]PostalMetro{postal.Metros, nearby.Metros, nearby.Nearby[0].Metros, distance.From.Metros, distance.To.Metros} {
 				if (metros != nil) != tc.observed || len(metros) != tc.count {
 					t.Fatalf("wrong observation state: %#v", metros)
 				}
@@ -54,7 +53,7 @@ func TestPostalMetrosObservationStates(t *testing.T) {
 			if err := json.Unmarshal(encoded, &roundtrip); err != nil {
 				t.Fatal(err)
 			}
-			if (roundtrip.Deep.Metros != nil) != tc.observed {
+			if (roundtrip.Metros != nil) != tc.observed {
 				t.Fatal("serialization erased null versus empty")
 			}
 		})

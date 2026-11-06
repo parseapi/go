@@ -147,6 +147,8 @@ type CompanyPhoneNumber struct {
 	_      [0]func()
 	Number string  `json:"number"`
 	Type   *string `json:"type,omitempty"`
+	Country *string `json:"country,omitempty"`
+	E164 *string `json:"e164,omitempty"`
 }
 
 // CompanyEmailAddress preserves a source-recorded address and purpose.
@@ -200,14 +202,36 @@ type CompanyMatch struct {
 
 // CompanyProfile is a directory profile, distinct from national company-number validation.
 type CompanyProfile struct {
-	_        [0]func()
-	ID       string                  `json:"id"`
-	Name     string                  `json:"name"`
-	Country  *string                 `json:"country,omitempty"`
-	Website  *string                 `json:"website,omitempty"`
-	Listings []CompanyProfileListing `json:"listings"`
-	Address  *CompanyProfileAddress  `json:"address,omitempty"`
-	Deep     *CompanyProfileDeep     `json:"deep,omitempty"`
+	_              [0]func()
+	ID             string                       `json:"id"`
+	Name           string                       `json:"name"`
+	Country        *string                      `json:"country,omitempty"`
+	Website        *string                      `json:"website,omitempty"`
+	Listings       []CompanyProfileListing      `json:"listings"`
+	Address        *CompanyProfileAddress       `json:"address,omitempty"`
+	Domains        []CompanyProfileDomain       `json:"domains,omitempty"`
+	SocialProfiles []CompanySocialProfile       `json:"social_profiles,omitempty"`
+	PhoneNumbers   []CompanyPhoneNumber         `json:"phone_numbers,omitempty"`
+	EmailAddresses []CompanyEmailAddress        `json:"email_addresses,omitempty"`
+	LegalName      *string                      `json:"legal_name,omitempty"`
+	Aliases        []string                     `json:"aliases,omitempty"`
+	Jurisdiction   *CompanyProfileJurisdiction  `json:"jurisdiction,omitempty"`
+	Status         *string                      `json:"status,omitempty"`
+	Websites       []CompanyProfileWebsite      `json:"websites,omitempty"`
+	Identifiers    []CompanyProfileIdentifier   `json:"identifiers,omitempty"`
+	Incorporated   *string                      `json:"incorporated,omitempty"`
+	Addresses      []CompanyProfileAddress      `json:"addresses,omitempty"`
+	Industries     []CompanyProfileIndustry     `json:"industries,omitempty"`
+	Parent         *string                      `json:"parent,omitempty"`
+	Description    *string                      `json:"description,omitempty"`
+	Logo           *string                      `json:"logo,omitempty"`
+	Socials        []string                     `json:"socials,omitempty"`
+	Phones         []CompanyProfilePhone        `json:"phones,omitempty"`
+	Emails         []CompanyProfileEmail        `json:"emails,omitempty"`
+	Founded        *CompanyProfileFounding      `json:"founded,omitempty"`
+	Employees      *CompanyProfileEmployees     `json:"employees,omitempty"`
+	Registrations  []CompanyProfileRegistration `json:"registrations,omitempty"`
+	Sources        []CompanyProfileSource       `json:"sources,omitempty"`
 }
 
 // CompanyCandidate is a directory search profile with match evidence; a match is not proof of legal identity.
@@ -219,8 +243,31 @@ type CompanyCandidate struct {
 	Website  *string                 `json:"website,omitempty"`
 	Listings []CompanyProfileListing `json:"listings"`
 	Address  *CompanyProfileAddress  `json:"address,omitempty"`
-	Deep     *CompanyProfileDeep     `json:"deep,omitempty"`
-	Match    CompanyMatch            `json:"match"`
+
+	Match          CompanyMatch                 `json:"match"`
+	Domains        []CompanyProfileDomain       `json:"domains,omitempty"`
+	SocialProfiles []CompanySocialProfile       `json:"social_profiles,omitempty"`
+	PhoneNumbers   []CompanyPhoneNumber         `json:"phone_numbers,omitempty"`
+	EmailAddresses []CompanyEmailAddress        `json:"email_addresses,omitempty"`
+	LegalName      *string                      `json:"legal_name,omitempty"`
+	Aliases        []string                     `json:"aliases,omitempty"`
+	Jurisdiction   *CompanyProfileJurisdiction  `json:"jurisdiction,omitempty"`
+	Status         *string                      `json:"status,omitempty"`
+	Websites       []CompanyProfileWebsite      `json:"websites,omitempty"`
+	Identifiers    []CompanyProfileIdentifier   `json:"identifiers,omitempty"`
+	Incorporated   *string                      `json:"incorporated,omitempty"`
+	Addresses      []CompanyProfileAddress      `json:"addresses,omitempty"`
+	Industries     []CompanyProfileIndustry     `json:"industries,omitempty"`
+	Parent         *string                      `json:"parent,omitempty"`
+	Description    *string                      `json:"description,omitempty"`
+	Logo           *string                      `json:"logo,omitempty"`
+	Socials        []string                     `json:"socials,omitempty"`
+	Phones         []CompanyProfilePhone        `json:"phones,omitempty"`
+	Emails         []CompanyProfileEmail        `json:"emails,omitempty"`
+	Founded        *CompanyProfileFounding      `json:"founded,omitempty"`
+	Employees      *CompanyProfileEmployees     `json:"employees,omitempty"`
+	Registrations  []CompanyProfileRegistration `json:"registrations,omitempty"`
+	Sources        []CompanyProfileSource       `json:"sources,omitempty"`
 }
 
 // CompanySearch is one page of company candidates. Reuse next with the same selector, filters and limit.
@@ -230,16 +277,8 @@ type CompanySearch struct {
 	Next      *string            `json:"next,omitempty"`
 }
 
-// CompanyCoverage contains counts for this directory edition, not complete country or worldwide coverage.
-type CompanyCoverage struct {
-	_            [0]func()
-	Scope        string   `json:"scope"`
-	Label        string   `json:"label"`
-	Description  string   `json:"description"`
-	SnapshotAt   string   `json:"snapshot_at"`
-	Companies    int64    `json:"companies"`
-	Countries    []string `json:"countries"`
-	WithWebsite  int64    `json:"with_website"`
-	WithListings int64    `json:"with_listings"`
-	WithAddress  int64    `json:"with_address"`
-}
+
+
+
+
+

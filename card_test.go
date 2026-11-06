@@ -7,12 +7,12 @@ import (
 )
 
 func TestCardPreservesLeadingZerosAndNullableFields(t *testing.T) {
-	client, call := newTestClient(t, okJSON(`{"bin":"00123456","brand":"future-brand","brand_name":null,"logo":"https://cdn.parseapi.com/card/generic.svg","deep":{"prefix":"001234","issuer":"Fixture Bank","country":null,"type":null,"prepaid":false},"future":true}`))
+	client, call := newTestClient(t, okJSON(`{"bin":"00123456","brand":"future-brand","brand_name":null,"logo":"https://cdn.parseapi.com/card/generic.svg","future":true,"prefix":"001234","issuer":"Fixture Bank","country":null,"type":null,"prepaid":false}`))
 	result, err := client.CardWithOptions(context.Background(), "00 1234-56", CardOptions{Deep: true})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if result.Deep == nil || result.BIN != "00123456" || result.Deep.Prefix == nil || *result.Deep.Prefix != "001234" || result.Deep.Country != nil || result.Deep.Prepaid == nil || *result.Deep.Prepaid {
+	if result.BIN != "00123456" || result.Prefix == nil || *result.Prefix != "001234" || result.Country != nil || result.Prepaid == nil || *result.Prepaid {
 		t.Fatalf("lost BIN semantics: %#v", result)
 	}
 	if call.path != "/card/00%201234-56" || call.rawQry != "deep=true" {
@@ -26,7 +26,7 @@ func TestCardUnknown(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if result.Deep != nil || result.Brand != nil || call.path != "/card/000000" || call.rawQry != "" {
+	if result.Brand != nil || call.path != "/card/000000" || call.rawQry != "" {
 		t.Fatalf("unknown semantics: %#v %#v", result, call)
 	}
 }

@@ -64,7 +64,6 @@ func TestURLMapping(t *testing.T) {
 		{"continent", func(c *Client) error { _, err := c.Continent(ctx, "NA"); return err }, "/continent/NA", ""},
 		{"continent countries", func(c *Client) error { _, err := c.ContinentCountries(ctx, "NA"); return err }, "/continent/NA/countries", ""},
 
-
 		{"country", func(c *Client) error { _, err := c.Country(ctx, "US"); return err }, "/country/US", ""},
 		{"country states", func(c *Client) error { _, err := c.CountryStates(ctx, "US"); return err }, "/country/US/states", ""},
 		{"state", func(c *Client) error { _, err := c.State(ctx, "NC", StateOptions{Country: "US"}); return err }, "/state/NC", "country=US"},
@@ -97,8 +96,6 @@ func TestURLMapping(t *testing.T) {
 		}, "/postal/28202/distance/10001", "country=US"},
 		{"email", func(c *Client) error { _, err := c.Email(ctx, "a@b.com"); return err }, "/email/a@b.com", ""},
 
-
-
 		{"phone", func(c *Client) error { _, err := c.Phone(ctx, "+14155552671", PhoneOptions{Deep: true}); return err }, "/phone/+14155552671", "deep=true"},
 		{"carrier", func(c *Client) error { _, err := c.Carrier(ctx, "+14155552671"); return err }, "/carrier/+14155552671", ""},
 		{"caller with country", func(c *Client) error {
@@ -110,7 +107,6 @@ func TestURLMapping(t *testing.T) {
 		{"asn", func(c *Client) error { _, err := c.ASN(ctx, "AS13335"); return err }, "/asn/AS13335", ""},
 		{"mx", func(c *Client) error { _, err := c.MX(ctx, "example.com"); return err }, "/mx/example.com", ""},
 		{"useragent", func(c *Client) error { _, err := c.UserAgent(ctx, "TestUA/1.0"); return err }, "/useragent", ""},
-
 
 		{"language", func(c *Client) error { _, err := c.Language(ctx, "en"); return err }, "/language/en", ""},
 		{"name encodes spaces", func(c *Client) error { _, err := c.Name(ctx, "Smith, John"); return err }, "/name/Smith%2C%20John", ""},
@@ -330,26 +326,24 @@ func TestGivesUpAfterRetries(t *testing.T) {
 	}
 }
 
-func TestDeepTriadDecoding(t *testing.T) {
-	// deep omitted -> nil, deep {} -> empty struct pointer, populated -> fields set
+func TestOptionalDetailAbsence(t *testing.T) {
+	// No requested detail and locked detail both leave optional facts unknown.
 	client, _ := newTestClient(t, okJSON(`{"ip":"1.2.3.4"}`))
 	result, err := client.IP(context.Background(), "1.2.3.4")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if result.Deep != nil {
-		t.Error("expected nil Deep when omitted")
-	}
 
-	client2, _ := newTestClient(t, okJSON(`{"ip":"1.2.3.4","deep":{}}`))
+	if result.Datacenter != nil {
+		t.Error("unrequested datacenter was invented")
+	}
+	client2, _ := newTestClient(t, okJSON(`{"ip":"1.2.3.4"}`))
 	result2, err := client2.IP(context.Background(), "1.2.3.4", IPOptions{Deep: true})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if result2.Deep == nil {
-		t.Error("expected non-nil Deep for {}")
-	}
-	if result2.Deep != nil && result2.Deep.Datacenter != nil {
+
+	if result2.Datacenter != nil {
 		t.Error("expected nil Datacenter in empty deep")
 	}
 }
@@ -456,14 +450,14 @@ func TestDateAndTimezoneMapping(t *testing.T) {
 }
 
 func TestDateAndTimezoneNullableResults(t *testing.T) {
-	client, _ := newTestClient(t, okJSON(`{"date":"03/04/2026","valid":false,"future_field":{"value":true},"deep":{"year":null,"leap":null}}`))
+	client, _ := newTestClient(t, okJSON(`{"date":"03/04/2026","valid":false,"future_field":{"value":true},"year":null,"leap":null}`))
 	date, err := client.Date(context.Background(), "03/04/2026")
-	if err != nil || date.Valid || date.Deep.Year != nil || date.Deep.Leap != nil {
+	if err != nil || date.Valid || date.Year != nil || date.Leap != nil {
 		t.Fatalf("date: %+v, %v", date, err)
 	}
-	client, _ = newTestClient(t, okJSON(`{"latitude":0,"longitude":180,"timezone":null,"abbreviation":null,"offset":null,"dst":null,"future_field":true,"deep":{"name":null,"offset_minutes":null,"next_dst":null}}`))
+	client, _ = newTestClient(t, okJSON(`{"latitude":0,"longitude":180,"timezone":null,"abbreviation":null,"offset":null,"dst":null,"future_field":true,"name":null,"offset_minutes":null,"next_dst":null}`))
 	zone, err := client.TimezoneAt(context.Background(), 0, 180)
-	if err != nil || zone.Timezone != nil || zone.DST != nil || zone.Deep.OffsetMinutes != nil {
+	if err != nil || zone.Timezone != nil || zone.DST != nil || zone.OffsetMinutes != nil {
 		t.Fatalf("zone: %+v, %v", zone, err)
 	}
 }
@@ -553,7 +547,6 @@ func TestMeteredRetryDefaultsAndExplicitOverride(t *testing.T) {
 		{"email", func(c *Client) error { _, e := c.Email(ctx, "a@b.com"); return e }, 3},
 		{"email deep", func(c *Client) error { _, e := c.Email(ctx, "a@b.com", EmailOptions{Deep: true}); return e }, 1},
 
-
 		{"address", func(c *Client) error { _, e := c.Address(ctx, "123 Main St"); return e }, 3},
 		{"address deep", func(c *Client) error { _, e := c.Address(ctx, "123 Main St", AddressOptions{Deep: true}); return e }, 1},
 	}
@@ -606,17 +599,17 @@ func TestRetryAfterSupportsHTTPDates(t *testing.T) {
 
 func TestNewNullableResponseFields(t *testing.T) {
 	var company Company
-	if err := json.Unmarshal([]byte(`{"company":"x","registered":null,"active":null,"type":"company","deep":{"gst":null,"siege":null,"kind":"LIMITED"},"future":true}`), &company); err != nil {
+	if err := json.Unmarshal([]byte(`{"company":"x","registered":null,"active":null,"type":"company","future":true,"gst":null,"siege":null,"kind":"LIMITED"}`), &company); err != nil {
 		t.Fatal(err)
 	}
-	if company.Registered != nil || company.Active != nil || company.Deep.GST != nil || company.Deep.Siege != nil || company.Deep == nil {
+	if company.Registered != nil || company.Active != nil || company.GST != nil || company.Siege != nil {
 		t.Fatalf("nulls: %+v", company)
 	}
 	var weather Weather
-	if err := json.Unmarshal([]byte(`{"deep":{"hours":[{"feels_like":22,"wind_gust":4}],"days":[{"sunrise":"06:00"}],"air":{"aqi":10},"history":{"date":"2026-09-01","high":24}}}`), &weather); err != nil {
+	if err := json.Unmarshal([]byte(`{"hours":[{"feels_like":22,"wind_gust":4}],"days":[{"sunrise":"06:00"}],"air":{"aqi":10},"history":{"date":"2026-09-01","high":24}}`), &weather); err != nil {
 		t.Fatal(err)
 	}
-	if weather.Deep == nil || weather.Deep.Air == nil || weather.Deep.History == nil || weather.Deep.Hours[0].FeelsLike == nil {
+	if weather.Air == nil || weather.History == nil || weather.Hours[0].FeelsLike == nil {
 		t.Fatalf("weather: %+v", weather)
 	}
 	var zone Timezone
@@ -656,10 +649,10 @@ func TestReservedOptionsRejectMultipleValues(t *testing.T) {
 
 func TestTimeUnixAndUnknown(t *testing.T) {
 	var historical Time
-	if err := json.Unmarshal([]byte(`{"deep":{"offset_seconds":-17762,"offset_minutes":-296},"at":"1880-01-01T00:00:00-04:56:02"}`), &historical); err != nil {
+	if err := json.Unmarshal([]byte(`{"at":"1880-01-01T00:00:00-04:56:02","offset_seconds":-17762,"offset_minutes":-296}`), &historical); err != nil {
 		t.Fatal(err)
 	}
-	if historical.Deep.OffsetSeconds == nil || *historical.Deep.OffsetSeconds != -17762 || historical.Deep.OffsetMinutes == nil || *historical.Deep.OffsetMinutes != -296 {
+	if historical.OffsetSeconds == nil || *historical.OffsetSeconds != -17762 || historical.OffsetMinutes == nil || *historical.OffsetMinutes != -296 {
 		t.Fatalf("lost historical offset: %#v", historical)
 	}
 	var clock Time

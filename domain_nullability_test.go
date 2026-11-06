@@ -16,11 +16,11 @@ func TestOrdinaryDomainPreservesUnknownAndKnownStates(t *testing.T) {
 			}
 			body := map[string]any{"domain": "example.com", "available": available}
 			if available == true {
-				body["deep"] = map[string]any{"registration": map[string]any{"registered": false}}
+				body["registration"] = map[string]any{"registered": false}
 			} else if available == nil {
-				body["deep"] = map[string]any{}
+				// No registration observation is available.
 			} else {
-				body["deep"] = map[string]any{"registration": registration}
+				body["registration"] = registration
 			}
 			encoded, err := json.Marshal(body)
 			if err != nil {
@@ -43,7 +43,7 @@ func TestOrdinaryDomainPreservesUnknownAndKnownStates(t *testing.T) {
 				t.Fatal("known availability lost")
 			}
 			if available == false {
-				got := result.Deep.Registration.DNSSEC
+				got := result.Registration.DNSSEC
 				if dnssec == nil || dnssec == "absent" {
 					if got != nil {
 						t.Fatal("missing DNSSEC became false")

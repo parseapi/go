@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestADPModelsPreserveCoreAndDeepTriad(t *testing.T) {
+func TestADPModelsKeepCoreFactsWithRootDetail(t *testing.T) {
 	cases := []struct {
 		name   string
 		core   string
@@ -20,7 +20,6 @@ func TestADPModelsPreserveCoreAndDeepTriad(t *testing.T) {
 		{"District", `{"district":"37081","name":"Guilford","country":"US"}`, `{"population":0,"water_area":0.25}`, &District{}},
 		{"City", `{"name":"Charlotte","country":"US","id":"city_123"}`, `{"population":0,"area":0.25}`, &City{}},
 		{"Postal", `{"postal":"28202","country":"US"}`, `{"metros":[],"water_area":0.25,"tax_rate":0}`, &Postal{}},
-
 
 		{"Phone", `{"phone":"+14155552671","valid":true}`, `{"state":"CA","timezone":"America/Los_Angeles"}`, &Phone{}},
 		{"Carrier", `{"phone":"+14155552671","valid":true,"carrier":"Example"}`, `{"city":"San Francisco","state":"CA"}`, &Carrier{}},
@@ -38,31 +37,55 @@ func TestADPModelsPreserveCoreAndDeepTriad(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			if err := json.Unmarshal([]byte(tc.core), tc.model); err != nil {
+			if _, exists := reflect.TypeOf(tc.model).Elem().FieldByName("Deep"); exists {
+				t.Fatal("2.1 response model still exposes the wrapper")
+			}
+			var core, detail map[string]json.RawMessage
+			if err := json.Unmarshal([]byte(tc.core), &core); err != nil {
 				t.Fatal(err)
 			}
-			value := reflect.ValueOf(tc.model).Elem()
-			if !value.FieldByName("Deep").IsNil() {
-				t.Fatal("omitted deep became populated")
+			if err := json.Unmarshal([]byte(tc.detail), &detail); err != nil {
+				t.Fatal(err)
 			}
-			plain, _ := json.Marshal(tc.model)
-			var body map[string]json.RawMessage
-			_ = json.Unmarshal([]byte(tc.core), &body)
-			for _, detail := range []string{"{}", tc.detail} {
-				body["deep"] = json.RawMessage(detail)
+			for _, extra := range []map[string]json.RawMessage{{}, detail} {
+				body := make(map[string]json.RawMessage)
+				for key, value := range core {
+					body[key] = value
+				}
+				for key, value := range extra {
+					if key == "current" && body[key] != nil {
+						var original, additions map[string]json.RawMessage
+						json.Unmarshal(body[key], &original)
+						json.Unmarshal(value, &additions)
+						for k, v := range additions {
+							original[k] = v
+						}
+						body[key], _ = json.Marshal(original)
+					} else {
+						body[key] = value
+					}
+				}
 				wire, _ := json.Marshal(body)
-				out := reflect.New(value.Type()).Interface()
+				out := reflect.New(reflect.TypeOf(tc.model).Elem()).Interface()
 				if err := json.Unmarshal(wire, out); err != nil {
 					t.Fatal(err)
 				}
-				deep := reflect.ValueOf(out).Elem().FieldByName("Deep")
-				if deep.IsNil() {
-					t.Fatal("requested deep was erased")
+				encoded, err := json.Marshal(out)
+				if err != nil {
+					t.Fatal(err)
 				}
-				deep.Set(reflect.Zero(deep.Type()))
-				core, _ := json.Marshal(out)
-				if string(core) != string(plain) {
-					t.Fatalf("deep changed core: %s versus %s", core, plain)
+				var received map[string]json.RawMessage
+				json.Unmarshal(encoded, &received)
+				for key, value := range core {
+					if key == "current" {
+						continue
+					}
+					var want, got any
+					json.Unmarshal(value, &want)
+					json.Unmarshal(received[key], &got)
+					if !reflect.DeepEqual(want, got) {
+						t.Fatalf("Core %s changed: %s", key, encoded)
+					}
 				}
 			}
 		})
@@ -141,20 +164,20 @@ func TestADPOptionsSendOneExplicitDisclosure(t *testing.T) {
 
 func TestADPChildProfilesAndConversionDepth(t *testing.T) {
 	var listing StateDistricts
-	if err := json.Unmarshal([]byte(`{"state":"NC","country":"US","districts":[{"district":"37081","name":"Guilford","deep":{"population":0}}]}`), &listing); err != nil {
+	if err := json.Unmarshal([]byte(`{"state":"NC","country":"US","districts":[{"district":"37081","name":"Guilford","population":0}]}`), &listing); err != nil {
 		t.Fatal(err)
 	}
-	if d := listing.Districts[0].Deep; d == nil || d.Population == nil || *d.Population != 0 {
+	if d := &listing.Districts[0]; d == nil || d.Population == nil || *d.Population != 0 {
 		t.Fatal("lost district zero")
 	}
 	var clock Time
-	if err := json.Unmarshal([]byte(`{"timezone":"UTC","unix":0,"deep":{"offset_seconds":0,"next_dst":null},"to":{"timezone":"UTC","unix":0,"deep":{"offset_seconds":0}}}`), &clock); err != nil {
+	if err := json.Unmarshal([]byte(`{"timezone":"UTC","unix":0,"to":{"timezone":"UTC","unix":0,"offset_seconds":0},"offset_seconds":0,"next_dst":null}`), &clock); err != nil {
 		t.Fatal(err)
 	}
-	if clock.To == nil || clock.To.Deep == nil || clock.To.Deep.OffsetSeconds == nil || *clock.To.Deep.OffsetSeconds != 0 {
+	if clock.To == nil || clock.To.OffsetSeconds == nil || *clock.To.OffsetSeconds != 0 {
 		t.Fatal("lost target depth")
 	}
-	if _, found := reflect.TypeOf(*clock.To.Deep).FieldByName("NextDST"); found {
+	if _, found := reflect.TypeOf(*clock.To).FieldByName("NextDST"); found {
 		t.Fatal("target invents a next change")
 	}
 }

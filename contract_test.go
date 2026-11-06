@@ -52,7 +52,6 @@ var _ func(*parseapi.Client, context.Context, string, ...parseapi.AddressOptions
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.AddressSearchOptions) (*parseapi.AddressSearch, error) = (*parseapi.Client).AddressSearch
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.CompanyOptions) (*parseapi.Company, error) = (*parseapi.Client).Company
 
-
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.IndustryOptions) (*parseapi.Industry, error) = (*parseapi.Client).Industry
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.IndustrySearchOptions) (*parseapi.IndustrySearch, error) = (*parseapi.Client).IndustrySearch
 
@@ -60,4 +59,3 @@ var _ func(*parseapi.Client, context.Context, string, ...parseapi.DNSOptions) (*
 
 var _ func(*parseapi.Client, context.Context, string, ...parseapi.CompanyIDOptions) (*parseapi.CompanyProfile, error) = (*parseapi.Client).CompanyID
 var _ func(*parseapi.Client, context.Context, ...parseapi.CompanySearchOptions) (*parseapi.CompanySearch, error) = (*parseapi.Client).CompanySearch
-var _ func(*parseapi.Client, context.Context, ...parseapi.CompanyCoverageOptions) (*parseapi.CompanyCoverage, error) = (*parseapi.Client).CompanyCoverage

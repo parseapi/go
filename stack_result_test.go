@@ -17,7 +17,7 @@ func TestCurrentStackFromCapturedWire(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if request.path != "/stack/stripe.com" || request.rawQry != "pretty=true" || request.header.Get("Parse-Version") != "2.0.0" {
+	if request.path != "/stack/stripe.com" || request.rawQry != "pretty=true" || request.header.Get("X-API-Version") != "2.1.0" {
 		t.Fatalf("unexpected request: %#v", request)
 	}
 	if result.CheckedAt == nil || result.CMS == nil || len(result.CMS) != 0 || len(result.Servers) != 1 || result.Servers[0].Version != nil {

@@ -18,12 +18,12 @@ func TestTimeLocationCatalogAndSeasonalEvidence(t *testing.T) {
 					t.Errorf("%s=%q", k, q.Get(k))
 				}
 			}
-			_, _ = w.Write([]byte(`{"timezone_database_version": "2026c", "timezones": ["UTC"], "at": "1970-01-01T00:00:00.000Z", "zones": [{"timezone": "UTC", "countries": [], "area": null, "abbreviation": "UTC", "offset": "+00:00", "offset_seconds": 0, "dst": false, "observes_dst": false}]}`))
+			_, _ = w.Write([]byte(`{"timezone_database_version":"2026c","timezones":["UTC"],"at":"1970-01-01T00:00:00.000Z","zones":[{"timezone":"UTC","countries":[],"area":null,"abbreviation":"UTC","offset":"+00:00","offset_seconds":0,"dst":false,"observes_dst":false}]}`))
 		} else {
 			if q.Get("city") != "Springfield" || q.Get("country") != "US" || q.Get("state") != "IL" {
 				t.Error("source query lost")
 			}
-			_, _ = w.Write([]byte(`{"timezone": null, "targets": null, "location": {"input": {"type": "city", "value": "Springfield"}, "status": "ambiguous", "candidates": [{"id": "city_a", "name": "Springfield", "country": "US", "state": "IL", "timezone": "America/Chicago", "latitude": 0, "longitude": 0}], "truncated": false, "source": "city_reference"}, "deep": {"standard_offset": "+01:00", "standard_offset_seconds": 3600, "dst_offset_seconds": -3600, "season": {"start": {"at": "2026-10-25T01:00:00Z", "before": {"offset_seconds": 3600, "dst": false}, "after": {"offset_seconds": 0, "dst": true}, "change_seconds": -3600}, "end": null}}}`))
+			_, _ = w.Write([]byte(`{"timezone":null,"targets":null,"location":{"input":{"type":"city","value":"Springfield"},"status":"ambiguous","candidates":[{"id":"city_a","name":"Springfield","country":"US","state":"IL","timezone":"America/Chicago","latitude":0,"longitude":0}],"truncated":false,"source":"city_reference"},"standard_offset":"+01:00","standard_offset_seconds":3600,"dst_offset_seconds":-3600,"season":{"start":{"at":"2026-10-25T01:00:00Z","before":{"offset_seconds":3600,"dst":false},"after":{"offset_seconds":0,"dst":true},"change_seconds":-3600},"end":null}}`))
 		}
 	})
 	no := false
@@ -32,7 +32,7 @@ func TestTimeLocationCatalogAndSeasonalEvidence(t *testing.T) {
 		t.Fatalf("catalog: %v", err)
 	}
 	result, err := client.Time(context.Background(), "", TimeOptions{City: "Springfield", Country: "US", State: "IL", Targets: []string{"UTC"}, Deep: true})
-	if err != nil || result.Timezone != nil || result.Location.Status != "ambiguous" || *result.Location.Candidates[0].Latitude != 0 || *result.Deep.DSTOffsetSeconds != -3600 || *result.Deep.Season.Start.ChangeSeconds != -3600 || *result.Deep.Season.Start.Before.DST {
+	if err != nil || result.Timezone != nil || result.Location.Status != "ambiguous" || *result.Location.Candidates[0].Latitude != 0 || *result.DSTOffsetSeconds != -3600 || *result.Season.Start.ChangeSeconds != -3600 || *result.Season.Start.Before.DST {
 		t.Fatalf("observations: %v %+v", err, result)
 	}
 	for _, opts := range []TimeOptions{{IP: "8.8.8.8", City: "Paris"}, {IP: "8.8.8.8", Country: "US"}, {State: "NY"}, {City: "Paris", State: "IDF"}, {Address: "a"}} {
@@ -46,7 +46,7 @@ func TestTimeLocationCatalogAndSeasonalEvidence(t *testing.T) {
 	if calls != 2 {
 		t.Fatal("invalid sources dispatched")
 	}
-	for _, raw := range []string{`{}`, `{"deep":{}}`, `{"deep":{"season":null}}`} {
+	for _, raw := range []string{`{}`, `{}`, `{"season":null}`} {
 		var old Time
 		if err := json.Unmarshal([]byte(raw), &old); err != nil {
 			t.Fatal(err)

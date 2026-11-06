@@ -30,27 +30,6 @@ func decodeISOWire(data []byte, target any, canonical string, legacy ...string) 
 	return json.Unmarshal(normalized, target)
 }
 
-func (value *Language) UnmarshalJSON(data []byte) error {
-	type wire Language
-	decoded := wire(*value)
-	if err := decodeISOWire(data, &decoded, "iso_alpha3", "iso3"); err != nil {
-		return err
-	}
-	*value = Language(decoded)
-	return nil
-}
-
-func (value *State) UnmarshalJSON(data []byte) error {
-	type wire State
-	decoded := wire(*value)
-	if err := decodeISOWire(data, &decoded, "iso_subdivision", "iso", "iso_3166_2"); err != nil {
-		return err
-	}
-	decoded.ISO31662 = decoded.ISO
-	*value = State(decoded)
-	return nil
-}
-
 func (value *LanguageDeep) UnmarshalJSON(data []byte) error {
 	var wire struct {
 		ISO3      *string  `json:"iso_alpha3"`
@@ -105,5 +84,35 @@ func (value *StateDeep) UnmarshalJSON(data []byte) error {
 		decoded.TaxRate = decoded.Tax.Rate
 	}
 	*value = StateDeep(decoded)
+	return nil
+}
+
+func (value *Language) UnmarshalJSON(data []byte) error {
+	type wire Language
+	decoded := wire(*value)
+	if err := decodeISOWire(data, &decoded, "iso_alpha3", "iso3"); err != nil {
+		return err
+	}
+	*value = Language(decoded)
+	return nil
+}
+
+func (value *State) UnmarshalJSON(data []byte) error {
+	type wire State
+	decoded := wire(*value)
+	if err := decodeISOWire(data, &decoded, "iso_subdivision", "iso", "iso_3166_2"); err != nil {
+		return err
+	}
+	*value = State(decoded)
+	return nil
+}
+
+func (value *Currency) UnmarshalJSON(data []byte) error {
+	type wire Currency
+	decoded := wire(*value)
+	if err := decodeISOWire(data, &decoded, "iso_numeric", "numeric"); err != nil {
+		return err
+	}
+	*value = Currency(decoded)
 	return nil
 }

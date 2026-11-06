@@ -10,15 +10,27 @@ import (
 )
 
 func TestOrdinaryResponseAndRetry(t *testing.T) {
- attempts:=0
- client,_:=newTestClient(t,func(w http.ResponseWriter,r *http.Request){
-  attempts++
-  if r.Header.Get("Parse-Response")!="" || r.Header.Get("Parse-Version")!="2.0.0" {t.Fatal("unexpected request headers")}
-  if attempts==1 {w.Header().Set("Retry-After","0");w.WriteHeader(503);return}
-  body,err:=os.ReadFile("testdata/response-fixtures/clean-timezones.json");if err!=nil {t.Fatal(err)};_,_=w.Write(body)
- },WithRetries(1))
- result,err:=client.TimeZones(context.Background(),"")
- if err!=nil || len(result.Timezones)==0 || attempts!=2 {t.Fatalf("decode/retry: %v %#v",err,result)}
+	attempts := 0
+	client, _ := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		attempts++
+		if r.Header.Get("Parse-Response") != "" || r.Header.Get("X-API-Version") != "2.1.0" {
+			t.Fatal("unexpected request headers")
+		}
+		if attempts == 1 {
+			w.Header().Set("Retry-After", "0")
+			w.WriteHeader(503)
+			return
+		}
+		body, err := os.ReadFile("testdata/response-fixtures/clean-timezones.json")
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, _ = w.Write(body)
+	}, WithRetries(1))
+	result, err := client.TimeZones(context.Background(), "")
+	if err != nil || len(result.Timezones) == 0 || attempts != 2 {
+		t.Fatalf("decode/retry: %v %#v", err, result)
+	}
 }
 func TestResponseDecodingActualHandlersDecode(t *testing.T) {
 	for _, profile := range []string{"standard", "clean"} {
@@ -26,9 +38,8 @@ func TestResponseDecodingActualHandlersDecode(t *testing.T) {
 		var time Time
 		var metadata EmojiMetadata
 		var catalog EmojiCatalog
-		var coverage CompanyCoverage
 		var company CompanyProfile
-		rows := map[string]interface{}{"timezones": &zones, "time": &time, "emoji-metadata": &metadata, "emoji-catalog": &catalog, "company-coverage": &coverage, "company-profile": &company}
+		rows := map[string]interface{}{"timezones": &zones, "time": &time, "emoji-metadata": &metadata, "emoji-catalog": &catalog, "company-profile": &company}
 		for name, target := range rows {
 			body, err := os.ReadFile("testdata/response-fixtures/" + profile + "-" + name + ".json")
 			if err != nil {
@@ -38,16 +49,16 @@ func TestResponseDecodingActualHandlersDecode(t *testing.T) {
 				t.Fatalf("%s/%s: %v", profile, name, err)
 			}
 		}
-		getters := []string{zones.TimezoneDatabaseVersion, time.Location.Source, metadata.SourceVersion, coverage.SnapshotAt, company.Deep.Employees.Method}
+		getters := []string{zones.TimezoneDatabaseVersion, time.Location.Source, metadata.SourceVersion, company.Employees.Method}
 		_ = getters
-		if company.Deep.Employees.Count != 12 || company.Deep.Employees.Approximate {
+		if company.Employees.Count != 12 || company.Employees.Approximate {
 			t.Fatal("known count/false lost")
 		}
 		wantMethod := "reported"
 		if profile == "clean" {
 			wantMethod = ""
 		}
-		if company.Deep.Employees.Method != wantMethod {
+		if company.Employees.Method != wantMethod {
 			t.Fatal("published string decoder semantics changed")
 		}
 	}

@@ -6,25 +6,25 @@ import (
 )
 
 func TestPostalCompactEstimateAndLegacyMetadata(t *testing.T) {
-	for _, body := range []string{`{}`, `{"deep":{}}`, `{"deep":{"property_tax":null}}`} {
+	for _, body := range []string{`{}`, `{}`, `{"property_tax":null}`} {
 		var postal Postal
 		if err := json.Unmarshal([]byte(body), &postal); err != nil {
 			t.Fatal(err)
 		}
-		if postal.Deep != nil && postal.Deep.PropertyTax != nil {
+		if postal.PropertyTax != nil {
 			t.Fatal("unknown tax became a value")
 		}
 	}
 	for _, amount := range []string{"0", "1234.5"} {
 		var postal Postal
-		body := `{"deep":{"currency":"USD","property_tax":{"annual_median":` + amount + `},"future":true}}`
+		body := `{"currency":"USD","property_tax":{"annual_median":` + amount + `},"future":true}`
 		if err := json.Unmarshal([]byte(body), &postal); err != nil {
 			t.Fatal(err)
 		}
-		if postal.Deep == nil || postal.Deep.PropertyTax == nil || postal.Deep.Currency == nil || *postal.Deep.Currency != "USD" {
+		if postal.PropertyTax == nil || postal.Currency == nil || *postal.Currency != "USD" {
 			t.Fatal("compact record lost")
 		}
-		tax := postal.Deep.PropertyTax
+		tax := postal.PropertyTax
 		if tax.Currency != nil || tax.Period != nil {
 			t.Fatal("compact record invented metadata")
 		}
@@ -100,10 +100,10 @@ func TestWeatherMinuteCanonicalPresenceAndLegacyPayloads(t *testing.T) {
 		t.Fatal("missing key retained stale value")
 	}
 	var weather Weather
-	if err := json.Unmarshal([]byte(`{"deep":{"history":{"precipitation":12.3,"precipitation_in":0.484}}}`), &weather); err != nil {
+	if err := json.Unmarshal([]byte(`{"history":{"precipitation":12.3,"precipitation_in":0.484}}`), &weather); err != nil {
 		t.Fatal(err)
 	}
-	if weather.Deep.History.Precipitation == nil || *weather.Deep.History.Precipitation != 12.3 {
+	if weather.History.Precipitation == nil || *weather.History.Precipitation != 12.3 {
 		t.Fatal("history accumulation changed")
 	}
 }

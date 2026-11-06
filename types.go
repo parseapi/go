@@ -1,10 +1,18 @@
 package parseapi
 
 // Response types for the ParseAPI public API. Nullable fields are pointers.
-// Deep objects follow the triad: nil when not requested, empty when
-// requested but locked, populated when unlocked.
+// Optional 2.1 detail belongs to its owning resource. Missing and null remain unknown.
 
 type IPDeep struct {
+	/** Approximate range location; ASN type is the origin network category. */
+	StateName  *string  `json:"state_name,omitempty"`
+	Postal     *string  `json:"postal,omitempty"`
+	Latitude   *float64 `json:"latitude,omitempty"`
+	Longitude  *float64 `json:"longitude,omitempty"`
+	Timezone   *string  `json:"timezone,omitempty"`
+	Network    *string  `json:"network,omitempty"`
+	ASNType    *string  `json:"asn_type,omitempty"`
+	Proxy      *bool    `json:"proxy,omitempty"`
 	_          [0]func()
 	State      *string `json:"state"`
 	City       *string `json:"city"`
@@ -22,14 +30,33 @@ type IPDeep struct {
 }
 
 type IP struct {
-	_           [0]func()
-	IP          string  `json:"ip"`
-	Country     *string `json:"country"`
-	CountryName *string `json:"country_name"`
-	Continent   *string `json:"continent"`
-	ASN         *string `json:"asn"`
-	ASNName     *string `json:"asn_name"`
-	Deep        *IPDeep `json:"deep,omitempty"`
+	StateName      *string  `json:"state_name,omitempty"`
+	Postal         *string  `json:"postal,omitempty"`
+	Latitude       *float64 `json:"latitude,omitempty"`
+	Longitude      *float64 `json:"longitude,omitempty"`
+	Timezone       *string  `json:"timezone,omitempty"`
+	Network        *string  `json:"network,omitempty"`
+	ASNType        *string  `json:"asn_type,omitempty"`
+	Proxy          *bool    `json:"proxy,omitempty"`
+	_              [0]func()
+	IP             string  `json:"ip"`
+	Country        *string `json:"country"`
+	CountryName    *string `json:"country_name"`
+	Continent      *string `json:"continent"`
+	ASN            *string `json:"asn"`
+	ASNName        *string `json:"asn_name"`
+	State          *string `json:"state"`
+	City           *string `json:"city"`
+	Registry       *string `json:"registry"`
+	Datacenter     *bool   `json:"datacenter"`
+	Relay          *bool   `json:"relay"`
+	Tor            *bool   `json:"tor"`
+	VPN            *bool   `json:"vpn"`
+	Provider       *string `json:"provider"`
+	District       *string `json:"district,omitempty"`
+	DistrictName   *string `json:"district_name,omitempty"`
+	CensusDivision *string `json:"census_division,omitempty"`
+	CensusRegion   *string `json:"census_region,omitempty"`
 }
 
 type Continent struct {
@@ -59,12 +86,6 @@ type ContinentCountries struct {
 	Countries []ContinentCountryItem `json:"countries"`
 }
 
-
-
-
-
-
-
 type Country struct {
 	_              [0]func()
 	Country        string  `json:"country"`
@@ -77,25 +98,58 @@ type Country struct {
 	CallingCode    *string `json:"calling_code"`
 	Flag           *string `json:"flag"`
 	// Deprecated: use Flag. Historical source adapter, not a second JSON key.
-	Emoji     *string      `json:"-"`
-	Languages []string     `json:"languages"`
-	Deep      *CountryDeep `json:"deep,omitempty"`
-	Timezones []string     `json:"timezones"`
-	ISO3      *string      `json:"iso_alpha3,omitempty"`
-	Numeric   *int         `json:"iso_numeric,omitempty"`
+	Emoji     *string  `json:"-"`
+	Languages []string `json:"languages"`
+
+	Timezones []string `json:"timezones"`
+	ISO3      *string  `json:"iso_alpha3,omitempty"`
+	Numeric   *int     `json:"iso_numeric,omitempty"`
 
 	NameFull *string `json:"name_full,omitempty"`
 	// Deprecated: use NameFull. Retained as a source-compatible adapter.
-	FullName        *string         `json:"-"`
-	Region          *string         `json:"region,omitempty"`
-	Subregion       *string         `json:"subregion,omitempty"`
-	Capital         *CountryCapital `json:"capital,omitempty"`
-	CapitalLat      *float64        `json:"-"`
-	CapitalLon      *float64        `json:"-"`
-	Borders         []string        `json:"borders"`
-	Blocs           []string        `json:"blocs"`
-	Demonym         *string         `json:"demonym,omitempty"`
-	nameFullPresent bool
+	FullName                *string         `json:"-"`
+	Region                  *string         `json:"region,omitempty"`
+	Subregion               *string         `json:"subregion,omitempty"`
+	Capital                 *CountryCapital `json:"capital,omitempty"`
+	CapitalLat              *float64        `json:"-"`
+	CapitalLon              *float64        `json:"-"`
+	Borders                 []string        `json:"borders"`
+	Blocs                   []string        `json:"blocs"`
+	Demonym                 *string         `json:"demonym,omitempty"`
+	nameFullPresent         bool
+	GDP                     *float64               `json:"gdp,omitempty"`
+	GDPPerCapita            *float64               `json:"gdp_per_capita,omitempty"`
+	PopulationGrowth        *float64               `json:"population_growth,omitempty"`
+	UrbanPopulation         *float64               `json:"urban_population,omitempty"`
+	InternetUsers           *float64               `json:"internet_users,omitempty"`
+	Population              *int64                 `json:"population"`
+	Area                    *float64               `json:"area"`
+	LandArea                *float64               `json:"land_area"`
+	WaterArea               *float64               `json:"water_area"`
+	Coastline               *float64               `json:"coastline"`
+	Elevation               *float64               `json:"elevation,omitempty"`
+	LowestPoint             *CountryElevationPoint `json:"lowest_point"`
+	HighestPoint            *CountryElevationPoint `json:"highest_point"`
+	TLD                     *string                `json:"tld"`
+	Tax                     *CountryTax            `json:"tax,omitempty"`
+	WeekStart               *string                `json:"week_start"`
+	Units                   *string                `json:"units"`
+	DrivingSide             *string                `json:"driving_side"`
+	Plugs                   []string               `json:"plugs"`
+	Voltage                 *int                   `json:"voltage"`
+	Frequency               *int                   `json:"frequency"`
+	Emergency               *CountryEmergency      `json:"emergency"`
+	PostalFormat            *string                `json:"postal_format"`
+	PostalRegex             *string                `json:"postal_regex"`
+	IOC                     *string                `json:"ioc"`
+	FIFA                    *string                `json:"fifa"`
+	Plate                   *string                `json:"plate"`
+	GDPUSD                  *float64               `json:"gdp_usd,omitempty"`
+	GDPPerCapitaUSD         *float64               `json:"gdp_per_capita_usd,omitempty"`
+	PopulationGrowthPercent *float64               `json:"population_growth_percent,omitempty"`
+	UrbanPopulationPercent  *float64               `json:"urban_population_percent,omitempty"`
+	InternetUsersPercent    *float64               `json:"internet_users_percent,omitempty"`
+	ElevationAverage        *float64               `json:"elevation_average,omitempty"`
 }
 
 type CountryCapital struct {
@@ -146,17 +200,20 @@ type State struct {
 	FIPS        *string       `json:"fips"`
 	AreaCodes   []string      `json:"area_codes"`
 	Capital     *StateCapital `json:"capital"`
-	Deep        *StateDeep    `json:"deep,omitempty"`
+
 	// Deprecated: retained native member for the released ISO subdivision field.
-	ISO31662 *string `json:"-"`
+	ISO31662   *string   `json:"-"`
+	Population *int64    `json:"population"`
+	Area       *float64  `json:"area"`
+	Tax        *StateTax `json:"tax"`
 }
 
 type StateDistrictItem struct {
-	_        [0]func()
-	District string                 `json:"district"`
-	Name     string                 `json:"name"`
-	Type     *string                `json:"type"`
-	Deep     *StateDistrictItemDeep `json:"deep,omitempty"`
+	_          [0]func()
+	District   string  `json:"district"`
+	Name       string  `json:"name"`
+	Type       *string `json:"type"`
+	Population *int64  `json:"population"`
 }
 
 type StateDistricts struct {
@@ -170,17 +227,22 @@ type StateDistricts struct {
 
 type District struct {
 	_           [0]func()
-	District    string        `json:"district"`
-	Name        string        `json:"name"`
-	Type        *string       `json:"type"`
-	State       *string       `json:"state"`
-	StateName   *string       `json:"state_name"`
-	Country     string        `json:"country"`
-	CountryName *string       `json:"country_name"`
-	Latitude    *float64      `json:"latitude"`
-	Longitude   *float64      `json:"longitude"`
-	Timezones   []string      `json:"timezones"`
-	Deep        *DistrictDeep `json:"deep,omitempty"`
+	District    string       `json:"district"`
+	Name        string       `json:"name"`
+	Type        *string      `json:"type"`
+	State       *string      `json:"state"`
+	StateName   *string      `json:"state_name"`
+	Country     string       `json:"country"`
+	CountryName *string      `json:"country_name"`
+	Latitude    *float64     `json:"latitude"`
+	Longitude   *float64     `json:"longitude"`
+	Timezones   []string     `json:"timezones"`
+	Population  *int64       `json:"population"`
+	Area        *float64     `json:"area"`
+	LandArea    *float64     `json:"land_area"`
+	WaterArea   *float64     `json:"water_area"`
+	Seat        *string      `json:"seat"`
+	PropertyTax *PropertyTax `json:"property_tax"`
 }
 
 type City struct {
@@ -199,13 +261,22 @@ type City struct {
 	Longitude    *float64 `json:"longitude"`
 	Timezone     *string  `json:"timezone"`
 	// ID is the minted parse id (city_ + 12 chars). Stable pin via /city/id/{id}.
-	ID   string    `json:"id"`
-	Deep *CityDeep `json:"deep,omitempty"`
+	ID string `json:"id"`
+
 	// Grain and Parent are present when hierarchy is requested.
 	Grain                *string     `json:"grain,omitempty"`
 	Parent               *CityParent `json:"parent,omitempty"`
 	NameRomanized        *string     `json:"name_romanized"`
 	RomanizationLanguage *string     `json:"romanization_language"`
+	CapitalOf            *string     `json:"capital_of"`
+	Elevation            *float64    `json:"elevation"`
+	ElevationFt          *float64    `json:"elevation_ft"`
+	Population           *int64      `json:"population"`
+	PopulationObservedOn *string     `json:"population_observed_on"`
+	PopulationBasis      *string     `json:"population_basis"`
+	Area                 *float64    `json:"area"`
+	LandArea             *float64    `json:"land_area"`
+	WaterArea            *float64    `json:"water_area"`
 }
 
 // CityNearest is a City plus the distance from the query point.
@@ -246,8 +317,7 @@ type PostalMetro struct {
 	ResidentialShare *float64 `json:"residential_share"`
 	BusinessShare    *float64 `json:"business_share"`
 	OtherShare       *float64 `json:"other_share"`
-	// Percentage of ZIP addresses (0-100). Nil is unknown or absent.
-	SharePercent *float64 `json:"share_percent"`
+	SharePercent *float64 `json:"share_percent,omitempty"`
 }
 
 // PostalLocality is a supported Australian postcode suburb choice, independent of the scalar city.
@@ -276,20 +346,31 @@ type Postal struct {
 	Latitude          *float64         `json:"latitude"`
 	Longitude         *float64         `json:"longitude"`
 	Timezone          *string          `json:"timezone"`
-	Deep              *PostalDeep      `json:"deep,omitempty"`
+
 	// Open ZIP type, including future values. Nil is unknown or absent.
-	Type *string `json:"type"`
+	Type        *string            `json:"type"`
+	Elevation   *float64           `json:"elevation"`
+	ElevationFt *float64           `json:"elevation_ft"`
+	Population  *int64             `json:"population"`
+	Area        *float64           `json:"area"`
+	LandArea    *float64           `json:"land_area"`
+	WaterArea   *float64           `json:"water_area"`
+	Currency    *string            `json:"currency"`
+	Neighbors   []string           `json:"neighbors"`
+	Metros      []PostalMetro      `json:"metros"`
+	PropertyTax *PostalPropertyTax `json:"property_tax"`
+	Tax         *PostalTax         `json:"tax"`
 }
 
 type PostalNearbyItem struct {
 	_          [0]func()
-	Postal     string           `json:"postal"`
-	City       *string          `json:"city"`
-	State      *string          `json:"state"`
-	Country    string           `json:"country"`
-	Distance   float64          `json:"distance"`
-	DistanceMi float64          `json:"distance_mi"`
-	Deep       *PostalMetroDeep `json:"deep,omitempty"`
+	Postal     string        `json:"postal"`
+	City       *string       `json:"city"`
+	State      *string       `json:"state"`
+	Country    string        `json:"country"`
+	Distance   float64       `json:"distance"`
+	DistanceMi float64       `json:"distance_mi"`
+	Metros     []PostalMetro `json:"metros"`
 }
 
 type PostalNearby struct {
@@ -299,14 +380,14 @@ type PostalNearby struct {
 	Radius  float64            `json:"radius"`
 	Unit    string             `json:"unit"`
 	Nearby  []PostalNearbyItem `json:"nearby"`
-	Deep    *PostalMetroDeep   `json:"deep,omitempty"`
+	Metros  []PostalMetro      `json:"metros"`
 }
 
 type PostalDistanceEnd struct {
 	_      [0]func()
-	Postal string           `json:"postal"`
-	City   *string          `json:"city"`
-	Deep   *PostalMetroDeep `json:"deep,omitempty"`
+	Postal string        `json:"postal"`
+	City   *string       `json:"city"`
+	Metros []PostalMetro `json:"metros"`
 }
 
 type PostalDistance struct {
@@ -333,53 +414,25 @@ type EmailDeep struct {
 
 type Email struct {
 	_           [0]func()
-	Email       string     `json:"email"`
-	Valid       bool       `json:"valid"`
-	Free        bool       `json:"free"`
-	Domain      *string    `json:"domain"`
-	DomainType  *string    `json:"domain_type"`
-	DomainValid *bool      `json:"domain_valid"`
-	Role        bool       `json:"role"`
-	Disposable  bool       `json:"disposable"`
-	Deep        *EmailDeep `json:"deep,omitempty"`
-	DidYouMean  *string    `json:"didyoumean"`
+	Email       string  `json:"email"`
+	Valid       bool    `json:"valid"`
+	Free        bool    `json:"free"`
+	Domain      *string `json:"domain"`
+	DomainType  *string `json:"domain_type"`
+	DomainValid *bool   `json:"domain_valid"`
+	Role        bool    `json:"role"`
+	Disposable  bool    `json:"disposable"`
+
+	DidYouMean   *string `json:"didyoumean"`
+	FirstName    *string `json:"first_name"`
+	NoReply      *bool   `json:"no_reply"`
+	Tag          *string `json:"tag"`
+	MailProvider *string `json:"mail_provider"`
+	Deliverable  *bool   `json:"deliverable"`
+	Catchall     *bool   `json:"catchall"`
+	Status       *string `json:"status"` // Mailbox status: deliverable, undeliverable or risky. Null when unavailable.
+	Reason       *string `json:"reason"` // Why the address received this result, such as mailbox_full or mailbox_not_found. Null when unavailable.
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 type Phone struct {
 	_       [0]func()
@@ -387,10 +440,12 @@ type Phone struct {
 	Valid   bool    `json:"valid"`
 	Country *string `json:"country"`
 	// Type is what the numbering plan can see: mobile, landline, toll_free, unknown. Never voip.
-	Type          *string    `json:"type"`
-	National      *string    `json:"national"`
-	International *string    `json:"international"`
-	Deep          *PhoneDeep `json:"deep,omitempty"`
+	Type          *string `json:"type"`
+	National      *string `json:"national"`
+	International *string `json:"international"`
+	State         *string `json:"state"`
+	StateName     *string `json:"state_name"`
+	Timezone      *string `json:"timezone"`
 }
 
 type Carrier struct {
@@ -403,8 +458,10 @@ type Carrier struct {
 	// Carrier is the current carrier display name. Nil when the probe had no answer.
 	Carrier *string `json:"carrier"`
 	// Burner reports whether the carrier is a known burner number app. Nil when carrier is unknown.
-	Burner *bool        `json:"burner"`
-	Deep   *CarrierDeep `json:"deep,omitempty"`
+	Burner    *bool   `json:"burner"`
+	City      *string `json:"city"`
+	State     *string `json:"state"`
+	StateName *string `json:"state_name"`
 }
 
 type Caller struct {
@@ -424,8 +481,14 @@ type HLR struct {
 	// Live reports whether the number was assigned to a subscriber at the last check.
 	Live *bool `json:"live"`
 	// Connected reports whether the handset was reachable at the last check. Nil means unconfirmed, never no.
-	Connected *bool    `json:"connected"`
-	Deep      *HLRDeep `json:"deep,omitempty"`
+	Connected       *bool   `json:"connected"`
+	Roaming         *bool   `json:"roaming"`
+	RoamingNetwork  *string `json:"roaming_network"`
+	RoamingCountry  *string `json:"roaming_country"`
+	Network         *string `json:"network"`
+	OriginalNetwork *string `json:"original_network"`
+	MCC             *string `json:"mcc"`
+	MNC             *string `json:"mnc"`
 }
 
 type MXRecord struct {
@@ -455,12 +518,10 @@ type Stack struct {
 	Chat       []StackTechnology `json:"chat"`
 	Payments   []StackTechnology `json:"payments"`
 	Hosting    []StackTechnology `json:"hosting"`
-	Deep       map[string]any    `json:"deep,omitempty"`
 }
 
 type DomainRegistration struct {
 	_          [0]func()
-	Registered bool     `json:"registered"`
 	Created    *string  `json:"created"`
 	Updated    *string  `json:"updated"`
 	Expires    *string  `json:"expires"`
@@ -478,8 +539,8 @@ type Domain struct {
 	_      [0]func()
 	Domain string `json:"domain"`
 	// True means unregistered, false means registered, nil means unknown.
-	Available *bool       `json:"available"`
-	Deep      *DomainDeep `json:"deep,omitempty"`
+	Available    *bool               `json:"available"`
+	Registration *DomainRegistration `json:"registration"`
 }
 
 type ASN struct {
@@ -490,15 +551,18 @@ type ASN struct {
 	CountryName *string `json:"country_name"`
 }
 
-
 // Card contains network identity; nil brand means unknown or ambiguous.
 type Card struct {
 	_         [0]func()
-	BIN       string    `json:"bin"`
-	Brand     *string   `json:"brand"`
-	BrandName *string   `json:"brand_name"`
-	Logo      string    `json:"logo"`
-	Deep      *CardDeep `json:"deep,omitempty"`
+	BIN       string  `json:"bin"`
+	Brand     *string `json:"brand"`
+	BrandName *string `json:"brand_name"`
+	Logo      string  `json:"logo"`
+	Prefix    *string `json:"prefix"`
+	Issuer    *string `json:"issuer"`
+	Country   *string `json:"country"`
+	Type      *string `json:"type"`
+	Prepaid   *bool   `json:"prepaid"`
 }
 
 // CardDeep is optional, partial recorded issuer data. Nil fields mean unknown.
@@ -580,44 +644,49 @@ type UserAgentDeep struct {
 }
 
 type UserAgent struct {
-	_         [0]func()
-	UserAgent string         `json:"useragent"`
-	Device    *string        `json:"device"`
-	OS        *string        `json:"os"`
-	Browser   *string        `json:"browser"`
-	Bot       bool           `json:"bot"`
-	Mobile    bool           `json:"mobile"`
-	Deep      *UserAgentDeep `json:"deep,omitempty"`
+	_          [0]func()
+	UserAgent  string                `json:"useragent"`
+	Device     *UserAgentDeviceDeep  `json:"device"`
+	OS         *UserAgentOSDeep      `json:"os"`
+	Browser    *UserAgentBrowserDeep `json:"browser"`
+	Bot        bool                  `json:"bot"`
+	Mobile     bool                  `json:"mobile"`
+	Engine     *UserAgentEngineDeep  `json:"engine"`
+	Headless   *bool                 `json:"headless"`
+	AI         *bool                 `json:"ai,omitempty"`
+	BotDetails map[string]any        `json:"bot_details"`
 }
-
 
 // Language is one language by BCP 47 shortest code or ISO 639-3. Codes are lowercase.
 type Language struct {
 	_         [0]func()
-	Language  string        `json:"language"`
-	Name      string        `json:"name"`
-	NameLocal *string       `json:"name_local"`
-	Script    *string       `json:"script"`
-	Direction string        `json:"direction"`
-	Deep      *LanguageDeep `json:"deep,omitempty"`
-	ISO3      *string       `json:"iso_alpha3,omitempty"`
-	Countries []string      `json:"countries"`
+	Language  string  `json:"language"`
+	Name      string  `json:"name"`
+	NameLocal *string `json:"name_local"`
+	Script    *string `json:"script"`
+	Direction string  `json:"direction"`
+
+	ISO3      *string  `json:"iso_alpha3,omitempty"`
+	Countries []string `json:"countries"`
 }
 
 // Name is a parsed person name. Junk input returns Valid false, never an error.
 // Gender comes from dictionary data and is nil when the data does not decide.
 type Name struct {
-	_      [0]func()
-	Name   string    `json:"name"`
-	Valid  bool      `json:"valid"`
-	Prefix *string   `json:"prefix"`
-	First  *string   `json:"first"`
-	Middle *string   `json:"middle"`
-	Last   *string   `json:"last"`
-	Suffix *string   `json:"suffix"`
-	Deep   *NameDeep `json:"deep,omitempty"`
+	_          [0]func()
+	Name       string  `json:"name"`
+	Valid      bool    `json:"valid"`
+	Prefix     *string `json:"prefix"`
+	First      *string `json:"first"`
+	Middle     *string `json:"middle"`
+	Last       *string `json:"last"`
+	Suffix     *string `json:"suffix"`
+	Gender     *string `json:"gender"`
+	Salutation *string `json:"salutation"`
+	Short      *string `json:"short"`
+	Directory  *string `json:"directory"`
+	Initials   *string `json:"initials"`
 }
-
 
 type TimezoneNextDST struct {
 	_            [0]func()
@@ -634,37 +703,57 @@ type Time = Timezone
 type TimeZones struct {
 	_                       [0]func()
 	TimezoneDatabaseVersion string          `json:"timezone_database_version"`
-	Timezones               []string        `json:"timezones"`
+	Timezones               []string        `json:"timezones,omitempty"`
 	At                      *string         `json:"at,omitempty"`
 	Zones                   []TimeZoneEntry `json:"zones,omitempty"`
 }
 
 type Timezone struct {
-	Location     *TimeLocation `json:"location,omitempty"`
-	_            [0]func()
-	Timezone     *string                    `json:"timezone"`
-	Abbreviation *string                    `json:"abbreviation"`
-	Offset       *string                    `json:"offset"`
-	DST          *bool                      `json:"dst"`
-	Latitude     *float64                   `json:"latitude,omitempty"`
-	Longitude    *float64                   `json:"longitude,omitempty"`
-	At           *string                    `json:"at,omitempty"`
-	Unix         *int64                     `json:"unix,omitempty"`
-	To           *TimezoneConversionTarget  `json:"to,omitempty"`
-	Targets      []TimezoneConversionTarget `json:"targets,omitempty"`
-	Deep         *TimezoneDeep              `json:"deep,omitempty"`
+	Location                *TimeLocation `json:"location,omitempty"`
+	_                       [0]func()
+	Timezone                *string                    `json:"timezone"`
+	Abbreviation            *string                    `json:"abbreviation"`
+	Offset                  *string                    `json:"offset"`
+	DST                     *bool                      `json:"dst"`
+	Latitude                *float64                   `json:"latitude,omitempty"`
+	Longitude               *float64                   `json:"longitude,omitempty"`
+	At                      *string                    `json:"at,omitempty"`
+	Unix                    *int64                     `json:"unix,omitempty"`
+	To                      *TimezoneConversionTarget  `json:"to,omitempty"`
+	Targets                 []TimezoneConversionTarget `json:"targets,omitempty"`
+	StandardOffset          *string                    `json:"standard_offset"`
+	StandardOffsetSeconds   *int                       `json:"standard_offset_seconds"`
+	DSTOffsetSeconds        *int                       `json:"dst_offset_seconds"`
+	Season                  *TimeSeason                `json:"season"`
+	TimezoneDatabaseVersion *string                    `json:"timezone_database_version"`
+	Resolution              *TimeResolution            `json:"resolution"`
+	Name                    *string                    `json:"name"`
+	OffsetSeconds           *int                       `json:"offset_seconds,omitempty"`
+	OffsetMinutes           *int                       `json:"offset_minutes"`
+	NextDST                 *TimezoneNextDST           `json:"next_dst"`
 }
 
 // DateInfo contains calendar facts for a date. Calendar fields are nil
 // when Valid is false. To and Days appear when a comparison was requested.
 type DateInfo struct {
-	_     [0]func()
-	Date  string        `json:"date"`
-	Valid bool          `json:"valid"`
-	Unix  *int64        `json:"unix"`
-	To    *string       `json:"to,omitempty"`
-	Days  *int          `json:"days,omitempty"`
-	Deep  *DateInfoDeep `json:"deep,omitempty"`
+	_           [0]func()
+	Date        string  `json:"date"`
+	Valid       bool    `json:"valid"`
+	Unix        *int64  `json:"unix"`
+	To          *string `json:"to,omitempty"`
+	Days        *int    `json:"days,omitempty"`
+	Year        *int    `json:"year"`
+	Month       *int    `json:"month"`
+	MonthName   *string `json:"month_name"`
+	Day         *int    `json:"day"`
+	Weekday     *int    `json:"weekday"`
+	WeekdayName *string `json:"weekday_name"`
+	Week        *int    `json:"week"`
+	WeekYear    *int    `json:"week_year"`
+	DayOfYear   *int    `json:"day_of_year"`
+	Quarter     *int    `json:"quarter"`
+	Leap        *bool   `json:"leap"`
+	DaysInMonth *int    `json:"days_in_month"`
 }
 
 type Holiday struct {
@@ -721,16 +810,21 @@ type PointDeep struct {
 
 type Point struct {
 	_            [0]func()
-	Latitude     float64    `json:"latitude"`
-	Longitude    float64    `json:"longitude"`
-	Country      *string    `json:"country"`
-	CountryName  *string    `json:"country_name"`
-	State        *string    `json:"state"`
-	StateName    *string    `json:"state_name"`
-	District     *string    `json:"district"`
-	DistrictName *string    `json:"district_name"`
-	Deep         *PointDeep `json:"deep,omitempty"`
-	Timezone     *string    `json:"timezone"`
+	Latitude     float64 `json:"latitude"`
+	Longitude    float64 `json:"longitude"`
+	Country      *string `json:"country"`
+	CountryName  *string `json:"country_name"`
+	State        *string `json:"state"`
+	StateName    *string `json:"state_name"`
+	District     *string `json:"district"`
+	DistrictName *string `json:"district_name"`
+
+	Timezone    *string         `json:"timezone"`
+	City        *PointCity      `json:"city"`
+	Elevation   *float64        `json:"elevation"`
+	Electoral   *PointElectoral `json:"electoral"`
+	ElevationFt *float64        `json:"elevation_ft"`
+	Resolution  *float64        `json:"resolution"`
 }
 
 type WeatherForecastPeriod struct {
@@ -832,6 +926,14 @@ type WeatherCurrent struct {
 	ConditionName  *string  `json:"condition_name"`
 	ConditionEmoji *string  `json:"condition_emoji"`
 	ObservedAt     *string  `json:"observed_at"`
+	Dewpoint       *float64 `json:"dewpoint"`
+	DewpointF      *float64 `json:"dewpoint_f"`
+	WindGust       *float64 `json:"wind_gust"`
+	WindGustMph    *float64 `json:"wind_gust_mph"`
+	Pressure       *float64 `json:"pressure"`
+	PressureInhg   *float64 `json:"pressure_inhg"`
+	Visibility     *float64 `json:"visibility"`
+	VisibilityMi   *float64 `json:"visibility_mi"`
 }
 
 type WeatherStation struct {
@@ -844,11 +946,17 @@ type WeatherStation struct {
 
 type Weather struct {
 	_         [0]func()
-	Latitude  float64         `json:"latitude"`
-	Longitude float64         `json:"longitude"`
-	Current   WeatherCurrent  `json:"current"`
-	Station   *WeatherStation `json:"station"`
-	Deep      *WeatherDeep    `json:"deep,omitempty"`
+	Latitude  float64                 `json:"latitude"`
+	Longitude float64                 `json:"longitude"`
+	Current   WeatherCurrent          `json:"current"`
+	Station   *WeatherStation         `json:"station"`
+	Forecast  []WeatherForecastPeriod `json:"forecast"`
+	Alerts    []WeatherAlert          `json:"alerts"`
+	Minutes   []WeatherMinute         `json:"minutes"`
+	Hours     []WeatherHour           `json:"hours"`
+	Days      []WeatherDay            `json:"days"`
+	Air       *WeatherAir             `json:"air"`
+	History   *WeatherHistory         `json:"history,omitempty"`
 }
 
 type EmojiSkin struct {
@@ -860,12 +968,21 @@ type EmojiSkin struct {
 }
 
 type Emoji struct {
-	_          [0]func()
-	Emoji      string     `json:"emoji"`
-	Name       string     `json:"name"`
-	Shortcodes []string   `json:"shortcodes"`
-	Category   *string    `json:"category"`
-	Deep       *EmojiDeep `json:"deep,omitempty"`
+	_           [0]func()
+	Emoji       string                  `json:"emoji"`
+	Name        string                  `json:"name"`
+	Shortcodes  []string                `json:"shortcodes"`
+	Category    *string                 `json:"category"`
+	Artwork     map[string]EmojiArtwork `json:"artwork"`
+	Subcategory *string                 `json:"subcategory"`
+	Base        *string                 `json:"base"`
+	Variants    []EmojiVariant          `json:"variants"`
+	Codepoints  []string                `json:"codepoints"`
+	Hex         *string                 `json:"hex"`
+	Status      *string                 `json:"status"`
+	Version     *string                 `json:"version"`
+	Keywords    []string                `json:"keywords"`
+	Skins       []EmojiSkin             `json:"skins"`
 }
 
 type EmojiBrowse struct {
@@ -913,14 +1030,16 @@ type EmojiSearch struct {
 }
 
 type TimezoneConversionTarget struct {
-	_            [0]func()
-	Timezone     string                        `json:"timezone"`
-	Abbreviation *string                       `json:"abbreviation"`
-	Offset       string                        `json:"offset"`
-	DST          bool                          `json:"dst"`
-	At           string                        `json:"at"`
-	Unix         *int64                        `json:"unix,omitempty"`
-	Deep         *TimezoneConversionTargetDeep `json:"deep,omitempty"`
+	_             [0]func()
+	Timezone      string  `json:"timezone"`
+	Abbreviation  *string `json:"abbreviation"`
+	Offset        string  `json:"offset"`
+	DST           bool    `json:"dst"`
+	At            string  `json:"at"`
+	Unix          *int64  `json:"unix,omitempty"`
+	Name          *string `json:"name"`
+	OffsetSeconds *int    `json:"offset_seconds,omitempty"`
+	OffsetMinutes *int    `json:"offset_minutes"`
 }
 
 type WeatherAir struct {
@@ -967,7 +1086,6 @@ type Address struct {
 	CountryName  *string        `json:"country_name"`
 	Latitude     *float64       `json:"latitude"`
 	Longitude    *float64       `json:"longitude"`
-	Deep         map[string]any `json:"deep,omitempty"`
 }
 
 type AddressSuggestion struct {
@@ -1018,21 +1136,29 @@ type CompanyDeep struct {
 }
 
 type Company struct {
-	_          [0]func()
-	Company    *string      `json:"company"`
-	Valid      bool         `json:"valid"`
-	Registered *bool        `json:"registered"`
-	Country    *string      `json:"country"`
-	Type       *string      `json:"type"`
-	Name       *string      `json:"name"`
-	Active     *bool        `json:"active"`
-	Address    *string      `json:"address"`
-	City       *string      `json:"city"`
-	State      *string      `json:"state"`
-	Postal     *string      `json:"postal"`
-	Deep       *CompanyDeep `json:"deep,omitempty"`
+	_           [0]func()
+	Company     *string `json:"company"`
+	Valid       bool    `json:"valid"`
+	Registered  *bool   `json:"registered"`
+	Country     *string `json:"country"`
+	Type        *string `json:"type"`
+	Name        *string `json:"name"`
+	Active      *bool   `json:"active"`
+	Address     *string `json:"address"`
+	City        *string `json:"city"`
+	State       *string `json:"state"`
+	Postal      *string `json:"postal"`
+	Activity    *string `json:"activity"`
+	StateName   *string `json:"state_name"`
+	CountryName *string `json:"country_name"`
+	VAT         *string `json:"vat"`
+	GST         *bool   `json:"gst"`
+	ACN         *string `json:"acn"`
+	Siren       *string `json:"siren"`
+	Siege       *bool   `json:"siege"`
+	Kind        *string `json:"kind"`
+	Invoice     *string `json:"invoice"`
 }
-
 
 // NAICSChild names a direct child industry code.
 type NAICSChild struct {
@@ -1070,10 +1196,12 @@ type NAICS struct {
 	Parent     *string `json:"parent"`
 	ParentName *string `json:"parent_name"`
 	// Match is search evidence, absent on direct lookup and older responses.
-	Match   *NAICSMatch `json:"match"`
-	Year    int         `json:"year"`
-	Country string      `json:"country"`
-	Deep    *NAICSDeep  `json:"deep,omitempty"`
+	Match       *NAICSMatch      `json:"match"`
+	Year        int              `json:"year"`
+	Country     string           `json:"country"`
+	Description *string          `json:"description"`
+	Children    []NAICSChild     `json:"children"`
+	Exclusions  []NAICSExclusion `json:"exclusions"`
 }
 
 type NAICSSearch struct {
@@ -1157,6 +1285,24 @@ type CountryElevationPoint struct {
 	Elevation float64 `json:"elevation"`
 }
 
+type StateTax struct {
+	_    [0]func()
+	Name *string `json:"name"`
+	// Reference rate in percent.
+	Rate *float64 `json:"rate"`
+}
+
+type PostalTax struct {
+	_    [0]func()
+	Name *string `json:"name"`
+	// Combined ZIP rate and its components, in percent.
+	Rate        *float64 `json:"rate"`
+	RateState   *float64 `json:"rate_state"`
+	RateCounty  *float64 `json:"rate_county"`
+	RateCity    *float64 `json:"rate_city"`
+	RateSpecial *float64 `json:"rate_special"`
+}
+
 type StateDeep struct {
 	_          [0]func()
 	Population *int64 `json:"population"`
@@ -1217,27 +1363,15 @@ type PostalDeep struct {
 	// LandArea / WaterArea are the km2 split where the source has them.
 	LandArea  *float64 `json:"land_area"`
 	WaterArea *float64 `json:"water_area"`
-	Currency  *string  `json:"currency"`
+	Currency *string `json:"currency"`
+	// Same-country postal codes, preserving leading zeros and source order.
 	Neighbors []string `json:"neighbors"`
 	// Metros is nil when unknown, and non-nil empty when observed outside all covered areas.
 	Metros []PostalMetro `json:"metros"`
-	// Levy name, such as VAT, GST or sales tax. Null when unknown or not applicable.
-	Tax *string `json:"tax"`
-	// Combined US ZIP reference rate in percent (7.9 means 7.9%). An exact address can differ. Null is unknown, zero is known zero.
-	TaxRate *float64 `json:"tax_rate"`
-	// State component of the ZIP reference rate, in percent. Null when unknown.
-	TaxRateState *float64 `json:"tax_rate_state"`
-	// County component of the ZIP reference rate, in percent. Null when unknown.
-	TaxRateCounty *float64 `json:"tax_rate_county"`
-	// City component of the ZIP reference rate, in percent. Null when unknown.
-	TaxRateCity *float64 `json:"tax_rate_city"`
-	// Special component of the ZIP reference rate, in percent. Null when unknown.
-	TaxRateSpecial *float64 `json:"tax_rate_special"`
+	Tax    *PostalTax    `json:"tax"`
 	// Median annual property tax payable on owner-occupied homes in this statistical area. Null when unsupported, missing or censored.
 	PropertyTax *PostalPropertyTax `json:"property_tax"`
 }
-
-
 
 type PhoneDeep struct {
 	_ [0]func()
@@ -1278,7 +1412,6 @@ type NAICSDeep struct {
 	Exclusions []NAICSExclusion `json:"exclusions"`
 }
 
-
 type LanguageDeep struct {
 	_ [0]func()
 	// Historical Deep read adapters; canonical responses keep these facts in Core.
@@ -1289,7 +1422,6 @@ type LanguageDeep struct {
 type NameDeep struct {
 	_          [0]func()
 	Gender     *string `json:"gender"`
-	Salutation *string `json:"salutation"`
 	Short      *string `json:"short"`
 	Directory  *string `json:"directory"`
 	Initials   *string `json:"initials"`
@@ -1417,8 +1549,10 @@ type NAICSSearchResult struct {
 	Parent     *string `json:"parent"`
 	ParentName *string `json:"parent_name"`
 	// Match is search evidence, absent on direct lookup and older responses.
-	Match *NAICSMatch `json:"match"`
-	Deep  *NAICSDeep  `json:"deep,omitempty"`
+	Match       *NAICSMatch      `json:"match"`
+	Description *string          `json:"description"`
+	Children    []NAICSChild     `json:"children"`
+	Exclusions  []NAICSExclusion `json:"exclusions"`
 }
 
 // PostalPropertyTax is the compact Postal estimate; currency is in PostalDeep.Currency.
@@ -1492,27 +1626,18 @@ type TimeLocationCandidate struct {
 }
 type TimeLocation struct {
 	_          [0]func()
+	ID         *string                 `json:"id,omitempty"`
+	Name       *string                 `json:"name,omitempty"`
+	Country    *string                 `json:"country,omitempty"`
+	State      *string                 `json:"state,omitempty"`
+	Latitude   *float64                `json:"latitude,omitempty"`
+	Longitude  *float64                `json:"longitude,omitempty"`
 	Input      TimeLocationInput       `json:"input"`
 	Status     string                  `json:"status"`
 	Candidates []TimeLocationCandidate `json:"candidates"`
 	Truncated  bool                    `json:"truncated"`
 	Source     string                  `json:"source"`
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // Industry names for the existing US NAICS response contract.
 type Industry = NAICS
@@ -1523,30 +1648,6 @@ type IndustryExclusion = NAICSExclusion
 type IndustryMatch = NAICSMatch
 type IndustrySearch = NAICSSearch
 type IndustrySearchResult = NAICSSearchResult
-
-
-
-
-
-
-
-
-
-
-type BIN struct {
-	_   [0]func()
-	BIN string `json:"bin"`
-	// Prefix is the actual longest match and may be shorter than BIN.
-	Prefix    *string        `json:"prefix"`
-	Country   *string        `json:"country"`
-	Issuer    *string        `json:"issuer"`
-	Brand     *string        `json:"brand"`
-	BrandName *string        `json:"brand_name"`
-	Type      *string        `json:"type"`
-	Prepaid   *bool          `json:"prepaid"`
-	Deep      map[string]any `json:"deep,omitempty"`
-}
-
 
 
 // Artwork URLs exist only for files present in a pinned source manifest.
@@ -1560,9 +1661,8 @@ type EmojiArtwork struct {
 }
 
 type EmojiCompleteness struct {
-	_               [0]func()
-	MissingCount    int `json:"missing_count"`
-	UnexpectedCount int `json:"unexpected_count"`
+ _ [0]func()
+ Complete *bool `json:"complete"`
 }
 type EmojiSource struct {
 	_          [0]func()
@@ -1604,7 +1704,6 @@ type EmojiArtworkSource struct {
 	Notices        []string              `json:"notices"`
 }
 type EmojiMetadata struct {
-	ShortcodeSources map[string]EmojiShortcodeSourceMetadata `json:"shortcode_sources"`
 	_                [0]func()
 	Edition          string               `json:"edition"`
 	MaxVersion       *string              `json:"max_version"`
@@ -1622,7 +1721,6 @@ type EmojiCatalogScope struct {
 }
 type EmojiCatalog struct {
 	Localization *EmojiCatalogLocalization `json:"localization"`
-	Profile      *string                   `json:"profile"`
 	Scope        *EmojiCatalogScope        `json:"scope"`
 	Search       *EmojiCatalogSearchFacts  `json:"search"`
 	_            [0]func()
@@ -1689,54 +1787,44 @@ type CityParent struct {
 // CityList is a page from the curated City collection.
 type CityList struct {
 	_          [0]func()
-	Object     string         `json:"object"`
-	HasMore    *bool          `json:"has_more,omitempty"`
-	URL        *string        `json:"url,omitempty"`
+
+
+
 	Q          *string        `json:"q,omitempty"`
 	Country    *string        `json:"country,omitempty"`
 	State      *string        `json:"state,omitempty"`
 	Type       *string        `json:"type,omitempty"`
 	Grain      *string        `json:"grain,omitempty"`
-	Data       []CityResource `json:"data"`
+	Cities []City `json:"cities"`
 	NextCursor *string        `json:"next_cursor"`
 }
 
 // CityNearbyCoords is a page of cities around the supplied coordinate.
 type CityNearbyCoords struct {
 	_          [0]func()
-	Object     string         `json:"object"`
-	HasMore    *bool          `json:"has_more,omitempty"`
-	URL        *string        `json:"url,omitempty"`
+
+
+
 	Latitude   float64        `json:"latitude"`
 	Longitude  float64        `json:"longitude"`
 	Radius     float64        `json:"radius"`
 	Unit       string         `json:"unit"`
-	Data       []CityResource `json:"data"`
+	Nearby []CityNearest `json:"nearby"`
 	NextCursor *string        `json:"next_cursor"`
 }
 
 
 
-type StateTax struct {
-	_    [0]func()
-	Name *string `json:"name"`
-	// Reference rate in percent.
-	Rate *float64 `json:"rate"`
-}
-
-
-
 type Currency struct {
-	_ [0]func()
-	Currency string `json:"currency"`
-	ISONumeric *int `json:"iso_numeric"`
-	Name string `json:"name"`
-	NamePlural *string `json:"name_plural"`
-	Symbol *string `json:"symbol"`
-	SymbolNative *string `json:"symbol_native"`
-	Digits *int `json:"digits"`
-	Countries []string `json:"countries"`
-	Deep *CurrencyDeep `json:"deep,omitempty"`
+	_            [0]func()
+	Currency     string   `json:"currency"`
+	ISONumeric   *int     `json:"iso_numeric"`
+	Name         string   `json:"name"`
+	NamePlural   *string  `json:"name_plural"`
+	Symbol       *string  `json:"symbol"`
+	SymbolNative *string  `json:"symbol_native"`
+	Digits       *int     `json:"digits"`
+	Countries    []string `json:"countries"`
 }
 
 type CurrencyRate struct {
@@ -1747,6 +1835,7 @@ type CurrencyRate struct {
 	Date      string   `json:"date"`
 	Amount    *float64 `json:"amount,omitempty"`
 	Converted *float64 `json:"converted,omitempty"`
+	Source    string   `json:"source,omitempty"`
 }
 
-type CurrencyDeep struct { _ [0]func() }
+type CurrencyDeep struct{ _ [0]func() }

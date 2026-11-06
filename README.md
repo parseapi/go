@@ -14,7 +14,7 @@ Import `parseapi "github.com/parseapi/go"`. Every call takes a `context.Context`
 
 ## API versions
 
-This SDK sends `Parse-Version: 2.0.0` on every request, including retries. Its response types match API `2.0.0`, and the client selects that contract automatically. No extra constructor setting or key change is needed. This behavior requires the matching API request-version release.
+This SDK sends `X-API-Version: 2.1.0` on every request, including retries. Its response types match API `2.1.0`, and the client selects that contract automatically. No extra constructor setting or key change is needed. This behavior requires the matching API request-version release. The API still accepts earlier `Parse-Version` request pins.
 
 The team setting in [Dashboard API version](https://parseapi.com/dashboard/versions) is the default for requests without a version header. This SDK's header takes precedence without changing that saved default. Existing published packages keep their documented behavior.
 
@@ -50,7 +50,7 @@ Pass `country` when a postal code or national phone number needs disambiguation.
 
 Results are plain data. Pass a returned code or coordinate to another operation when the task needs it. Check nullable values before composing the next call.
 
-Name paid deep includes flat `short`, `directory`, and `initials` fields beside `gender` and `salutation`. `NameLocale` selects CLDR formatting rules and defaults to `en`. It changes formatting only. Country remains gender context, and unavailable formatting is null. Older responses may omit these fields.
+Name paid deep includes flat `short`, `directory`, and `initials` fields beside `gender`. `NameLocale` selects CLDR formatting rules and defaults to `en`. It changes formatting only. Country remains gender context, and unavailable formatting is null. Older responses may omit these fields.
 
 ## Display language
 
@@ -118,7 +118,7 @@ DNS uses pooled requests on every plan. Omit `type` to check A, AAAA, CNAME, MX,
 
 ## Company directory
 
-`CompanyID`, `CompanySearch`, `CompanyCoverage` retrieve directory profiles, search candidates and edition coverage. Existing national company-number validation stays unchanged. Use at most one of query (sent as `q`), domain, ticker or identifier, or discover by country or exact industry; country filters the candidates, exchange narrows a ticker and authority narrows an identifier. The API validates combinations. Each call makes one request and does not automatically resolve candidates or fetch linked assets.
+`CompanyID` and `CompanySearch` retrieve directory profiles and search candidates. Existing national company-number validation stays unchanged. Use at most one of query (sent as `q`), domain, ticker or identifier, or discover by country or exact industry; country filters the candidates, exchange narrows a ticker and authority narrows an identifier. The API validates combinations. Each call makes one request and does not automatically resolve candidates or fetch linked assets.
 
 ```go
 page, err := parse.CompanySearch(ctx, parseapi.CompanySearchOptions{Domain: "cloudflare.com", Deep: true})
@@ -126,10 +126,8 @@ if err != nil { return err }
 if len(page.Companies) > 0 {
     profile, err := parse.CompanyID(ctx, page.Companies[0].ID, parseapi.CompanyIDOptions{Deep: true})
     if err != nil { return err }
-    _ = profile.Deep // *CompanyProfileDeep; fields may be nil
+    _ = profile.Description // Optional detail fields may be nil
 }
-coverage, err := parse.CompanyCoverage(ctx)
-_ = coverage
 _ = err
 
 // Continue a name search with the same selector, filters and limit.
@@ -144,13 +142,13 @@ if first.Next != nil {
 
 Directory `deep` adds detail to each profile on paid plans in the same pooled request. Existing accounts retain their current Deep access. Omitted deep, empty deep and partial detail remain distinct; description, logo, social_profiles, phone_numbers, email_addresses, domains, founded, employees, registrations and sources may be absent on older server releases. Sources attribute only their listed selected enrichment fields. Founding precision is preserved separately from incorporation. Missing listings do not establish private ownership, and a domain match does not prove legal identity. Coverage describes the returned edition, not every company worldwide.
 
-The public-directory service retires national-number Company lookups in both API versions. Use the directory methods with API 2.0.0.
+The public-directory service retires national-number Company lookups in both API versions. Use the directory methods with API 2.1.0.
 
-Company directory social profiles contain `platform`, `url` and `handle`; unknown metadata stays null. Phone and email records use `type` for the source-reported purpose. Earlier response fields remain readable by the client.
+Company directory social profiles include `platform` and `url`. Known handles are included when available; unknown handles may be omitted or returned as null by older servers. Phone and email records use `type` for the source-reported purpose. Earlier response fields remain readable by the client.
 
 Discovery example: `parse.CompanySearch(ctx, parseapi.CompanySearchOptions{Country: "US", Industry: "0700", IndustryType: "sic"})`
 
-Supply `Industry` and `IndustryType` together. The supported namespace is `sic`, with an exact four-digit string such as `0700`; leading zeros are meaningful. Country-only discovery is also supported. Filters intersect and may narrow an existing selector. Country matches the profile country, not a headquarters or operating-presence claim. Unknown values do not match a requested filter. Filter-only candidates use `match.field: "filters"` and `match.value: null`; reuse the same filters and limit with a returned cursor. Counts describe this directory edition, not complete country coverage.
+Supply `Industry` and `IndustryType` together. The supported namespace is `sic`, with an exact four-digit string such as `0700`; leading zeros are meaningful. Country-only discovery is also supported. Filters intersect and may narrow an existing selector. Country matches the profile country, not a headquarters or operating-presence claim. Unknown values do not match a requested filter. Filter-only candidates use `match.field: "filters"` and `match.value: null`; reuse the same filters and limit with a returned cursor.
 
 
 ## Time
@@ -176,7 +174,7 @@ if err != nil { return err }
 fmt.Println(result.To.At) // 2026-11-01T06:30:00+00:00
 ```
 
-Canonical Time `deep` includes the pinned rule edition in `Deep.TimezoneDatabaseVersion` and source-wall resolution in `Deep.Resolution`. Resolution records `kind` (`unique`, `overlap` or `gap`), the selected policy, signed `adjustment_seconds`, and chronological alternatives with exact `at`, Unix seconds and UTC offset. Unique times have an empty alternatives list. Explicit instants, current time and lookups without conversion have null resolution. Destination detail stays compact.
+Canonical Time `deep` includes the pinned rule edition in `TimezoneDatabaseVersion` and source-wall resolution in `Resolution`. Resolution records `kind` (`unique`, `overlap` or `gap`), the selected policy, signed `adjustment_seconds`, and chronological alternatives with exact `at`, Unix seconds and UTC offset. Unique times have an empty alternatives list. Explicit instants, current time and lookups without conversion omit resolution. Destination detail stays compact.
 
 Search serving IANA IDs by city or region, or omit the query to list all (Go and Rust use an empty string). Discovery returns `timezone_database_version` and sorted `timezones`. No search matches returns `timezones: []`.
 
@@ -209,23 +207,25 @@ Source deep adds `standard_offset`, `standard_offset_seconds`, signed `dst_offse
 
 ## Place statistics and optional detail
 
-Country Core contains the everyday reference: `name`, `name_full`, `name_local`, demonym and country codes, continent, region and subregion, currency, calling code, `flag`, language and timezone codes, borders, bloc memberships and `capital: { name, latitude, longitude }`. Paid Deep adds specialist detail, including population, total area and national statistics. `gdp_usd` and `gdp_per_capita_usd` are current US dollars; `population_growth_percent`, `urban_population_percent` and `internet_users_percent` use a 0–100 percent scale (growth can be negative or exceed 100). GDP per person and these three percentages round once to two decimals in the API response. `elevation_average` is average terrain elevation in meters; `lowest_point.elevation` and `highest_point.elevation` keep their point-specific meaning. Unknown stays null and a known zero stays zero. Country tax references are grouped once as `deep.tax: { name, rate }`; the rate remains a percentage. Read capital from the Core object and read the tax name and rate from the Deep tax object.
+Country Core contains the everyday reference: `name`, `name_full`, `name_local`, demonym and country codes, continent, region and subregion, currency, calling code, `flag`, language and timezone codes, borders, bloc memberships and `capital: { name, latitude, longitude }`. Paid Deep adds specialist detail, including population, total area and national statistics. `gdp_usd` and `gdp_per_capita_usd` are current US dollars; `population_growth_percent`, `urban_population_percent` and `internet_users_percent` use a 0–100 percent scale (growth can be negative or exceed 100). GDP per person and these three percentages round once to two decimals in the API response. `elevation_average` is average terrain elevation in meters; `lowest_point.elevation` and `highest_point.elevation` keep their point-specific meaning. Unknown stays null and a known zero stays zero. Country tax references are grouped once as `tax: { name, rate }`; the rate remains a percentage. Read capital from the Core object and read optional tax references from `tax.name` and `tax.rate` on that same resource.
+
+Country includes `postal_format` and `postal_regex` on every plan without requesting Deep. `postal_format` is an input hint based on one example, not a complete mask. `postal_regex` checks syntax, not whether a code exists or receives mail. Unavailable values are null.
 
 Read the canonical native member as `NameFull`; `FullName` remains a source adapter. JSON encoding writes only `name_full`. Historical Deep fields remain readable in earlier responses; they are not added to the current wire result.
 
 Australian postal lookups include core `localities` with suburb choices (`city`, `state`, `state_name`) on every plan. Null or an omitted field means unknown, while `[]` means the reviewed reference has no eligible choices. `city` stays null when the source is ambiguous, even if there is only one eligible choice. Let the user select their suburb and keep manual entry available. These are geographic choices, not mailing-address verification. [G-NAF source, adaptations and licence](https://parseapi.com/legal/attribution#postal-au).
 
-Postal paid profiles include compact `deep.property_tax: { annual_median }` where supported; `deep.currency` supplies the currency. District keeps the richer property-tax record with `annual_median`, `currency` and `period` (`YYYY-YYYY`). Both are area estimates of annual tax payable on owner-occupied homes, not a rate or an individual property bill. Unsupported, missing and censored estimates are null. Postal readers also accept earlier nested currency and period values when present.
+Postal paid Deep includes `currency`, `neighbors`, grouped `tax` and `property_tax: { annual_median }`. Property-tax amounts use `currency`. Tax contains `name`, `rate` and the `rate_state`, `rate_county`, `rate_city` and `rate_special` components in percent. Core provides the postal location answer.
 
-Weather minute forecasts use `precipitation_rate` (mm/hour) and `precipitation_rate_in` (inches/hour). History precipitation remains an accumulated amount. Go readers accept earlier minute keys when the canonical key is absent; canonical null stays unknown.
+District paid profiles include `property_tax` where supported. It contains `annual_median`, `currency` and `period`: median annual property tax payable on owner-occupied homes in the statistical area. The amount is adjusted to the final year of the reporting period (`YYYY-YYYY`). This is an area statistic, not a rate or an individual property bill. Unsupported, missing and censored estimates are null.
 
 ```go
 place, err := parse.Postal(ctx, "28202", parseapi.PostalOptions{Country: "US", Deep: true})
 if err != nil {
     log.Fatal(err)
 }
-if place.Deep != nil && place.Deep.PropertyTax != nil {
-    fmt.Println(place.Deep.PropertyTax.AnnualMedian, place.Deep.Currency)
+if place.PropertyTax != nil {
+    fmt.Println(place.PropertyTax.AnnualMedian, place.Currency)
 }
 ```
 
@@ -233,7 +233,7 @@ Read `population` as the source’s count for that place boundary. Keep missing 
 
 Point returns the timezone ID with the core location. Its optional Deep adds terrain, compact nearest-city context and supported electoral detail on paid plans. Existing accounts retain their current Deep access. A nearest city is null when none is within 200 km.
 
-Weather returns current conditions by default. Paid deep adds specialist current measurements, forecasts and related detail. A past `date` is a UTC day and requires deep: it adds `deep.history` alongside current conditions. Date alone does not request history.
+Weather returns current conditions by default. Paid deep adds specialist current measurements, forecasts and related detail. On a paid plan, a past `date` adds history for that UTC day alongside current conditions in API 2.1. Earlier contracts require an explicit detail request.
 
 ```go
 parse.Weather(ctx, 40.7128, -74.006, parseapi.WeatherOptions{Deep: true, Date: "2026-08-15"})
@@ -249,28 +249,28 @@ Bank inputs use `POST /bank` JSON bodies, keeping IBAN and account values out of
 
 ## Deep
 
-The default call returns the common answer. Request more detail with `parse.Country(ctx, "US", parseapi.CountryOptions{Deep: true})`. Read those fields from the optional deep member; this does not change the core answer.
+Call the API and get everything your plan includes. API 2.1 paid plans include their profile detail automatically; Free returns the complete everyday answer. Read included fields directly from the resource. Existing explicit `deep` options remain supported for compatibility; mailbox verification is a separate explicit operation. An omitted or false SDK `deep` option follows the plan default; `true` remains an explicit compatibility request.
 
-| Operation | What `deep` requests |
+| Operation | Included data and explicit checks |
 |---|---|
 | IP | Richer IP fields included with a paid plan. No separate check meter. |
 | Domain | Registration dates, registrar, status and DNSSEC, included with a paid plan. Use `DNS` for DNS records and `MX` for mail routing. |
-| Email | A metered mailbox check with deliverability, catch-all, status, reason and address hints, using included email checks or enabled on-demand usage. |
+| Email | Basic validation is separate. Call the explicit verification method for a metered mailbox check. |
 | Country, State, City, District, Postal | Reference profiles included with a paid plan; place identity and coordinates stay core. |
 | Industry | Definition, named children and exclusions on paid plans. The immediate parent stays in Core. |
 | Name, Weather | Paid name context or weather detail; parsing and current conditions stay core. |
 | Phone | Numbering-plan state and timezone on paid plans in the same pooled request. Existing accounts retain their current Deep access. |
 | Time, Date, Emoji, Point | Optional detail on paid plans in the same pooled request. Existing accounts retain their current Deep access. |
-| Language | All language facts are in Core; requested Deep is empty. |
+| Language | All language facts are in Core; Deep adds no fields. |
 | Carrier, HLR | Available place or network detail from the same metered core unit, including Free included units. |
 
-Email deep includes mailbox status and the reason for the result, plus a suggested first name, no-reply flag, plus-address tag and mail service. The suggested name is not a verified identity. Unavailable details are null.
+Explicit Email verification includes mailbox status and the reason for the result, plus a suggested first name, no-reply flag, plus-address tag and mail service. The suggested name is not a verified identity. Unavailable details are null.
 
 Reasons include `accepted`, `invalid_format`, `invalid_domain`, `no_mail_server`, `mailbox_not_found`, `mailbox_disabled`, `mailbox_full`, `catchall`, `disposable`, `temporary_failure`, `rejected` and `unconfirmed`.
 
 Carrier, caller, and HLR are separate metered operations. Choose them explicitly when you need their answers. Ordinary lookups retry twice by default. Metered checks use one attempt by default. Setting retries explicitly can repeat paid usage.
 
-Without `deep`, the response omits that key. When requested, it is an empty object if access is locked or the operation has no deep fields. Otherwise it contains the available fields. A missing or null field means unknown.
+With `deep=true`, available extra fields appear at their natural resource homes. Without it, or without access, those optional fields are absent. Included unknown values remain null; false and zero retain their meanings. There is no `deep` response object.
 
 ## Errors
 
@@ -290,7 +290,7 @@ Network failures, invalid JSON, and context cancellation retain their native Go 
 
 Create one client and share it across goroutines. A context deadline covers the whole call, including retry waits. The client timeout defaults to 35 seconds for Stack and 10 seconds for other operations. Cancellation stops the request and any retry wait.
 
-Ordinary lookups retry twice on network failures, 429, 500, 502, 503, and 504. Carrier, caller, and HLR calls use one attempt by default. Deep email and address calls also use one attempt, reserving that behavior for address verification. Address deep currently returns an empty object. An explicit retry setting applies to every call, including metered operations. Additional attempts can be billed.
+Ordinary lookups retry twice on network failures, 429, 500, 502, 503, and 504. Carrier, caller, and HLR calls use one attempt by default. Deep email and address calls also use one attempt, reserving that behavior for address verification. Address detail is returned only when supported. An explicit retry setting applies to every call, including metered operations. Additional attempts can be billed.
 
 ```go
 parse, err := parseapi.New("your-api-key",
@@ -315,7 +315,7 @@ generic logo; a known network without reviewed artwork also uses the generic log
 Optional Deep adds `prefix`, `issuer`, `country`, `type` and `prepaid` on paid plans
 in the same pooled request. Existing accounts retain their current Deep access.
 Requested but locked Deep is `{}`. Six or more digits enable directory
-matching. With Deep access, fewer digits return all-null Deep fields. Compare `deep.prefix` with
+matching. With Deep access, fewer digits return all-null Deep fields. Compare `prefix` with
 `bin`: equal is an exact recorded match; shorter is broader; null is no match.
 The longest row wins, including null fields. `prepaid: null` means unknown, not
 false. This is partial reference data, not card validity or payment acceptance.
@@ -326,7 +326,7 @@ if err != nil { return err }
 fmt.Println(card.Logo)
 details, err := parse.CardWithOptions(ctx, "43737400", parseapi.CardOptions{Deep: true})
 if err != nil { return err }
-if details.Deep != nil { fmt.Println(details.Deep.Prefix) }
+if details.Prefix != nil { fmt.Println(*details.Prefix) }
 ```
 
 Leading zeros are preserved. Only ASCII spaces, tabs, CR, LF and hyphens are
@@ -368,7 +368,7 @@ Pass a public hostname without a scheme, path, port or IP address. Stack returns
 
 Stack checks static homepage HTML and response headers. Detections describe the checked homepage.
 
-The complete technology result is included in the core response. The generic `deep=true` option adds only an empty object and is unnecessary for Stack. Successful checks may be reused for up to 24 hours. `pretty` optionally formats the wire JSON. Each lookup uses one request and API version 2.0.0 selected by this client.
+The complete technology result is included in the core response. The generic `deep=true` option adds only an empty object and is unnecessary for Stack. Successful checks may be reused for up to 24 hours. `pretty` optionally formats the wire JSON. Each lookup uses one request and API version 2.1.0 selected by this client.
 
 Stack defaults to 35 seconds per attempt so a first scan has time to finish. Other lookups retain their 10-second default. An explicit client timeout takes precedence.
 
@@ -388,17 +388,17 @@ GET /emoji/rocket
 ```
 
 Use `deep=true` for Unicode facts, keywords, tone families and available artwork.
-Artwork is keyed by style: `deep.artwork.openmoji.svg` is the SVG URL, and
-`deep.artwork.openmoji.png["72"]` is the 72×72 PNG URL (use your language’s map
+Artwork is keyed by style: `artwork.openmoji.svg` is the SVG URL, and
+`artwork.openmoji.png["72"]` is the 72×72 PNG URL (use your language’s map
 access syntax). The same shape applies to `noto` and `twemoji`. Missing styles
 and formats are omitted. URLs pin immutable artwork editions and retain their bytes.
 Core values stay unchanged. Text parsing returns `emojis` with UTF-16 `positions`;
 conversion returns `text` and unresolved tokens with positions and reasons.
 
 The compact JSON catalog contains offline identity, qualification-form and
-shortcode indexes. Request `profile=full` when artwork is needed and `lang` when
-localized names and keywords are needed. `/emoji/metadata` carries dataset
-coverage and shared source notices once. Artwork supports Google Noto, Twemoji
+shortcode indexes. Use `lang` for localized names and keywords. Metadata and
+shared source notices are included in the catalog. Read an individual emoji
+with Deep for its artwork links. Artwork supports Google Noto, Twemoji
 and OpenMoji, with real SVG/PNG availability and immutable first-party URLs.
 A device's emoji font remains the ordinary display.
 
@@ -428,7 +428,7 @@ Collections support `name`, `population`, `country` and `elevation`; search also
 
 ## Canonical City operations
 
-Classic lookup, search, nearest and named-nearby methods retain their default envelopes and required-field models. Browse and coordinate-nearby use canonical lists: `object`, `data` and nullable `next_cursor` (camelCase properties in Swift/Kotlin). Keep all query options unchanged when continuing a page; no client fetches pages automatically.
+Classic lookup, search, nearest and named-nearby methods retain their default envelopes and required-field models. Browse uses `cities` and coordinate-nearby uses `nearby`, with nullable `next_cursor` (camelCase properties in Swift/Kotlin). Keep all query options unchanged when continuing a page; no client fetches pages automatically.
 
 ```go
 page, err := parse.CitySearchList(ctx, "Viena", parseapi.CitySearchListOptions{
@@ -470,13 +470,32 @@ compatibility through these wire mappings:
 | Country or Language three-letter code | `iso_alpha3` | `ISO3` |
 | Country numeric code | `iso_numeric` | `Numeric` |
 | Full subdivision code, such as `US-CA` | `iso_subdivision` | `ISO` |
+| Currency numeric code | `iso_numeric` | `ISONumeric` |
 
 Response decoders accept the current and earlier wire spellings. An explicit
 current null keeps its meaning when an earlier spelling also appears.
 JSON encoding uses the canonical ISO field names.
+
+IP paid Deep includes supported approximate location, `state_name`, `postal`, `latitude`, `longitude`, `timezone`, routed `network`, `asn_type` and public `proxy` status. Missing facts remain null. Coordinates describe range geography, not device GPS. `asn_type` classifies the origin network, not subscriber connection technology. Proxy/VPN false means unlisted. Optional fields are omitted without the requested detail or access.
 
 ## Capital coordinate migration
 
 Country and State capital coordinates use `latitude` and `longitude`. Update
 `capital.lat` and `capital.lon` reads to `capital.latitude` and
 `capital.longitude` when adopting this release.
+
+## API 2.1 upgrade
+
+API 2.1 Time returns the clock first and the matched place in `location`. Read that place directly; `location.candidates` is for unresolved choices. Unused `resolution` is absent. City matches keep the match kind, text and language without the source category or spelling score. Holiday JSON keeps scope and completeness without calendar hashes; explicitly selected work-profile pins remain.
+
+This client targets ParseAPI 2.1.0. Upgrading requires response-reader changes: optional detail now lives on its resource. Read `population` instead of `deep.population`. Deep remains an explicit request for optional detail. Without the request or access, optional fields are absent. A returned null still means unknown. User-Agent device, OS and browser are objects in every mode. Postal tax is one `tax` object. Specialist Weather measurements live in `current`. Metered Carrier and HLR return the complete purchased result without a Deep switch.
+
+Use `client.EmailVerify(ctx, email)` for mailbox verification. It sends POST `/email/verify` with `{ "email": "person@example.com" }` and defaults to no automatic retries. The earlier Email deep argument is accepted only as a migration alias for that same operation. App keys receive `permission_denied`. Bulk exports retain their existing column names and saved-job recovery.
+
+The 2.0 API is a temporary migration bridge for older installed clients. There is one maintained SDK line using the 2.1 structure.
+
+## Upgrade to API 2.1
+
+This version selects API `2.1.0`. Update existing `.deep` property reads to the fields at their natural homes, such as `country.population`. User-Agent identities are objects; Postal tax and Weather observations keep their documented object homes. Paid plans include their profile detail automatically in API 2.1. Free keeps its complete routine answer, and existing explicit `deep` options remain supported. Mailbox verification stays explicit.
+
+**This minor version changes existing field reads.** Upgrade the SDK and your application reads together. Existing factories remain. The Go module path remains `github.com/parseapi/go`. Email verification is explicit and includes basic validation; Carrier/HLR need no extra detail request. Preserve missing values, `null`, `false` and `0`.

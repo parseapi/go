@@ -4,37 +4,46 @@ package parseapi
 type CityMatch struct {
 	_            [0]func()
 	Type         string  `json:"type"`
-	Source       string  `json:"source"`
+	Source       string  `json:"source,omitempty"`
 	Value        string  `json:"value"`
 	Language     *string `json:"language"`
-	EditDistance *int    `json:"edit_distance"`
+	EditDistance *int    `json:"edit_distance,omitempty"`
 }
 
 // CityResource is canonical JSON. Unknown facts are nil; ID/Object remain.
 type CityResource struct {
-	Match                *CityMatch      `json:"match"`
-	_                    [0]func()
-	ID                   string      `json:"id"`
-	Object               string      `json:"object"`
-	Name                 *string     `json:"name"`
-	NameLocal            *string     `json:"name_local"`
-	Country              *string     `json:"country"`
-	CountryName          *string     `json:"country_name"`
-	State                *string     `json:"state"`
-	StateName            *string     `json:"state_name"`
-	District             *string     `json:"district"`
-	DistrictName         *string     `json:"district_name"`
-	Type                 *string     `json:"type"`
-	Grain                *string     `json:"grain"`
-	Latitude             *float64    `json:"latitude"`
-	Longitude            *float64    `json:"longitude"`
-	Timezone             *string     `json:"timezone"`
-	Distance             *float64    `json:"distance"`
-	DistanceMi           *float64    `json:"distance_mi"`
-	Parent               *CityParent `json:"parent"`
-	Deep                 *CityDeep   `json:"deep"`
-	NameRomanized        *string     `json:"name_romanized"`
-	RomanizationLanguage *string     `json:"romanization_language"`
+	Match        *CityMatch `json:"match"`
+	_            [0]func()
+	ID           string      `json:"id"`
+	Object       string      `json:"object"`
+	Name         *string     `json:"name"`
+	NameLocal    *string     `json:"name_local"`
+	Country      *string     `json:"country"`
+	CountryName  *string     `json:"country_name"`
+	State        *string     `json:"state"`
+	StateName    *string     `json:"state_name"`
+	District     *string     `json:"district"`
+	DistrictName *string     `json:"district_name"`
+	Type         *string     `json:"type"`
+	Grain        *string     `json:"grain"`
+	Latitude     *float64    `json:"latitude"`
+	Longitude    *float64    `json:"longitude"`
+	Timezone     *string     `json:"timezone"`
+	Distance     *float64    `json:"distance"`
+	DistanceMi   *float64    `json:"distance_mi"`
+	Parent       *CityParent `json:"parent"`
+
+	NameRomanized        *string  `json:"name_romanized"`
+	RomanizationLanguage *string  `json:"romanization_language"`
+	CapitalOf            *string  `json:"capital_of"`
+	Elevation            *float64 `json:"elevation"`
+	ElevationFt          *float64 `json:"elevation_ft"`
+	Population           *int64   `json:"population"`
+	PopulationObservedOn *string  `json:"population_observed_on"`
+	PopulationBasis      *string  `json:"population_basis"`
+	Area                 *float64 `json:"area"`
+	LandArea             *float64 `json:"land_area"`
+	WaterArea            *float64 `json:"water_area"`
 }
 
 // CityAmbiguityCandidate is a bounded safe identity, never Deep data.
