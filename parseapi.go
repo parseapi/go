@@ -16,10 +16,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 const (
-	version         = "1.13.0"
+	version         = "1.13.1"
 	defaultBaseURL  = "https://api.parseapi.com"
 	defaultTimeout  = 10 * time.Second
 	defaultRetries  = 2
@@ -214,6 +215,21 @@ func meteredRequest(path string, query url.Values) bool {
 }
 
 func (c *Client) get(ctx context.Context, path string, query url.Values, headers map[string]string, out any) error {
+	if path == "/email/verify" || path == "/emoji/parse" || path == "/emoji/convert" {
+		field := "text"
+		if path == "/email/verify" { field = "email" }
+		value := query.Get(field)
+		copyQuery := make(url.Values, len(query)+1)
+		for key, values := range query { copyQuery[key] = values }
+		copyQuery.Set(field, value)
+		query = copyQuery
+		if !utf8.ValidString(value) || len(c.baseURL+path+"?"+query.Encode()) > 8000 {
+			delete(query, field)
+			body, err := json.Marshal(map[string]string{field: value})
+			if err != nil { return err }
+			return c.request(ctx, http.MethodPost, path, query, headers, body, out)
+		}
+	}
 	return c.request(ctx, http.MethodGet, path, query, headers, nil, out)
 }
 
@@ -1732,19 +1748,12 @@ func (c *Client) EmojiCatalog(ctx context.Context, options ...EmojiCatalogOption
 }
 
 func (c *Client) EmojiConvert(ctx context.Context, text, direction, shortcodeSource string) (*EmojiConversion, error) {
-	body, err := json.Marshal(map[string]string{"text": text})
-	if err != nil {
-		return nil, err
-	}
 	out := &EmojiConversion{}
-	if err := c.request(ctx, http.MethodPost, "/emoji/convert", values("direction", direction, "shortcode_source", shortcodeSource), nil, body, out); err != nil {
+	if err := c.get(ctx, "/emoji/convert", values("text", text, "direction", direction, "shortcode_source", shortcodeSource), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
 }
-
-
-
 
 // EmojiCategories retrieves the corresponding catalog resource.
 
@@ -1772,12 +1781,8 @@ func (c *Client) EmojiParse(ctx context.Context, text string, options ...EmojiPa
 	if opts.Deep {
 		deep = "true"
 	}
-	body, err := json.Marshal(map[string]string{"text": text})
-	if err != nil {
-		return nil, err
-	}
 	out := &EmojiParse{}
-	if err := c.request(ctx, http.MethodPost, "/emoji/parse", values("deep", deep, "lang", opts.Lang), nil, body, out); err != nil {
+	if err := c.get(ctx, "/emoji/parse", values("text", text, "deep", deep, "lang", opts.Lang), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -2217,7 +2222,7 @@ func (c *Client) EmailVerify(ctx context.Context, email string, options ...Email
 		return nil, err
 	}
 	out := &Email{}
-	if err := c.post(ctx, "/email/verify", map[string]string{"email": email}, out); err != nil {
+	if err := c.get(ctx, "/email/verify", values("email", email), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil

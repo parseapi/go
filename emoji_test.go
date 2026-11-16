@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -38,13 +39,10 @@ func TestEmojiCatalogFiltersAndBody(t *testing.T) {
 		t.Fatal(err, call)
 	}
 	c, _ = newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "POST" || r.URL.Path != "/emoji/parse" || r.URL.Query().Get("deep") != "true" || r.URL.Query().Get("lang") != "fr" {
+		if r.Method != "GET" || r.URL.Path != "/emoji/parse" || r.URL.Query().Get("deep") != "true" || r.URL.Query().Get("lang") != "fr" {
 			t.Fatalf("bad parse request: %v", r)
 		}
-		var body map[string]string
-		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body["text"] != "x 👍🏿 👍🏿" {
-			t.Fatal(err, body)
-		}
+		if r.URL.Query().Get("text") != "x 👍🏿 👍🏿" || r.ContentLength != 0 { t.Fatal("GET parse must encode text in the query") }
 		okJSON(`{"emojis":[{"emoji":"👍🏿","name":"thumbs up","shortcodes":[],"category":null,"positions":[{"start":2,"end":6},{"start":7,"end":11}],"base":"👍","variants":[{"emoji":"👍🏿","tones":["dark"]}],"shortcode_sources":{"cldr":[],"github":[],"slack":[],"discord":[]}}]}`)(w, r)
 	})
 	parsed, err := c.EmojiParse(ctx, "x 👍🏿 👍🏿", EmojiParseOptions{Deep: true, Lang: "fr"})
@@ -136,4 +134,23 @@ func TestEmojiActualArtwork(t *testing.T) {
 	if len(fixture.Metadata.ArtworkSources[0].Notices) == 0 {
 		t.Fatal("lost licence notice links")
 	}
+}
+
+
+func TestEmojiLongTextPostAndEmptyTextGet(t *testing.T) {
+ text := strings.Repeat("🚀", 8000)
+ for _, input := range []string{text,""} {
+  calls:=0
+  c,_:=newTestClient(t,func(w http.ResponseWriter,r *http.Request){
+   calls++
+   if input=="" {if r.Method!="GET" || !r.URL.Query().Has("text") {t.Errorf("empty text lost: %s %s",r.Method,r.URL)}} else {
+    var body map[string]string
+    if err:=json.NewDecoder(r.Body).Decode(&body);err!=nil{t.Fatal(err)}
+    if r.Method!="POST" || body["text"]!=input || r.URL.Query().Has("text") {t.Error("long text was not preserved as one POST")}
+   }
+   okJSON(`{"emojis":[]}`)(w,r)
+  })
+  if _,err:=c.EmojiParse(context.Background(),input,EmojiParseOptions{});err!=nil{t.Fatal(err)}
+  if calls!=1{t.Errorf("expected1request,got%d",calls)}
+ }
 }

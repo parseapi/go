@@ -23,13 +23,12 @@ case "weather": model=&Weather{}
  })}
 }
 
-func TestEmailVerifyExplicitPostAndNoDefaultRetry(t *testing.T) {
+func TestEmailVerifyExplicitGetAndNoDefaultRetry(t *testing.T) {
  var calls atomic.Int64
  server:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){
   calls.Add(1)
-  if r.Method!="POST" || r.URL.Path!="/email/verify" || r.URL.RawQuery!="" || r.Header.Get("X-API-Version")!="2.2.0" { t.Errorf("wrong verification request: %s %s",r.Method,r.URL) }
-  var body map[string]string;if err:=json.NewDecoder(r.Body).Decode(&body);err!=nil{t.Error(err)}
-  if !reflect.DeepEqual(body,map[string]string{"email":"a+tag@example.com"}) {t.Errorf("wrong JSON body: %#v",body)}
+  if r.Method!="GET" || r.URL.Path!="/email/verify" || r.URL.Query().Get("email")!="a+tag@example.com" || r.Header.Get("X-API-Version")!="2.2.0" { t.Errorf("wrong verification request: %s %s",r.Method,r.URL) }
+  if r.ContentLength!=0 {t.Error("GET verification must have no body")}
   w.Header().Set("Content-Type","application/json");w.WriteHeader(503);w.Write([]byte(`{"code":"service_unavailable","message":"pending"}`))
  }));defer server.Close()
  client,err:=New("fixture",WithBaseURL(server.URL));if err!=nil{t.Fatal(err)}
