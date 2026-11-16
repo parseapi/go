@@ -1,7 +1,7 @@
 package parseapi
 
 // Response types for the ParseAPI public API. Nullable fields are pointers.
-// Optional 2.1 detail belongs to its owning resource. Missing and null remain unknown.
+// Optional 2.2 detail belongs to its owning resource. Missing and null remain unknown.
 
 type IPDeep struct {
 	/** Approximate range location; ASN type is the origin network category. */
@@ -22,11 +22,16 @@ type IPDeep struct {
 	Tor        *bool   `json:"tor"`
 	VPN        *bool   `json:"vpn"`
 	Provider   *string `json:"provider"`
-	// Present only when supported. District is qualified by the response country.
-	District       *string `json:"district,omitempty"`
-	DistrictName   *string `json:"district_name,omitempty"`
+	// Present only when supported. County is qualified by the response country.
+	County         *string `json:"county,omitempty"`
+	CountyName     *string `json:"county_name,omitempty"`
 	CensusDivision *string `json:"census_division,omitempty"`
 	CensusRegion   *string `json:"census_region,omitempty"`
+
+	// Deprecated: use County. Retained as a read adapter, never a second JSON field.
+	District *string `json:"-"`
+	// Deprecated: use CountyName. Retained as a read adapter, never a second JSON field.
+	DistrictName *string `json:"-"`
 }
 
 type IP struct {
@@ -53,10 +58,15 @@ type IP struct {
 	Tor            *bool   `json:"tor"`
 	VPN            *bool   `json:"vpn"`
 	Provider       *string `json:"provider"`
-	District       *string `json:"district,omitempty"`
-	DistrictName   *string `json:"district_name,omitempty"`
+	County         *string `json:"county,omitempty"`
+	CountyName     *string `json:"county_name,omitempty"`
 	CensusDivision *string `json:"census_division,omitempty"`
 	CensusRegion   *string `json:"census_region,omitempty"`
+
+	// Deprecated: use County. Retained as a read adapter, never a second JSON field.
+	District *string `json:"-"`
+	// Deprecated: use CountyName. Retained as a read adapter, never a second JSON field.
+	DistrictName *string `json:"-"`
 }
 
 type Continent struct {
@@ -196,38 +206,48 @@ type State struct {
 	Latitude    *float64      `json:"latitude"`
 	Longitude   *float64      `json:"longitude"`
 	Timezones   []string      `json:"timezones"`
-	ISO         *string       `json:"iso_subdivision"`
+	ISOCode     *string       `json:"iso_code"`
 	FIPS        *string       `json:"fips"`
 	AreaCodes   []string      `json:"area_codes"`
 	Capital     *StateCapital `json:"capital"`
 
-	// Deprecated: retained native member for the released ISO subdivision field.
+	// Deprecated: use ISOCode. Retained as a read adapter, never a second JSON field.
+	ISO *string `json:"-"`
+	// Deprecated: use ISOCode. Retained as a read adapter, never a second JSON field.
 	ISO31662   *string   `json:"-"`
 	Population *int64    `json:"population"`
 	Area       *float64  `json:"area"`
 	Tax        *StateTax `json:"tax"`
 }
 
-type StateDistrictItem struct {
+type StateCountyItem struct {
 	_          [0]func()
-	District   string  `json:"district"`
+	County     string  `json:"county"`
+	ISOCode    *string `json:"iso_code"`
 	Name       string  `json:"name"`
 	Type       *string `json:"type"`
 	Population *int64  `json:"population"`
+
+	// Deprecated: use County. Retained as a read adapter, never a second JSON field.
+	District string `json:"-"`
 }
 
-type StateDistricts struct {
+type StateCounties struct {
 	_           [0]func()
-	State       string              `json:"state"`
-	StateName   *string             `json:"state_name"`
-	Country     string              `json:"country"`
-	CountryName *string             `json:"country_name"`
-	Districts   []StateDistrictItem `json:"districts"`
+	State       string            `json:"state"`
+	StateName   *string           `json:"state_name"`
+	Country     string            `json:"country"`
+	CountryName *string           `json:"country_name"`
+	Counties    []StateCountyItem `json:"counties"`
+
+	// Deprecated: use Counties. Retained as a read adapter, never a second JSON field.
+	Districts []StateCountyItem `json:"-"`
 }
 
-type District struct {
+type County struct {
 	_           [0]func()
-	District    string       `json:"district"`
+	County      string       `json:"county"`
+	ISOCode     *string      `json:"iso_code"`
 	Name        string       `json:"name"`
 	Type        *string      `json:"type"`
 	State       *string      `json:"state"`
@@ -243,23 +263,26 @@ type District struct {
 	WaterArea   *float64     `json:"water_area"`
 	Seat        *string      `json:"seat"`
 	PropertyTax *PropertyTax `json:"property_tax"`
+
+	// Deprecated: use County. Retained as a read adapter, never a second JSON field.
+	District string `json:"-"`
 }
 
 type City struct {
-	Match        *CityMatch `json:"match"`
-	_            [0]func()
-	Name         string   `json:"name"`
-	NameLocal    *string  `json:"name_local"`
-	Type         *string  `json:"type"`
-	State        *string  `json:"state"`
-	StateName    *string  `json:"state_name"`
-	District     *string  `json:"district"`
-	DistrictName *string  `json:"district_name"`
-	Country      string   `json:"country"`
-	CountryName  *string  `json:"country_name"`
-	Latitude     *float64 `json:"latitude"`
-	Longitude    *float64 `json:"longitude"`
-	Timezone     *string  `json:"timezone"`
+	Match       *CityMatch `json:"match"`
+	_           [0]func()
+	Name        string   `json:"name"`
+	NameLocal   *string  `json:"name_local"`
+	Type        *string  `json:"type"`
+	State       *string  `json:"state"`
+	StateName   *string  `json:"state_name"`
+	County      *string  `json:"county"`
+	CountyName  *string  `json:"county_name"`
+	Country     string   `json:"country"`
+	CountryName *string  `json:"country_name"`
+	Latitude    *float64 `json:"latitude"`
+	Longitude   *float64 `json:"longitude"`
+	Timezone    *string  `json:"timezone"`
 	// ID is the minted parse id (city_ + 12 chars). Stable pin via /city/id/{id}.
 	ID string `json:"id"`
 
@@ -277,6 +300,11 @@ type City struct {
 	Area                 *float64    `json:"area"`
 	LandArea             *float64    `json:"land_area"`
 	WaterArea            *float64    `json:"water_area"`
+
+	// Deprecated: use County. Retained as a read adapter, never a second JSON field.
+	District *string `json:"-"`
+	// Deprecated: use CountyName. Retained as a read adapter, never a second JSON field.
+	DistrictName *string `json:"-"`
 }
 
 // CityNearest is a City plus the distance from the query point.
@@ -334,18 +362,18 @@ type Postal struct {
 	City      *string `json:"city"`
 	CityLocal *string `json:"city_local"`
 	// Nil is unknown. An empty slice has no eligible choices. One choice does not imply City.
-	Localities        []PostalLocality `json:"localities"`
-	District          *string          `json:"district"`
-	DistrictName      *string          `json:"district_name"`
-	DistrictNameLocal *string          `json:"district_name_local"`
-	State             *string          `json:"state"`
-	StateName         *string          `json:"state_name"`
-	StateNameLocal    *string          `json:"state_name_local"`
-	Country           string           `json:"country"`
-	CountryName       *string          `json:"country_name"`
-	Latitude          *float64         `json:"latitude"`
-	Longitude         *float64         `json:"longitude"`
-	Timezone          *string          `json:"timezone"`
+	Localities      []PostalLocality `json:"localities"`
+	County          *string          `json:"county"`
+	CountyName      *string          `json:"county_name"`
+	CountyNameLocal *string          `json:"county_name_local"`
+	State           *string          `json:"state"`
+	StateName       *string          `json:"state_name"`
+	StateNameLocal  *string          `json:"state_name_local"`
+	Country         string           `json:"country"`
+	CountryName     *string          `json:"country_name"`
+	Latitude        *float64         `json:"latitude"`
+	Longitude       *float64         `json:"longitude"`
+	Timezone        *string          `json:"timezone"`
 
 	// Open ZIP type, including future values. Nil is unknown or absent.
 	Type        *string            `json:"type"`
@@ -360,6 +388,13 @@ type Postal struct {
 	Metros      []PostalMetro      `json:"metros"`
 	PropertyTax *PostalPropertyTax `json:"property_tax"`
 	Tax         *PostalTax         `json:"tax"`
+
+	// Deprecated: use County. Retained as a read adapter, never a second JSON field.
+	District *string `json:"-"`
+	// Deprecated: use CountyName. Retained as a read adapter, never a second JSON field.
+	DistrictName *string `json:"-"`
+	// Deprecated: use CountyNameLocal. Retained as a read adapter, never a second JSON field.
+	DistrictNameLocal *string `json:"-"`
 }
 
 type PostalNearbyItem struct {
@@ -809,15 +844,15 @@ type PointDeep struct {
 }
 
 type Point struct {
-	_            [0]func()
-	Latitude     float64 `json:"latitude"`
-	Longitude    float64 `json:"longitude"`
-	Country      *string `json:"country"`
-	CountryName  *string `json:"country_name"`
-	State        *string `json:"state"`
-	StateName    *string `json:"state_name"`
-	District     *string `json:"district"`
-	DistrictName *string `json:"district_name"`
+	_           [0]func()
+	Latitude    float64 `json:"latitude"`
+	Longitude   float64 `json:"longitude"`
+	Country     *string `json:"country"`
+	CountryName *string `json:"country_name"`
+	State       *string `json:"state"`
+	StateName   *string `json:"state_name"`
+	County      *string `json:"county"`
+	CountyName  *string `json:"county_name"`
 
 	Timezone    *string         `json:"timezone"`
 	City        *PointCity      `json:"city"`
@@ -825,6 +860,11 @@ type Point struct {
 	Electoral   *PointElectoral `json:"electoral"`
 	ElevationFt *float64        `json:"elevation_ft"`
 	Resolution  *float64        `json:"resolution"`
+
+	// Deprecated: use County. Retained as a read adapter, never a second JSON field.
+	District *string `json:"-"`
+	// Deprecated: use CountyName. Retained as a read adapter, never a second JSON field.
+	DistrictName *string `json:"-"`
 }
 
 type WeatherForecastPeriod struct {
@@ -1069,23 +1109,28 @@ type WeatherHistory struct {
 }
 
 type Address struct {
-	_            [0]func()
-	Address      *string        `json:"address"`
-	Valid        bool           `json:"valid"`
-	Registered   *bool          `json:"registered"`
-	Number       *string        `json:"number"`
-	Street       *string        `json:"street"`
-	Unit         *string        `json:"unit"`
-	City         *string        `json:"city"`
-	District     *string        `json:"district"`
-	DistrictName *string        `json:"district_name"`
-	State        *string        `json:"state"`
-	StateName    *string        `json:"state_name"`
-	Postal       *string        `json:"postal"`
-	Country      *string        `json:"country"`
-	CountryName  *string        `json:"country_name"`
-	Latitude     *float64       `json:"latitude"`
-	Longitude    *float64       `json:"longitude"`
+	_           [0]func()
+	Address     *string  `json:"address"`
+	Valid       bool     `json:"valid"`
+	Registered  *bool    `json:"registered"`
+	Number      *string  `json:"number"`
+	Street      *string  `json:"street"`
+	Unit        *string  `json:"unit"`
+	City        *string  `json:"city"`
+	County      *string  `json:"county"`
+	CountyName  *string  `json:"county_name"`
+	State       *string  `json:"state"`
+	StateName   *string  `json:"state_name"`
+	Postal      *string  `json:"postal"`
+	Country     *string  `json:"country"`
+	CountryName *string  `json:"country_name"`
+	Latitude    *float64 `json:"latitude"`
+	Longitude   *float64 `json:"longitude"`
+
+	// Deprecated: use County. Retained as a read adapter, never a second JSON field.
+	District *string `json:"-"`
+	// Deprecated: use CountyName. Retained as a read adapter, never a second JSON field.
+	DistrictName *string `json:"-"`
 }
 
 type AddressSuggestion struct {
@@ -1317,7 +1362,7 @@ type StateDeep struct {
 	TaxRate   *float64 `json:"-"`
 }
 
-type DistrictDeep struct {
+type CountyDeep struct {
 	_          [0]func()
 	Population *int64 `json:"population"`
 	// Deprecated: no longer returned; retained for source compatibility and omitted from JSON.
@@ -1527,7 +1572,7 @@ type PostalMetroDeep struct {
 	Metros []PostalMetro `json:"metros"`
 }
 
-type StateDistrictItemDeep struct {
+type StateCountyItemDeep struct {
 	_          [0]func()
 	Population *int64 `json:"population"`
 	// Deprecated: no longer returned; retained for source compatibility and omitted from JSON.
@@ -1839,3 +1884,18 @@ type CurrencyRate struct {
 }
 
 type CurrencyDeep struct{ _ [0]func() }
+
+// Deprecated: use StateCountyItem.
+type StateDistrictItem = StateCountyItem
+
+// Deprecated: use StateCounties.
+type StateDistricts = StateCounties
+
+// Deprecated: use County.
+type District = County
+
+// Deprecated: use CountyDeep.
+type DistrictDeep = CountyDeep
+
+// Deprecated: use StateCountyItemDeep.
+type StateDistrictItemDeep = StateCountyItemDeep

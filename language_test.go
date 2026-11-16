@@ -43,11 +43,11 @@ func TestDisplayLanguagePerRequest(t *testing.T) {
 			_, err := c.State(ctx, "CA", StateOptions{Lang: lang, Country: "US"})
 			return err
 		}},
-		{"StateDistricts", "/state/CA/districts", "country=US&deep=true", func(c *Client, lang string) error {
+		{"StateDistricts", "/state/CA/counties", "country=US&deep=true", func(c *Client, lang string) error {
 			_, err := c.StateDistricts(ctx, "CA", StateDistrictsOptions{Lang: lang, Country: "US", Deep: true})
 			return err
 		}},
-		{"District", "/district/37081", "country=US&state=NC", func(c *Client, lang string) error {
+		{"District", "/county/37081", "country=US&state=NC", func(c *Client, lang string) error {
 			_, err := c.District(ctx, "37081", DistrictOptions{Lang: lang, Country: "US", State: "NC"})
 			return err
 		}},

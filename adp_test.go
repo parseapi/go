@@ -17,7 +17,7 @@ func TestADPModelsKeepCoreFactsWithRootDetail(t *testing.T) {
 	}{
 		{"Country", `{"country":"US","name":"United States","continent":"NA"}`, `{"iso3":"USA","population":0,"tax_rate":0,"plugs":[]}`, &Country{}},
 		{"State", `{"state":"NC","name":"North Carolina","country":"US"}`, `{"population":0,"area":0.25,"tax_rate":0}`, &State{}},
-		{"District", `{"district":"37081","name":"Guilford","country":"US"}`, `{"population":0,"water_area":0.25}`, &District{}},
+		{"County", `{"county":"37081","name":"Guilford","country":"US"}`, `{"population":0,"water_area":0.25}`, &District{}},
 		{"City", `{"name":"Charlotte","country":"US","id":"city_123"}`, `{"population":0,"area":0.25}`, &City{}},
 		{"Postal", `{"postal":"28202","country":"US"}`, `{"metros":[],"water_area":0.25,"tax_rate":0}`, &Postal{}},
 

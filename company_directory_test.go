@@ -31,7 +31,7 @@ func TestCompanyDirectoryMethodsAndQueryEncoding(t *testing.T) {
 	if profile.Founded.Precision != "year" || profile.Sources[0].UpdatedAt != nil || profile.Jurisdiction.State != nil {
 		t.Fatal("lost precision/nulls")
 	}
-	if call.header.Get("X-API-Version") != "2.1.0" || call.header.Get("X-API-Key") != "test_key_123" {
+	if call.header.Get("X-API-Version") != "2.2.0" || call.header.Get("X-API-Key") != "test_key_123" {
 		t.Fatal("request contract changed")
 	}
 	_, err = client.CompanyID(ctx, "co_222222222222")

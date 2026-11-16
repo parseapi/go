@@ -34,7 +34,7 @@ func TestAPIContractPinSurvivesRetriesAndSelfLookup(t *testing.T) {
 		if request.path != "/ip" || request.rawQry != "deep=true" {
 			t.Errorf("request = %s?%s", request.path, request.rawQry)
 		}
-		if request.header.Get("X-API-Version") != "2.1.0" || request.header.Get("Parse-Version") != "" || request.header.Get("X-API-Key") != "test_key_123" || request.header.Get("User-Agent") != "parseapi-go/"+version {
+		if request.header.Get("X-API-Version") != "2.2.0" || request.header.Get("Parse-Version") != "" || request.header.Get("X-API-Key") != "test_key_123" || request.header.Get("User-Agent") != "parseapi-go/"+version {
 			t.Errorf("request headers changed: %v", request.header)
 		}
 	}
@@ -45,7 +45,7 @@ func TestAPIContractPinWithUserAgentInput(t *testing.T) {
 	if _, err := client.UserAgent(context.Background(), "Example/1.0"); err != nil {
 		t.Fatal(err)
 	}
-	if captured.header.Get("X-API-Version") != "2.1.0" || captured.header.Get("User-Agent") != "Example/1.0" || captured.header.Get("X-API-Key") != "test_key_123" {
+	if captured.header.Get("X-API-Version") != "2.2.0" || captured.header.Get("User-Agent") != "Example/1.0" || captured.header.Get("X-API-Key") != "test_key_123" {
 		t.Fatalf("request headers changed: %v", captured.header)
 	}
 }
@@ -64,7 +64,7 @@ func TestAPIVersionErrorsDoNotRetryOrFallBack(t *testing.T) {
 			if !errors.As(err, &apiErr) || apiErr.Status != status || apiErr.Code != "invalid_request" || apiErr.RequestID != "req_version" {
 				t.Fatalf("unexpected API error: %v", err)
 			}
-			if attempts != 1 || captured.header.Get("X-API-Version") != "2.1.0" {
+			if attempts != 1 || captured.header.Get("X-API-Version") != "2.2.0" {
 				t.Fatalf("version error fell back or retried: %d attempts", attempts)
 			}
 		})

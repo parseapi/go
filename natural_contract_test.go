@@ -18,7 +18,8 @@ case "weather": model=&Weather{}
  if err:=json.Unmarshal(row.Body,model);err!=nil{t.Fatal(err)};encoded,err:=json.Marshal(model);if err!=nil{t.Fatal(err)}
  var before,after map[string]any;json.Unmarshal(row.Body,&before);json.Unmarshal(encoded,&after)
  if _,ok:=after["deep"];ok{t.Fatal("2.1 model emitted a wrapper")}
- for _,field:=range row.Fields {want:=read(before,field);got:=read(after,field);if !reflect.DeepEqual(got,want){t.Fatalf("%s: got %#v want %#v",field,got,want)}}
+ // Historical State ISO inputs re-encode using the current canonical key.
+ for _,field:=range row.Fields {encodedField:=field;if row.Product=="state" && field=="iso_subdivision"{encodedField="iso_code"};want:=read(before,field);got:=read(after,encodedField);if !reflect.DeepEqual(got,want){t.Fatalf("%s: got %#v want %#v",field,got,want)}}
  })}
 }
 
@@ -26,7 +27,7 @@ func TestEmailVerifyExplicitPostAndNoDefaultRetry(t *testing.T) {
  var calls atomic.Int64
  server:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){
   calls.Add(1)
-  if r.Method!="POST" || r.URL.Path!="/email/verify" || r.URL.RawQuery!="" || r.Header.Get("X-API-Version")!="2.1.0" { t.Errorf("wrong verification request: %s %s",r.Method,r.URL) }
+  if r.Method!="POST" || r.URL.Path!="/email/verify" || r.URL.RawQuery!="" || r.Header.Get("X-API-Version")!="2.2.0" { t.Errorf("wrong verification request: %s %s",r.Method,r.URL) }
   var body map[string]string;if err:=json.NewDecoder(r.Body).Decode(&body);err!=nil{t.Error(err)}
   if !reflect.DeepEqual(body,map[string]string{"email":"a+tag@example.com"}) {t.Errorf("wrong JSON body: %#v",body)}
   w.Header().Set("Content-Type","application/json");w.WriteHeader(503);w.Write([]byte(`{"code":"service_unavailable","message":"pending"}`))

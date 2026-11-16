@@ -25,7 +25,7 @@ func TestDomainResultUnknownPartialAndOneRequest(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if calls != 1 || captured.path != "/domain/b%C3%BCcher.example" || captured.rawQry != "deep=true" || captured.header.Get("X-API-Version") != "2.1.0" || captured.header.Get("X-API-Key") != "test_key_123" {
+			if calls != 1 || captured.path != "/domain/b%C3%BCcher.example" || captured.rawQry != "deep=true" || captured.header.Get("X-API-Version") != "2.2.0" || captured.header.Get("X-API-Key") != "test_key_123" {
 				t.Fatal("lookup transport or request count changed")
 			}
 			if name == "unknown" || name == "unknown_deep" {

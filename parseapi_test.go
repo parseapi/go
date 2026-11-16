@@ -70,8 +70,8 @@ func TestURLMapping(t *testing.T) {
 		{"state districts", func(c *Client) error {
 			_, err := c.StateDistricts(ctx, "NC", StateDistrictsOptions{Country: "US"})
 			return err
-		}, "/state/NC/districts", "country=US"},
-		{"district", func(c *Client) error { _, err := c.District(ctx, "37081"); return err }, "/district/37081", ""},
+		}, "/state/NC/counties", "country=US"},
+		{"district", func(c *Client) error { _, err := c.District(ctx, "37081"); return err }, "/county/37081", ""},
 		{"city", func(c *Client) error { _, err := c.City(ctx, "charlotte", CityOptions{State: "NC"}); return err }, "/city/charlotte", "state=NC"},
 		{"city id", func(c *Client) error { _, err := c.CityID(ctx, "city_mb8mbqrkz8zb"); return err }, "/city/id/city_mb8mbqrkz8zb", ""},
 		{"city search", func(c *Client) error {

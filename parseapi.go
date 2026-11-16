@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	version         = "1.12.0"
+	version         = "1.13.0"
 	defaultBaseURL  = "https://api.parseapi.com"
 	defaultTimeout  = 10 * time.Second
 	defaultRetries  = 2
@@ -27,7 +27,7 @@ const (
 )
 
 // The response types' wire contract. Changes require a reviewed major SDK release.
-const apiVersion = "2.1.0"
+const apiVersion = "2.2.0"
 
 var retryStatus = map[int]bool{429: true, 500: true, 502: true, 503: true, 504: true}
 
@@ -505,8 +505,8 @@ func (c *Client) State(ctx context.Context, code string, options ...StateOptions
 	return out, nil
 }
 
-// StateDistrictsOptions configures StateDistricts. Omitted fields use API defaults.
-type StateDistrictsOptions struct {
+// StateCountiesOptions configures StateCounties. Omitted fields use API defaults.
+type StateCountiesOptions struct {
 	// Lang selects translated display names for this request.
 	Lang    string
 	_       [0]func()
@@ -514,8 +514,8 @@ type StateDistrictsOptions struct {
 	Deep    bool
 }
 
-// StateDistricts calls /state/{code}/districts.
-func (c *Client) StateDistricts(ctx context.Context, code string, options ...StateDistrictsOptions) (*StateDistricts, error) {
+// StateCounties calls /state/{code}/counties.
+func (c *Client) StateCounties(ctx context.Context, code string, options ...StateCountiesOptions) (*StateCounties, error) {
 	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
@@ -524,15 +524,15 @@ func (c *Client) StateDistricts(ctx context.Context, code string, options ...Sta
 	if opts.Deep {
 		deep = "true"
 	}
-	out := &StateDistricts{}
-	if err := c.get(ctx, "/state/"+seg(code)+"/districts", values("lang", opts.Lang, "country", opts.Country, "deep", deep), nil, out); err != nil {
+	out := &StateCounties{}
+	if err := c.get(ctx, "/state/"+seg(code)+"/counties", values("lang", opts.Lang, "country", opts.Country, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// DistrictOptions configures District. Omitted fields use API defaults.
-type DistrictOptions struct {
+// CountyOptions configures County. Omitted fields use API defaults.
+type CountyOptions struct {
 	// Lang selects translated display names for this request.
 	Lang    string
 	_       [0]func()
@@ -541,8 +541,8 @@ type DistrictOptions struct {
 	Deep    bool
 }
 
-// District calls /district/{code}.
-func (c *Client) District(ctx context.Context, code string, options ...DistrictOptions) (*District, error) {
+// County calls /county/{code}.
+func (c *Client) County(ctx context.Context, code string, options ...CountyOptions) (*County, error) {
 	opts, err := oneOption(options)
 	if err != nil {
 		return nil, err
@@ -551,8 +551,8 @@ func (c *Client) District(ctx context.Context, code string, options ...DistrictO
 	if opts.Deep {
 		deep = "true"
 	}
-	out := &District{}
-	if err := c.get(ctx, "/district/"+seg(code), values("lang", opts.Lang, "country", opts.Country, "state", opts.State, "deep", deep), nil, out); err != nil {
+	out := &County{}
+	if err := c.get(ctx, "/county/"+seg(code), values("lang", opts.Lang, "country", opts.Country, "state", opts.State, "deep", deep), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -2224,3 +2224,19 @@ func (c *Client) EmailVerify(ctx context.Context, email string, options ...Email
 }
 
 type EmailVerifyOptions struct{ _ [0]func() }
+
+// Deprecated: use CountyOptions.
+type DistrictOptions = CountyOptions
+
+// Deprecated: use StateCountiesOptions.
+type StateDistrictsOptions = StateCountiesOptions
+
+// Deprecated: use County. This source alias makes one request to the County route.
+func (c *Client) District(ctx context.Context, code string, options ...DistrictOptions) (*District, error) {
+	return c.County(ctx, code, options...)
+}
+
+// Deprecated: use StateCounties.
+func (c *Client) StateDistricts(ctx context.Context, code string, options ...StateDistrictsOptions) (*StateDistricts, error) {
+	return c.StateCounties(ctx, code, options...)
+}

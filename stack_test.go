@@ -21,7 +21,7 @@ func TestStackInventoryShapesAndEncoding(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if captured.path != "/stack/b%C3%BCcher.example" || captured.rawQry != "deep=true&pretty=true" || captured.header.Get("X-API-Version") != "2.1.0" {
+		if captured.path != "/stack/b%C3%BCcher.example" || captured.rawQry != "deep=true&pretty=true" || captured.header.Get("X-API-Version") != "2.2.0" {
 			t.Fatalf("wrong request: %#v", captured)
 		}
 		if i == 0 || i == 3 {

@@ -13,7 +13,7 @@ func TestOrdinaryResponseAndRetry(t *testing.T) {
 	attempts := 0
 	client, _ := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		attempts++
-		if r.Header.Get("Parse-Response") != "" || r.Header.Get("X-API-Version") != "2.1.0" {
+		if r.Header.Get("Parse-Response") != "" || r.Header.Get("X-API-Version") != "2.2.0" {
 			t.Fatal("unexpected request headers")
 		}
 		if attempts == 1 {

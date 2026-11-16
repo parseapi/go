@@ -12,26 +12,26 @@ type CityMatch struct {
 
 // CityResource is canonical JSON. Unknown facts are nil; ID/Object remain.
 type CityResource struct {
-	Match        *CityMatch `json:"match"`
-	_            [0]func()
-	ID           string      `json:"id"`
-	Object       string      `json:"object"`
-	Name         *string     `json:"name"`
-	NameLocal    *string     `json:"name_local"`
-	Country      *string     `json:"country"`
-	CountryName  *string     `json:"country_name"`
-	State        *string     `json:"state"`
-	StateName    *string     `json:"state_name"`
-	District     *string     `json:"district"`
-	DistrictName *string     `json:"district_name"`
-	Type         *string     `json:"type"`
-	Grain        *string     `json:"grain"`
-	Latitude     *float64    `json:"latitude"`
-	Longitude    *float64    `json:"longitude"`
-	Timezone     *string     `json:"timezone"`
-	Distance     *float64    `json:"distance"`
-	DistanceMi   *float64    `json:"distance_mi"`
-	Parent       *CityParent `json:"parent"`
+	Match       *CityMatch `json:"match"`
+	_           [0]func()
+	ID          string      `json:"id"`
+	Object      string      `json:"object"`
+	Name        *string     `json:"name"`
+	NameLocal   *string     `json:"name_local"`
+	Country     *string     `json:"country"`
+	CountryName *string     `json:"country_name"`
+	State       *string     `json:"state"`
+	StateName   *string     `json:"state_name"`
+	County      *string     `json:"county"`
+	CountyName  *string     `json:"county_name"`
+	Type        *string     `json:"type"`
+	Grain       *string     `json:"grain"`
+	Latitude    *float64    `json:"latitude"`
+	Longitude   *float64    `json:"longitude"`
+	Timezone    *string     `json:"timezone"`
+	Distance    *float64    `json:"distance"`
+	DistanceMi  *float64    `json:"distance_mi"`
+	Parent      *CityParent `json:"parent"`
 
 	NameRomanized        *string  `json:"name_romanized"`
 	RomanizationLanguage *string  `json:"romanization_language"`
@@ -44,6 +44,11 @@ type CityResource struct {
 	Area                 *float64 `json:"area"`
 	LandArea             *float64 `json:"land_area"`
 	WaterArea            *float64 `json:"water_area"`
+
+	// Deprecated: use County. Retained as a read adapter, never a second JSON field.
+	District *string `json:"-"`
+	// Deprecated: use CountyName. Retained as a read adapter, never a second JSON field.
+	DistrictName *string `json:"-"`
 }
 
 // CityAmbiguityCandidate is a bounded safe identity, never Deep data.

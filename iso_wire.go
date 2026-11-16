@@ -100,10 +100,12 @@ func (value *Language) UnmarshalJSON(data []byte) error {
 func (value *State) UnmarshalJSON(data []byte) error {
 	type wire State
 	decoded := wire(*value)
-	if err := decodeISOWire(data, &decoded, "iso_subdivision", "iso", "iso_3166_2"); err != nil {
+	if err := decodeISOWire(data, &decoded, "iso_code", "iso_subdivision", "iso", "iso_3166_2"); err != nil {
 		return err
 	}
 	*value = State(decoded)
+	value.ISO = value.ISOCode
+	value.ISO31662 = value.ISOCode
 	return nil
 }
 

@@ -37,13 +37,13 @@ func TestISOWireNamesAcceptReleasedAndCanonicalResponses(t *testing.T) {
 			t.Fatalf("Language wire: %s", encoded)
 		}
 	}
-	for _, body := range []string{`{"iso_subdivision":"US-CA"}`} {
+	for _, body := range []string{`{"iso_code":"US-CA"}`, `{"iso_subdivision":"US-CA"}`, `{"iso":"US-CA"}`, `{"iso_3166_2":"US-CA"}`} {
 		var value State
 		if err := json.Unmarshal([]byte(body), &value); err != nil || value.ISO == nil || *value.ISO != "US-CA" {
 			t.Fatalf("State: %s %v", body, err)
 		}
 		encoded, _ := json.Marshal(value)
-		if !strings.Contains(string(encoded), `"iso_subdivision":"US-CA"`) || strings.Contains(string(encoded), `"iso":`) || strings.Contains(string(encoded), `"iso_3166_2":`) {
+		if !strings.Contains(string(encoded), `"iso_code":"US-CA"`) || strings.Contains(string(encoded), `"iso_subdivision":`) || strings.Contains(string(encoded), `"iso":`) || strings.Contains(string(encoded), `"iso_3166_2":`) {
 			t.Fatalf("State wire: %s", encoded)
 		}
 	}
@@ -65,7 +65,9 @@ func TestISOCandidatesRespectExplicitCanonicalNull(t *testing.T) {
 	for _, body := range []string{`{"iso3":"USA","numeric":840,"iso_alpha3":null,"iso_numeric":null}`, `{"iso_alpha3":null,"iso_numeric":null,"iso3":"USA","numeric":840}`} {
 		var value Country
 		var deep CountryDeep
-		if err := json.Unmarshal([]byte(body), &deep); err != nil || deep.ISO3 != nil || deep.Numeric != nil { t.Fatalf("Country detail explicit null: %s %v", body, err) }
+		if err := json.Unmarshal([]byte(body), &deep); err != nil || deep.ISO3 != nil || deep.Numeric != nil {
+			t.Fatalf("Country detail explicit null: %s %v", body, err)
+		}
 		if err := json.Unmarshal([]byte(body), &value); err != nil || value.ISO3 != nil || value.Numeric != nil {
 			t.Fatalf("Country explicit null: %s %v", body, err)
 		}
@@ -111,7 +113,47 @@ func TestHistoricalDeepReadMembersRemainAvailable(t *testing.T) {
 }
 
 func TestCountryCoordinatesKeepUnknownNameAndZero(t *testing.T) {
- var country Country
- if err:=json.Unmarshal([]byte(`{"country":"US","iso_alpha3":"USA","capital":{"name":null,"latitude":0,"longitude":null}}`),&country);err!=nil{t.Fatal(err)}
- if country.Capital==nil || country.Capital.Latitude==nil || *country.Capital.Latitude!=0 || country.Capital.Longitude!=nil || country.Capital.Name!=nil{t.Fatal("Capital null/zero changed")}
+	var country Country
+	if err := json.Unmarshal([]byte(`{"country":"US","iso_alpha3":"USA","capital":{"name":null,"latitude":0,"longitude":null}}`), &country); err != nil {
+		t.Fatal(err)
+	}
+	if country.Capital == nil || country.Capital.Latitude == nil || *country.Capital.Latitude != 0 || country.Capital.Longitude != nil || country.Capital.Name != nil {
+		t.Fatal("Capital null/zero changed")
+	}
+}
+
+func TestStateCountyISOCodePreservesExactPlaceAndCanonicalNull(t *testing.T) {
+	for _, body := range []string{`{"iso_code":null,"iso_subdivision":"US-CA","iso":"US-TX","iso_3166_2":"US-NY"}`, `{"iso_subdivision":"US-CA","iso":"US-TX","iso_3166_2":"US-NY","iso_code":null}`} {
+		var value State
+		if err := json.Unmarshal([]byte(body), &value); err != nil {
+			t.Fatal(err)
+		}
+		if value.ISOCode != nil || value.ISO != nil || value.ISO31662 != nil {
+			t.Fatal("canonical null lost")
+		}
+		encoded, _ := json.Marshal(value)
+		var raw map[string]json.RawMessage
+		if err := json.Unmarshal(encoded, &raw); err != nil {
+			t.Fatal(err)
+		}
+		if string(raw["iso_code"]) != "null" || raw["iso_subdivision"] != nil || raw["iso"] != nil || raw["iso_3166_2"] != nil {
+			t.Fatalf("duplicate ISO fact: %s", encoded)
+		}
+	}
+	var feature struct {
+		Properties County `json:"properties"`
+	}
+	if err := json.Unmarshal([]byte(`{"type":"Feature","properties":{"county":"E09000033","iso_code":"GB-WSM","type":"district"},"geometry":null}`), &feature); err != nil {
+		t.Fatal(err)
+	}
+	if feature.Properties.ISOCode == nil || *feature.Properties.ISOCode != "GB-WSM" || feature.Properties.County != "E09000033" || feature.Properties.Type == nil || *feature.Properties.Type != "district" {
+		t.Fatal("County ISO or national identity lost")
+	}
+	var list StateCounties
+	if err := json.Unmarshal([]byte(`{"counties":[{"county":"29","iso_code":"FR-29"},{"county":"08031","iso_code":null},{"county":"old"}]}`), &list); err != nil {
+		t.Fatal(err)
+	}
+	if len(list.Counties) != 3 || list.Counties[0].ISOCode == nil || *list.Counties[0].ISOCode != "FR-29" || list.Counties[1].ISOCode != nil || list.Counties[2].ISOCode != nil {
+		t.Fatal("County list ISO or null lost")
+	}
 }
